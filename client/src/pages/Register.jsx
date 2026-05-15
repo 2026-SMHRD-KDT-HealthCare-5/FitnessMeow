@@ -1,8 +1,15 @@
 import React  from 'react';
+import { useNavigate } from 'react-router-dom';
 import "../css/Register.css";
 import logoImg from "../assets/logo.png"; 
 
 const Register = () => {
+  const navigate = useNavigate();
+
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
   return (
     <div className="container">
       <div className="overlay"></div>
@@ -29,11 +36,11 @@ const Register = () => {
 
         {/* 하단 메뉴 */}
         <div className="bottom-menu">
-          <span>이미 계정이 있으신가요? <b>로그인하기</b></span>
+          <span>이미 계정이 있으신가요? <b onClick={handleLoginClick}>로그인하기</b></span>
         </div>
       </div>
     </div>
   );
 }
 
-export default Register;
+export default Register; // Register.jsx

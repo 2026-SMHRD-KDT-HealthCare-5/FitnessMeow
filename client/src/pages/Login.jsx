@@ -1,6 +1,7 @@
 import React from 'react';
 import "../css/Login.css";
 import logoimg from "../assets/logo.png";
+import { Link } from 'react-router-dom'; // Link 컴포넌트 임포트
 
 const Login = () => {
   return (
@@ -19,11 +20,11 @@ const Login = () => {
 
         {/* 또는 구분선 추가 */}
         <div className="divider">
-          <span>------------------------------또는------------------------------</span>
+          <span>-----------------------------또는-----------------------------</span>
         </div>
 
-        {/* 큰 회원가입 버튼 추가 */}
-        <button className="signup-btn">회원가입</button>
+        {/* 큰 회원가입 버튼을 Link 컴포넌트로 변경 */}
+        <Link to="/register" className="signup-btn">회원가입</Link>
 
         {/* 하단 메뉴 수정 (비밀번호 찾기 등) */}
         <div className="bottom-menu">
@@ -34,4 +35,4 @@ const Login = () => {
   );
 }
 
-export default Login;
+export default Login; // Login.jsx
