@@ -1,0 +1,47 @@
+/* src/css/Register.css */
+
+.register-card {
+  width: 420px;
+  padding: 40px 35px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+/* 입력 폼이 많아져 로고 간격을 최적화하여 카드가 화면을 벗어나지 않게 조정 */
+.register-card .logo {
+  width: 380px;
+  height: auto;
+  margin-top: -30px;
+  margin-bottom: -60px;
+  object-fit: contain;
+}
+
+/* [추가된 빨간색 경고 문구 스타일] */
+.register-card .error-text {
+  width: 100%;
+  color: #ff4d4d;       /* 경고용 빨간색 */
+  font-size: 13px;      /* 입력창보다 약간 작은 글씨 크기 */
+  text-align: left;     /* 왼쪽 정렬 */
+  margin-top: -10px;    /* 바로 위 input 창과의 간격 좁히기 */
+  margin-bottom: 12px;  /* 아래 항목과의 간격 확보 */
+  padding-left: 5px;    /* 입력창 텍스트 시작선과 정렬 일치 */
+  font-weight: 500;
+}
+
+/* 가입완료 버튼 여백 조정 */
+.register-card .login-btn {
+  margin-top: 10px;
+}
+
+/* 하단 문구 강조 처리 */
+.register-card .bottom-menu span b {
+  color: #ff8c42;
+  margin-left: 5px;
+  font-weight: bold;
+}
+
+.register-card .bottom-menu span:hover b {
+  text-decoration: underline;
+}
