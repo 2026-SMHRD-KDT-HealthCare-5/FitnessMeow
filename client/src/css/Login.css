@@ -1,0 +1,158 @@
+/* src/App.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Pretendard", sans-serif;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.container {
+  width: 100%;
+  height: 100vh;
+  background: #FEF7E8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.15) 2px,
+    transparent 2px
+  ), radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.login-card {
+  width: 420px;
+  padding: 40px 35px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+h1 {
+  color: #ff8c42; /* 왼쪽 원본 화면의 주황색 계열 타이틀 반영 */
+  font-size: 36px;
+  margin-bottom: 8px;
+  text-shadow: 2px 2px rgba(0, 0, 0, 0.05);
+}
+
+.logo {
+  width: 400px;
+  height: auto;
+  margin-bottom: -30px;
+  object-fit: contain;
+}
+
+.sub-text {
+  color: rgb(25, 22, 22);
+  margin-bottom: 30px;
+  opacity: 0.9;
+}
+
+input {
+  width: 100%;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 16px;
+}
+
+input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+}
+
+/* [공통 버튼 스타일 정의] */
+.login-btn, .signup-btn {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 14px; /* 기존 입력창과 통일된 둥근 모서리 유지 */
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.login-btn:hover, .signup-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* [로그인 버튼 전용 스타일] */
+.login-btn {
+  background: #ff8c42;
+  color: white;
+}
+
+.login-btn:hover {
+  background: #ff7420;
+}
+
+/* [또는 구분선 스타일 추가] */
+.divider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 18px 0; /* 입력창 여백과 대칭 정렬 */
+  color: #888888;
+  font-size: 14px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.divider::before {
+  margin-right: 15px;
+}
+
+.divider::after {
+  margin-left: 15px;
+}
+
+/* [회원가입 버튼 전용 스타일] */
+.signup-btn {
+  background: #ffffff;
+  color: #333333;
+  border: 1px solid #e0e0e0;
+}
+
+.signup-btn:hover {
+  background: #f9f9f9;
+}
+
+/* [하단 메뉴 스타일 수정] */
+.bottom-menu {
+  width: 100%;
+  display: flex;
+  justify-content: center; /* 단일 메뉴 배치를 위해 중앙 정렬로 변경 */
+  margin-top: 18px;
+  color: rgb(0, 0, 0);
+  font-size: 14px;
+}
+
+.bottom-menu span {
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.bottom-menu span:hover {
+  opacity: 1;
+}
