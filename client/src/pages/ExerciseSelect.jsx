@@ -1,13 +1,12 @@
 import React from 'react';
-import "./css/ExerciseSelect.css";
-import Navbar from "./Navbar";
+import "../css/ExerciseSelect.css";
 
-import squatCat from "./assets/s-cat.png"; // 스쿼트 고양이 이미지
-import pushupCat from "./assets/p-cat.png"; // 푸시업 고양이 이미지
-import lungeCat from "./assets/l-cat.png"; // 런지 고양이 이미지
-import coreIcon from "./assets/core-icon.png"; // 코어 강화 아이콘
-import lowerIcon from "./assets/leg-icon.png"; // 하체 강화 아이콘
-import upperIcon from "./assets/8icon.png"; // 상체 강화 아이콘
+import squatCat from "../assets/s-cat.png"; // 스쿼트 고양이 이미지
+import pushupCat from "../assets/p-cat.png"; // 푸시업 고양이 이미지
+import lungeCat from "../assets/l-cat.png"; // 런지 고양이 이미지
+import coreIcon from "../assets/core-icon.png"; // 코어 강화 아이콘
+import lowerIcon from "../assets/leg-icon.png"; // 하체 강화 아이콘
+import upperIcon from "../assets/8icon.png"; // 상체 강화 아이콘
 
 const ExerciseSelect = () => {
   return (
