@@ -1,80 +1,69 @@
 function lungesLogic(landmarks, width, height) {
-  const points = {
-    leftShoulder: getPoint(landmarks, 11, width, height),
-    rightShoulder: getPoint(landmarks, 12, width, height),
-    leftHip: getPoint(landmarks, 23, width, height),
-    rightHip: getPoint(landmarks, 24, width, height),
-    leftKnee: getPoint(landmarks, 25, width, height),
-    rightKnee: getPoint(landmarks, 26, width, height),
-    leftAnkle: getPoint(landmarks, 27, width, height),
-    rightAnkle: getPoint(landmarks, 28, width, height),
-    leftToe: getPoint(landmarks, 31, width, height),
-    rightToe: getPoint(landmarks, 32, width, height),
-  };
-
   const legAngles = {
-    left: angleBetween(points.leftHip, points.leftKnee, points.leftAnkle),
-    right: angleBetween(points.rightHip, points.rightKnee, points.rightAnkle),
+    left: angleBetween(
+      getPoint(landmarks, 23, width, height),
+      getPoint(landmarks, 25, width, height),
+      getPoint(landmarks, 27, width, height)
+    ),
+    right: angleBetween(
+      getPoint(landmarks, 24, width, height),
+      getPoint(landmarks, 26, width, height),
+      getPoint(landmarks, 28, width, height)
+    ),
   };
 
   const hipAngles = {
-    left: angleBetween(points.leftShoulder, points.leftHip, points.leftKnee),
-    right: angleBetween(points.rightShoulder, points.rightHip, points.rightKnee),
+    left: angleBetween(
+      getPoint(landmarks, 11, width, height),
+      getPoint(landmarks, 23, width, height),
+      getPoint(landmarks, 25, width, height)
+    ),
+    right: angleBetween(
+      getPoint(landmarks, 12, width, height),
+      getPoint(landmarks, 24, width, height),
+      getPoint(landmarks, 26, width, height)
+    ),
   };
 
   const leftPer = getPercent(legAngles.left, 85, 170);
   const rightPer = getPercent(legAngles.right, 85, 170);
-  const avgPer = (leftPer + rightPer) / 2;
 
-  const shoulderDist = Math.abs(points.leftShoulder.x - points.rightShoulder.x);
-  const hipDist = Math.abs(points.leftHip.x - points.rightHip.x);
-  const sideView = shoulderDist < width * 0.28 && hipDist < width * 0.22;
+  // 한쪽이 앞무릎(~90°), 반대쪽이 뒷무릎(~90°)인지 체크
+  const isLungeDown =
+    (legAngles.left >= 80 && legAngles.left <= 100) ||
+    (legAngles.right >= 80 && legAngles.right <= 100);
 
-  const stride = Math.abs(points.leftAnkle.x - points.rightAnkle.x);
-  const enoughStride = stride > width * 0.12;
-  const leftDepthGap = Math.abs(legAngles.left - 92);
-  const rightDepthGap = Math.abs(legAngles.right - 92);
-  const frontSide = leftDepthGap <= rightDepthGap ? 'left' : 'right';
-  const rearSide = frontSide === 'left' ? 'right' : 'left';
-  const frontKneeAngle = legAngles[frontSide];
-  const rearKneeAngle = legAngles[rearSide];
-  const frontHipAngle = hipAngles[frontSide];
-  const rearHipAngle = hipAngles[rearSide];
-  const frontKnee = points[`${frontSide}Knee`];
-  const frontToe = points[`${frontSide}Toe`];
-  const frontAnkle = points[`${frontSide}Ankle`];
+  // 서 있는 상태: 양쪽 다리가 펴짐
+  const isStanding =
+    legAngles.left > 155 && legAngles.right > 155;
 
-  const isStanding = legAngles.left > 155 && legAngles.right > 155;
-  const properDepth = frontKneeAngle >= 80 && frontKneeAngle <= 105;
-  const rearLegBent = rearKneeAngle >= 75 && rearKneeAngle <= 145;
-  const properTorso = frontHipAngle >= 145 || rearHipAngle >= 145;
-  const toeDirection = Math.sign(frontToe.x - frontAnkle.x);
-  const kneeOverToe = toeDirection !== 0 && (frontKnee.x - frontToe.x) * toeDirection > width * 0.03;
-  const properLungeForm = sideView && enoughStride && properDepth && rearLegBent && properTorso && !kneeOverToe;
-  const grade = properLungeForm ? '퍼펙트' : '그냥저냥';
+  const properTorso = hipAngles.left >= 160 || hipAngles.right >= 160;
+
+  // 런지 고유 grade 기준:
+  // 1. 몸통 직립 유지 (properTorso)
+  // 2. 앞무릎이 80~100도로 충분히 내려감 (isLungeDown)
+  // 3. 앞/뒷무릎 각도 차이가 30도 이상 (한 발이 확실히 앞으로 나간 상태)
+  const legAngleDiff = Math.abs(legAngles.left - legAngles.right);
+  const properLungeForm = isLungeDown && legAngleDiff >= 30;
+  const grade = properTorso && properLungeForm ? '퍼펙트' : '그냥저냥';
 
   let feedback = '';
 
-  if (!sideView) {
-    feedback = '옆모습을 보여주세요.';
-    return { count, dir, feedback, avgPer, grade };
-  }
-
-  if (properDepth && enoughStride && properTorso && dir === 0) {
+  // 내려갔을 때 (down)
+  if (isLungeDown && properTorso && dir === 0) {
     count += 0.5;
     dir = 1;
   }
 
+  // 올라왔을 때 (up)
   if (isStanding && dir === 1) {
     count += 0.5;
     dir = 0;
   }
 
-  if (!enoughStride) feedback = '발을 더 넓게 내딛으세요.';
-  else if (!properTorso) feedback = '몸통을 곧게 세우세요.';
-  else if (kneeOverToe) feedback = '앞무릎이 발끝보다 너무 앞으로 나갔습니다.';
-  else if (!rearLegBent && dir === 0) feedback = '뒤쪽 무릎도 함께 굽혀주세요.';
-  else if (!properDepth && dir === 0) feedback = '앞무릎이 90도에 가까워지도록 더 내려가세요.';
+  if (!properTorso) feedback = '몸통을 곧게 유지하세요!';
+  else if (isLungeDown && legAngleDiff < 30) feedback = '발을 더 넓게 내딛으세요!';
+  else if (!isLungeDown && dir === 0) feedback = '더 깊게 내려가세요!';
 
-  return { count, dir, feedback, avgPer, grade };
+  return { count, dir, feedback, avgPer: (leftPer + rightPer) / 2, grade };
 }
