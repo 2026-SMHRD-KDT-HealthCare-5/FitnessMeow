@@ -2,18 +2,26 @@
 .my-room-container {
   width: 100%;
   min-height: 100vh;
-  background-color: #faf7f2; /* 💡 운동선택 화면과 완벽 일치하는 포근한 미색 */
+  
+  /* ⭐️ 전역 흰색 변수를 완전히 누르고, 운동선택화면의 주황빛(#fffbf4) 강제 적용 */
+  background-color: #fffbf4 !important; 
+  
+  /* ⭐️ 팀원분의 흰색 땡땡이 도트 패턴도 마이룸에 그대로 복사 */
+  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 2px, transparent 2px), 
+                    radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px) !important;
+  background-size: 20px 20px, 15px 15px !important;
+  
   padding: 20px 20px 100px 20px; /* 상단 여백 및 하단 탭 공간 확보 */
   box-sizing: border-box;
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;       /* 내부 요소들을 무조건 중앙으로 정렬 */
+  align-items: center;           /* 내부 요소들을 무조건 중앙으로 정렬 */
 }
 
 /* ==================== ⚡️ 2. 핵심 반응형 알맹이 박스 ==================== */
 .responsive-content {
-  width: 100%;               /* 💡 큰 화면(PC)에서는 전체적으로 시원하게 늘어남 */
+  width: 100%;               /* 큰 화면(PC)에서는 전체적으로 시원하게 늘어남 */
   max-width: 1200px;         /* 너무 과하게 찢어지는 것만 방지 */
   margin: 0 auto;            /* 중앙 정렬 보장 */
 }
@@ -74,7 +82,7 @@
 
 /* ==================== 🏠 4. 마이룸 액자 상자 ==================== */
 .room-aspect-box {
-  position: relative; /* 💡 내부 퀘스트창과 고양이 absolute의 기준점 */
+  position: relative; /* 내부 퀘스트창과 고양이 absolute의 기준점 */
   width: 100%;
   border-radius: 24px;   /* 운동선택 카드와 일치하는 부드러운 라운딩 */
   overflow: hidden;   
@@ -149,10 +157,11 @@
   -webkit-text-stroke: none;     
   opacity: 0.6;                  
 }
+
 /* ==================== 🛠️ 6. 개발자용 임시 테스트 버튼 ==================== */
 .test-btn-box {
   margin-top: 12px;
-  pointer-events: auto; /* 터치/클릭 가능하게 해방 */
+  pointer-events: auto; 
 }
 .test-btn-box button {
   font-size: 11px;
@@ -168,6 +177,6 @@
 /* ==================== 📱 7. 모바일 전용 미세 조정 ==================== */
 @media (max-width: 500px) {
   .my-room-container {
-    padding: 16px 16px 90px 16px; /* 스마트폰 화면에서는 여백을 약간 당겨서 밀도 보완 */
+    padding: 16px 16px 90px 16px; 
   }
 }

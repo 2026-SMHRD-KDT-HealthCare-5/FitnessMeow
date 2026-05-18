@@ -1,72 +1,19 @@
-/* 1. 전체 앱 화면 틀 (울타리) */
-.lobby-container {
+.app-layout { /* 또는 프로젝트에 따라 .lobby-container */
   width: 100%;
   max-width: 430px;
   height: 100vh;
   max-height: 920px;
+  
+  /* ⭐️ 메인 뼈대에 배경색과 패턴을 한 번에 주입! */
   background-color: #fffbf4; 
+  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 2px, transparent 2px), 
+                    radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px, 15px 15px;
+  
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 0 20px rgba(0,0,0,0.1);
-  
-  /* ⭐️ absolute 자식들의 기준점이 됨 */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   position: relative; 
-}
-
-/* ==================== ⭐️ 퀘스트 레이어 최상단 고정 ==================== */
-
-.transparent-quest-overlay {
-  /* ⭐️ .lobby-container 좌측 상단을 기준으로 절대 배치 */
-  position: absolute; 
-  
-  /* ⭐️ 재화바(🍊츄르) 아래, 마이룸 왼쪽 빈 창문 쪽 공간에 안착하도록 위치 조정 */
-  top: 85px;         /* 위에서부터 85px 내림 (재화바 높이에 맞게 조절 가능) */
-  left: 28px;        /* 왼쪽 벽에서 28px 띄움 */
-  
-  /* ⭐️ 마이룸 컴포넌트나 이미지보다 무조건 '맨 위'에 뜨도록 레이어 순위 격상 */
-  z-index: 999;      
-  
-  /* ⭐️ 글씨가 마이룸 컴포넌트 안에서 찌그러지지 않도록 크기 확보 */
-  width: auto;
-  max-width: 180px;  /* 퀘스트 문장이 너무 길어져서 오른쪽 설정을 침범하지 않도록 제한 */
-  
-  /* 텍스트 배경 및 정렬 */
-  background: none;  
-  padding: 0;
-  text-align: left;
-  
-  /* 퀘스트 뒤에 있는 화면 클릭을 방해하지 않도록 터치 무시 설정 */
-  pointer-events: none; 
-}
-
-/* 퀘스트 대제목 */
-.quest-title {
-  font-size: 14px;
-  font-weight: 800;
-  color: #ffffff; 
-  margin: 0 0 6px 0;
-  letter-spacing: -0.3px;
-  /* 마이룸 벽지 색상이 밝아도 글씨가 뚜렷하게 보이도록 그림자 강화 */
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8), -1px -1px 3px rgba(0, 0, 0, 0.8);
-}
-
-/* 퀘스트 리스트 정렬 */
-.text-quest-list {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-/* 퀘스트 개별 텍스트 */
-.text-quest-item {
-  font-size: 12px;
-  font-weight: 600;
-  color: #ffffff; 
-  line-height: 1.4;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8);
-  
-  /* 글자가 영역을 벗어나서 따로 놀지 못하게 자동 줄바꿈 설정 */
-  word-wrap: break-word;
-  word-break: keep-all;
+  margin: 0 auto; 
 }

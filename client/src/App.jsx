@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BrowserRouter } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom' // 💡 여기에 있던 BrowserRouter 지우기!
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import MainLobby from './pages/MainLobby.jsx'
@@ -7,13 +7,20 @@ import ExerciseSelect from './pages/ExerciseSelect.jsx'
 
 function App() {
   return (
-    <BrowserRouter>
-      {/* 로비 컴포넌트가 하단바와 상단 화면 전환을 총괄하게 만듭니다 */}
-      {/* <Login/> */}
-      {/* <Register/> */}
-      {/* <ExerciseSelect /> */}
-      <MainLobby />
-    </BrowserRouter>
+    <Routes>
+      {/* 1. 처음 들어오면 로그인 페이지로 이동 */}
+      <Route path="/" element={<Navigate to="/login" />} />
+      
+      {/* 2. 로그인 및 회원가입 페이지 */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      
+      {/* 3. 메인 로비 홈 화면 */}
+      <Route path="/main" element={<MainLobby />} />
+      
+      {/* 4. 운동 선택 화면 개별 주소 */}
+      <Route path="/exerciseselect" element={<ExerciseSelect />} />
+    </Routes>
   )
 }
 
