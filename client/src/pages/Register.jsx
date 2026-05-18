@@ -43,4 +43,4 @@ const Register = () => {
   );
 }
 
-export default Register; // Register.jsx
+export default Register;
