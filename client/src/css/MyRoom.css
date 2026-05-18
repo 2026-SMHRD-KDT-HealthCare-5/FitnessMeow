@@ -1,0 +1,173 @@
+/* ==================== 📱 1. 마이룸 베이스 컨테이너 ==================== */
+.my-room-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #faf7f2; /* 💡 운동선택 화면과 완벽 일치하는 포근한 미색 */
+  padding: 20px 20px 100px 20px; /* 상단 여백 및 하단 탭 공간 확보 */
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;       /* 내부 요소들을 무조건 중앙으로 정렬 */
+}
+
+/* ==================== ⚡️ 2. 핵심 반응형 알맹이 박스 ==================== */
+.responsive-content {
+  width: 100%;               /* 💡 큰 화면(PC)에서는 전체적으로 시원하게 늘어남 */
+  max-width: 1200px;         /* 너무 과하게 찢어지는 것만 방지 */
+  margin: 0 auto;            /* 중앙 정렬 보장 */
+}
+
+/* ==================== 👑 3. 상단 헤더 영역 (프로필 & 재화) ==================== */
+.room-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+/* 👈 고양이 프로필 영역 */
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  padding: 4px 12px 4px 6px; 
+  border-radius: 24px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+  border: 1px solid rgba(0, 0, 0, 0.02);
+}
+
+.profile-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #FFEAD7; 
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.profile-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #2b2b2b;
+}
+
+/* 👉 우측 재화 영역 */
+.header-right {
+  display: flex;
+  align-items: center;
+  z-index: 20; 
+}
+
+.currency-box {
+  background: #ffffff;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #444444;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+  border: 1px solid rgba(0, 0, 0, 0.02);
+}
+
+/* ==================== 🏠 4. 마이룸 액자 상자 ==================== */
+.room-aspect-box {
+  position: relative; /* 💡 내부 퀘스트창과 고양이 absolute의 기준점 */
+  width: 100%;
+  border-radius: 24px;   /* 운동선택 카드와 일치하는 부드러운 라운딩 */
+  overflow: hidden;   
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+  border: 2px solid #f2ede4;
+}
+
+.room-background-img {
+  width: 100%;
+  height: auto;
+  display: block; 
+}
+
+.room-main-cat {
+  position: absolute;   
+  bottom: 15%;          
+  left: 50%;            
+  transform: translateX(-50%); 
+  width: 22%;           
+  height: auto;
+  z-index: 5;           
+}
+
+/* ==================== 🎯 5. 퀘스트 텍스트 HUD 스타일 ==================== */
+.transparent-quest-overlay {
+  position: absolute;
+  top: 16px;         
+  left: 18px;        
+  z-index: 15;       
+  width: auto;
+  max-width: 200px;  
+  background: none;
+  padding: 0;
+  text-align: left;
+  pointer-events: none; 
+  text-rendering: optimizeLegibility;
+}
+
+.quest-title {
+  font-size: 16px;       
+  font-weight: 800;      
+  color: #000000;        
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px; 
+  -webkit-text-stroke: 0.2px #000000; 
+  text-shadow: none; 
+}
+
+.text-quest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;             
+}
+
+.text-quest-item {
+  font-size: 13px;     
+  font-weight: 700;      
+  color: #111111;        
+  line-height: 1.4;
+  letter-spacing: -0.3px;
+  word-wrap: break-word;
+  word-break: keep-all;
+  text-shadow: none; 
+  -webkit-text-stroke: 0.1px #111111;
+}
+
+.text-quest-item.completed {
+  text-decoration: line-through; 
+  text-decoration-color: #000000; 
+  color: #888888;                
+  -webkit-text-stroke: none;     
+  opacity: 0.6;                  
+}
+/* ==================== 🛠️ 6. 개발자용 임시 테스트 버튼 ==================== */
+.test-btn-box {
+  margin-top: 12px;
+  pointer-events: auto; /* 터치/클릭 가능하게 해방 */
+}
+.test-btn-box button {
+  font-size: 11px;
+  padding: 4px 8px;
+  cursor: pointer;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 6px;
+  font-weight: bold;
+  color: #666;
+}
+
+/* ==================== 📱 7. 모바일 전용 미세 조정 ==================== */
+@media (max-width: 500px) {
+  .my-room-container {
+    padding: 16px 16px 90px 16px; /* 스마트폰 화면에서는 여백을 약간 당겨서 밀도 보완 */
+  }
+}
