@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import '../css/ExerciseSetting.css';
 import ExerciseSelect from './ExerciseSelect.jsx';
 import Exercise from './Exercise.jsx';
@@ -142,10 +143,11 @@ function ExerciseSettingForm({
   );
 }
 
-export default function ExerciseSetting() {
-  const [page, setPage] = useState('select');
-  const [selectedType, setSelectedType] = useState('squat');
-  const [exerciseSettings, setExerciseSettings] = useState(DEFAULT_SETTINGS);
+export default function ExerciseSetting({ page = 'select' }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [selectedType, setSelectedType] = useState(location.state?.selectedType || 'squat');
+  const [exerciseSettings, setExerciseSettings] = useState(location.state?.exerciseSettings || DEFAULT_SETTINGS);
 
   return (
     <>
@@ -153,7 +155,9 @@ export default function ExerciseSetting() {
         <ExerciseSelect
           onSelect={(type) => {
             setSelectedType(type);
-            setPage('setting');
+            navigate('/exercisesetting', {
+              state: { selectedType: type, exerciseSettings },
+            });
           }}
         />
       )}
@@ -162,12 +166,14 @@ export default function ExerciseSetting() {
         <ExerciseSettingForm
           selectedType={selectedType}
           initialSettings={exerciseSettings}
-          onBack={() => setPage('select')}
+          onBack={() => navigate('/exerciseselect')}
           onSettingsChange={(nextSettings) => setExerciseSettings(nextSettings)}
           onStart={(type, nextSettings) => {
             setSelectedType(type);
             setExerciseSettings(nextSettings);
-            setPage('exercise');
+            navigate('/exercise', {
+              state: { selectedType: type, exerciseSettings: nextSettings },
+            });
           }}
         />
       )}
@@ -176,7 +182,9 @@ export default function ExerciseSetting() {
         <Exercise
           type={selectedType}
           settings={exerciseSettings}
-          onBack={() => setPage('setting')}
+          onBack={() => navigate('/exercisesetting', {
+            state: { selectedType, exerciseSettings },
+          })}
         />
       )}
     </>

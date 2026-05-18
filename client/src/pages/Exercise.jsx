@@ -43,7 +43,7 @@ const EXERCISES = {
   },
 };
 
-const USER_BODY_INFO = {
+const EMPTY_BODY_INFO = {
   weightKg: '',
   heightCm: '',
 };
@@ -53,6 +53,19 @@ const CALORIE_COEFFICIENTS = {
   pushup: 0.0009,
   lunge: 0.0016,
 };
+
+const KOREAN_COUNT_LABELS = ['하나!', '둘!', '셋!', '넷!', '다섯!', '여섯!', '일곱!', '여덟!', '아홉!', '열!'];
+const KOREAN_TENS_LABELS = ['', '열', '스물', '서른', '마흔', '쉰', '예순', '일흔', '여든', '아흔'];
+
+function getKoreanCountLabel(countValue) {
+  if (countValue <= KOREAN_COUNT_LABELS.length) return KOREAN_COUNT_LABELS[countValue - 1];
+  if (countValue < 100) {
+    const tens = Math.floor(countValue / 10);
+    const ones = countValue % 10;
+    return `${KOREAN_TENS_LABELS[tens]}${ones > 0 ? KOREAN_COUNT_LABELS[ones - 1].replace('!', '') : ''}!`;
+  }
+  return `${countValue}!`;
+}
 
 function calcCalories(type, weightKg, heightCm, reps) {
   const h = heightCm / 100;
@@ -122,6 +135,7 @@ async function loadExerciseLogicFiles() {
 ${EXERCISE_LOGIC_HELPERS}
 let count = 0;
 let dir = 0;
+let repHadIssue = false;
 ${source}
 window.__fitnessMeowLogic = window.__fitnessMeowLogic || {};
 window.__fitnessMeowLogic.${type} = function runExerciseLogic(landmarks, width, height, state) {
@@ -154,6 +168,7 @@ function Exercise({ type = 'squat', settings, onBack }) {
   const screenFrameRef = useRef(null);
   const startTimeRef = useRef(null);
   const stateRef = useRef({ count: 0, dir: 0 });
+  const isRestingRef = useRef(false);
   const gradeCountsRef = useRef({ perfect: 0, normal: 0 });
   const [selectedType, setSelectedType] = useState(type);
   const previousTypeRef = useRef(type);
@@ -163,10 +178,15 @@ function Exercise({ type = 'squat', settings, onBack }) {
   const [feedback, setFeedback] = useState('준비');
   const [gradeText, setGradeText] = useState('완벽 0 보통 0');
   const [isCameraOn, setIsCameraOn] = useState(false);
+  const [isResting, setIsResting] = useState(false);
+  const [completedSets, setCompletedSets] = useState(0);
+  const [totalReps, setTotalReps] = useState(0);
+  const [restRemaining, setRestRemaining] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [isTypeMenuOpen, setIsTypeMenuOpen] = useState(false);
   const [message, setMessage] = useState('시작을 눌러 카메라를 켜세요.');
   const [rewardTick, setRewardTick] = useState(0);
+  const [bodyInfo, setBodyInfo] = useState(EMPTY_BODY_INFO);
 
   const exercise = useMemo(() => {
     return EXERCISES[selectedType] ?? EXERCISES.squat;
@@ -175,25 +195,25 @@ function Exercise({ type = 'squat', settings, onBack }) {
   const targetCount = settings?.reps || exercise.targetCount;
   const totalSets = settings?.sets || 1;
   const restTime = settings?.rest || 60;
-  const currentSet = Math.min(totalSets, Math.floor(count / targetCount) + 1);
   const progress = Math.min(100, ((count % targetCount) / targetCount) * 100);
-  const caloriesPerRep = calcCalories(selectedType, USER_BODY_INFO.weightKg, USER_BODY_INFO.heightCm, 1);
-  const restTimeText = `${String(Math.floor(restTime / 60)).padStart(2, '0')}:${String(restTime % 60).padStart(2, '0')}`;
+  const caloriesBurned = calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalReps);
+  const restDisplayTime = isResting ? restRemaining : restTime;
+  const restTimeText = `${String(Math.floor(restDisplayTime / 60)).padStart(2, '0')}:${String(restDisplayTime % 60).padStart(2, '0')}`;
   const resultStats = useMemo(() => {
     const perfect = gradeCountsRef.current.perfect;
     const normal = gradeCountsRef.current.normal;
-    const done = Math.max(0, count - perfect - normal);
+    const done = Math.max(0, totalReps - perfect - normal);
 
     return {
-      score: Math.min(999, 800 + count * 10 + perfect * 8),
-      calories: calcCalories(selectedType, USER_BODY_INFO.weightKg, USER_BODY_INFO.heightCm, count),
+      score: Math.min(999, 800 + totalReps * 10 + perfect * 8),
+      calories: calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalReps),
       perfect,
       normal,
       done,
-      exp: count,
+      exp: totalReps,
       chur: 300,
     };
-  }, [count, selectedType]);
+  }, [bodyInfo.heightCm, bodyInfo.weightKg, selectedType, totalReps]);
 
   const stopCamera = useCallback(() => {
     if (cameraRef.current) {
@@ -221,19 +241,26 @@ function Exercise({ type = 'squat', settings, onBack }) {
 
     startTimeRef.current = null;
     setIsCameraOn(false);
+    isRestingRef.current = false;
+    setIsResting(false);
+    setRestRemaining(0);
     setMessage('운동을 정지했습니다.');
   }, []);
 
   const updateExerciseState = useCallback((nextState) => {
+    if (isRestingRef.current) return;
+
     const previousCount = Math.floor(stateRef.current.count + 1e-6);
     const nextCount = Math.floor(nextState.count + 1e-6);
+    const didCompleteRep = nextCount > previousCount;
+    const didCompleteSet = didCompleteRep && nextCount >= targetCount;
 
     stateRef.current = {
       count: nextState.count,
       dir: nextState.dir,
     };
 
-    if (nextState.grade && nextCount > previousCount) {
+    if (nextState.grade && didCompleteRep) {
       if (nextState.grade === 'PERFECT' || nextState.grade === '퍼펙트') {
         gradeCountsRef.current.perfect += 1;
       }
@@ -242,16 +269,32 @@ function Exercise({ type = 'squat', settings, onBack }) {
       }
     }
 
-    if (nextCount > previousCount) {
+    if (didCompleteRep) {
       setRewardTick((tick) => tick + 1);
+      setTotalReps((reps) => reps + 1);
     }
 
-    setCount(nextCount);
-    setFeedback(nextState.feedback || '좋아요!');
+    if (didCompleteSet) {
+      stateRef.current = { count: 0, dir: 0 };
+      isRestingRef.current = true;
+      setCount(0);
+      setCompletedSets((sets) => Math.min(totalSets, sets + 1));
+      setRestRemaining(restTime);
+      setIsResting(true);
+      setFeedback('휴식하세요!');
+    } else {
+      setCount(nextCount);
+      if (nextState.feedback) {
+        setFeedback(nextState.feedback);
+      } else if (didCompleteRep) {
+        setFeedback(`${getKoreanCountLabel(nextCount)} 좋아요!`);
+      }
+    }
+
     setGradeText(
       `완벽 ${gradeCountsRef.current.perfect} 보통 ${gradeCountsRef.current.normal}`
     );
-  }, []);
+  }, [isResting, restTime, targetCount, totalSets]);
 
   const onResults = useCallback(
     (results) => {
@@ -406,6 +449,11 @@ function Exercise({ type = 'squat', settings, onBack }) {
     gradeCountsRef.current = { perfect: 0, normal: 0 };
     startTimeRef.current = isCameraOn ? performance.now() : null;
     setCount(0);
+    setCompletedSets(0);
+    setTotalReps(0);
+    setRestRemaining(0);
+    isRestingRef.current = false;
+    setIsResting(false);
     setElapsedTime(0);
     setFeedback('준비');
     setGradeText('완벽 0 보통 0');
@@ -419,6 +467,13 @@ function Exercise({ type = 'squat', settings, onBack }) {
     setShowResult(true);
   };
 
+  const skipRest = () => {
+    setRestRemaining(0);
+    isRestingRef.current = false;
+    setIsResting(false);
+    setFeedback('준비');
+  };
+
   const changeExerciseType = (nextType) => {
     setIsTypeMenuOpen(false);
     if (nextType === selectedType) return;
@@ -430,6 +485,11 @@ function Exercise({ type = 'squat', settings, onBack }) {
     previousTypeRef.current = nextType;
     setSelectedType(nextType);
     setCount(0);
+    setCompletedSets(0);
+    setTotalReps(0);
+    setRestRemaining(0);
+    isRestingRef.current = false;
+    setIsResting(false);
     setElapsedTime(0);
     setFeedback('준비');
     setGradeText('완벽 0 보통 0');
@@ -437,6 +497,21 @@ function Exercise({ type = 'squat', settings, onBack }) {
     setRewardTick(0);
     setMessage('운동이 변경되었습니다. 시작을 눌러 카메라를 켜세요.');
   };
+
+  useEffect(() => {
+    fetch('http://localhost:3001/api/auth/me', {
+      credentials: 'include',
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data.success) return;
+        setBodyInfo({
+          weightKg: data.data.weight,
+          heightCm: data.data.height,
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (previousTypeRef.current === type) return;
@@ -447,6 +522,11 @@ function Exercise({ type = 'squat', settings, onBack }) {
     gradeCountsRef.current = { perfect: 0, normal: 0 };
     startTimeRef.current = isCameraOn ? performance.now() : null;
     setCount(0);
+    setCompletedSets(0);
+    setTotalReps(0);
+    setRestRemaining(0);
+    isRestingRef.current = false;
+    setIsResting(false);
     setElapsedTime(0);
     setFeedback('준비');
     setGradeText('완벽 0 보통 0');
@@ -466,6 +546,25 @@ function Exercise({ type = 'squat', settings, onBack }) {
       clearInterval(timer);
     };
   }, [isCameraOn]);
+
+  useEffect(() => {
+    if (!isResting) return undefined;
+
+    if (restRemaining <= 0) {
+      isRestingRef.current = false;
+      setIsResting(false);
+      setFeedback('준비');
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setRestRemaining((remaining) => remaining - 1);
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isResting, restRemaining]);
 
   useEffect(() => {
     return () => {
@@ -518,18 +617,18 @@ function Exercise({ type = 'squat', settings, onBack }) {
           </div>
 
           <div className="exercise-counter-badge">
-            <small>{currentSet}/{totalSets} Set</small>
+            <small>{completedSets}/{totalSets} Set</small>
             <strong>{count}</strong>
             <span>/ {targetCount}</span>
             <em>횟수</em>
           </div>
 
-          <div className="exercise-feedback-badge">{feedback}</div>
+          <div key={feedback} className="exercise-feedback-badge">{feedback}</div>
 
           <div className="exercise-grade-badge">{gradeText}</div>
 
           <div className="exercise-reward-slot">
-            <strong>{count} EXP</strong>
+            <strong>{totalReps} EXP</strong>
             {rewardTick > 0 && (
               <span key={rewardTick} className="exercise-reward-pop">+1 EXP</span>
             )}
@@ -539,17 +638,23 @@ function Exercise({ type = 'squat', settings, onBack }) {
         <section className="exercise-info-bar">
           <div className="exercise-metric">
             <span className="metric-icon">K</span>
-            <strong>{caloriesPerRep}</strong>
-            <em>kcal/회</em>
+            <strong>{caloriesBurned}</strong>
+            <em>kcal</em>
           </div>
           <div className="exercise-metric exercise-metric--center">
             <span className="metric-icon">T</span>
             <strong>{String(Math.floor(elapsedTime / 60)).padStart(2, '0')}:{String(elapsedTime % 60).padStart(2, '0')}</strong>
           </div>
-          <div className="exercise-rest">
+          <button
+            type="button"
+            className="exercise-rest"
+            onClick={skipRest}
+            disabled={!isResting}
+            aria-label="휴식"
+          >
             <span>휴식</span>
             <strong>{restTimeText}</strong>
-          </div>
+          </button>
         </section>
 
         <div className="exercise-progress">
@@ -590,12 +695,12 @@ function Exercise({ type = 'squat', settings, onBack }) {
             <button
               type="button"
               className="exercise-control-button exercise-control-button--pause"
-              onClick={stopCamera}
-              aria-label="일시정지"
-              title="일시정지"
+              onClick={isResting ? skipRest : stopCamera}
+              aria-label={isResting ? '휴식 건너뛰기' : '일시정지'}
+              title={isResting ? '휴식 건너뛰기' : '일시정지'}
             >
               <span className="exercise-control-icon" aria-hidden="true">Ⅱ</span>
-              <span>일시정지</span>
+              <span>{isResting ? '휴식 건너뛰기' : '일시정지'}</span>
             </button>
           )}
           {isCameraOn && (

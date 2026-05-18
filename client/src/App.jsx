@@ -9,7 +9,9 @@ function App() {
       <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/exerciseselect" element={<ExerciseSetting />} />
+      <Route path="/exerciseselect" element={<ExerciseSetting page="select" />} />
+      <Route path="/exercisesetting" element={<ExerciseSetting page="setting" />} />
+      <Route path="/exercise" element={<ExerciseSetting page="exercise" />} />
     </Routes>
   )
 }
