@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom' // 💡 여기에 있던 BrowserRouter 지우기!
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import MainLobby from './pages/MainLobby.jsx'
