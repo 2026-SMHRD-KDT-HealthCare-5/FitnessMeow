@@ -4,6 +4,8 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import MainLobby from './pages/MainLobby.jsx'
 import ExerciseSelect from './pages/ExerciseSelect.jsx'
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Result from './pages/Result.jsx'
 
 function App() {
   return (
