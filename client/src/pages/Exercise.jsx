@@ -362,7 +362,11 @@ function Exercise({ type = 'squat', settings, onBack }) {
 
       const camera = new window.Camera(videoRef.current, {
         onFrame: async () => {
-          await pose.send({ image: videoRef.current });
+          try {
+            await pose.send({ image: videoRef.current });
+          } catch {
+            setMessage('자세 인식 중 오류가 발생했습니다.');
+          }
         },
         width: 640,
         height: 480,
@@ -386,7 +390,11 @@ function Exercise({ type = 'squat', settings, onBack }) {
     if (!video || !pose || video.paused || video.ended) return;
 
     if (video.videoWidth > 0 && video.videoHeight > 0) {
-      await pose.send({ image: video });
+      try {
+        await pose.send({ image: video });
+      } catch {
+        setMessage('자세 인식 중 오류가 발생했습니다.');
+      }
     }
 
     screenFrameRef.current = requestAnimationFrame(processScreenFrame);
