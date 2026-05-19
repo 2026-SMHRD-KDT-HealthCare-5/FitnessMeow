@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import "../css/Register.css";
 import logoImg from "../assets/logo.png"; 
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const Register = () => {
 
@@ -66,7 +67,7 @@ const [error,setError]= useState('');
       
       <div className="register-card">
         <img src={logoImg} className="logo" alt="Logo" />
-        <p className="sub-text">운동하고 고양이를 키워보세요 🐾</p>
+  
         
         <input type="text" name="id" placeholder="아이디 입력" value={form.id} onChange={handleChange} />
         <input type="password" name="password" placeholder="비밀번호 입력" value={form.password} onChange={handleChange} />
@@ -80,7 +81,7 @@ const [error,setError]= useState('');
 
         {/* 하단 메뉴 */}
         <div className="bottom-menu">
-          <span>이미 계정이 있으신가요? <b onClick={handleLoginClick}>로그인하기</b></span>
+          <span>이미 계정이 있으신가요?  <Link to="/login">로그인하기</Link></span>
         </div>
       </div>
     </div>

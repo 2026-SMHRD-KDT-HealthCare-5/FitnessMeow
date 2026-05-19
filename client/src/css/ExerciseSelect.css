@@ -1,5 +1,39 @@
 /* src/css/ExerciseSelect.css */
 
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top, #fff5e7 0%, #f6f2ee 100%);
+  position: relative;
+  padding: 20px;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  pointer-events: none;
+}
+
+.login-card {
+  box-sizing: border-box;
+  width: min(100%, 520px);
+  background: #ffffff;
+  border-radius: 32px;
+  padding: 26px;
+  box-shadow: 0 22px 45px rgba(33, 32, 40, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  z-index: 10;
+}
+
 /* 로그인 h1의 스타일을 계승받아 부드럽고 매끄러운 주황색 외곽선 타이틀 적용 */
 .select-title {
   color: #ff8c42;
@@ -9,6 +43,14 @@
   margin-bottom: 8px;
   text-shadow: 2px 2px rgba(0, 0, 0, 0.05);
   letter-spacing: -1px;
+}
+
+.sub-text {
+  color: #6a6d7d;
+  font-size: 14px;
+  margin-top: 0;
+  margin-bottom: 20px;
+  line-height: 1.5;
 }
 
 /* 폼 안에서 세로로 정렬되는 카드 리스트 박스 */
@@ -23,6 +65,7 @@
 
 /* 💡 화면이 텅 비어 보이지 않도록 높이를 110px -> 135px로 키우고 볼륨감 부여 */
 .exercise-card {
+  box-sizing: border-box;
   width: 100%;
   height: 135px; 
   border-radius: 22px;
@@ -32,6 +75,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   background: white;
   transition: 0.2s;
+  cursor: pointer;
 }
 
 .exercise-card:hover {
