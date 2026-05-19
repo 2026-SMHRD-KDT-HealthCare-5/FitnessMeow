@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom' // 💡 여기에 있던 BrowserRouter 지우기!
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import MainLobby from './pages/MainLobby.jsx'
 import ExerciseSelect from './pages/ExerciseSelect.jsx'
+import Result from './pages/Result.jsx'
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
       <Route path="/register" element={<Register />} />
       
       {/* 3. 메인 로비 홈 화면 */}
-      <Route path="/main" element={<MainLobby />} />
+      <Route path="/mainlobby" element={<MainLobby />} />
       
       {/* 4. 운동 선택 화면 개별 주소 */}
       <Route path="/exerciseselect" element={<ExerciseSelect />} />

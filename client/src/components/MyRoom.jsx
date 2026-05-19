@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import Quest from "./Quest.jsx"; 
 import Shop from "./Shop.jsx";   
+import { useLocation } from "react-router-dom";
 import "../css/MyRoom.css"; 
 import catImg from "../assets/eximage.png"; 
 import profileCatImg from "../assets/eximage.png"; 
@@ -13,10 +14,12 @@ import ball1Img from '../assets/ball1.png';
 import ball2Img from '../assets/ball2.png';
 import ball3Img from '../assets/ball3.png';
 
-const MyRoom = ({ currentTab }) => {
-  const [userCoins, setUserCoins] = useState(5000); 
-  const [catName, setCatName] = useState("치즈");   
-  const [equippedItems, setEquippedItems] = useState([]);
+
+const MyRoom = () => {
+
+  //----------------------------------------------------------------
+
+const [equippedItems, setEquippedItems] = useState([]);
   
   // 🌟 [추가] 탭을 이동해도 구매 내역이 유지되도록 상점 아이템 상태를 부모가 관리합니다.
   const [shopItems, setShopItems] = useState({
@@ -33,10 +36,17 @@ const MyRoom = ({ currentTab }) => {
       { id: 204, name: '우아한 샴', price: 5000, img: '🐱', unlocked: false, equipped: false },
     ]
   });
+  //---------------------------------------------------------------------------------
   
   const dragItemIdx = useRef(null);
   const roomRef = useRef(null);
 
+  const [userCoins, setUserCoins] = useState(0); 
+  const [catName, setCatName] = useState("치즈");   
+  const location = useLocation();
+  const [currentTab, setCurrentTab] = useState("home");
+
+  // 퀘스트 완료 테스트용
   const handleReward = (amount) => {
     setUserCoins((prev) => prev + amount);
   };
@@ -72,6 +82,8 @@ const MyRoom = ({ currentTab }) => {
       <div className="responsive-content">
         
         <div className="room-top-header">
+
+          {/*프로필: 나중에 사용자가 원하는 프로필로 수정 가능 */}
           <div className="profile-section">
             <img src={profileCatImg} alt="고양이 프로필" className="profile-avatar" />
             <span className="profile-name">{catName}</span>
