@@ -100,6 +100,7 @@ const ExerciseSelect = ({ onSelect = () => {} }) => {
           </div>
         </div>
       </div>
+      <Navbar currentTab="exercise" onSelect={handleSelect} />
     </div>
   );
 };

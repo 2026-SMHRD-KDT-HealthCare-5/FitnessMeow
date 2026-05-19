@@ -7,15 +7,17 @@ import catImg from "../assets/eximage.png";
 import profileCatImg from "../assets/eximage.png"; 
 import roomBg from "../assets/room-bg.png"; 
 import coinImg from "../assets/coin.png"; 
+import Navbar from "./Navbar.jsx";
 
 // 🌟 가구 이미지 임포트 (Shop에서 MyRoom으로 이동)
 import catTowerImg from '../assets/cattower.png';
 import ball1Img from '../assets/ball1.png';
 import ball2Img from '../assets/ball2.png';
 import ball3Img from '../assets/ball3.png';
+// import assets from '../assets/assets.js';
+// const { catTowerImg, ball1Img, ball2Img, ball3Img } = assets;
 
-
-const MyRoom = () => {
+const MyRoom = ({ initialTab = "home" }) => {
 
   //----------------------------------------------------------------
 
@@ -44,7 +46,7 @@ const [equippedItems, setEquippedItems] = useState([]);
   const [userCoins, setUserCoins] = useState(0); 
   const [catName, setCatName] = useState("치즈");   
   const location = useLocation();
-  const [currentTab, setCurrentTab] = useState("home");
+  const [currentTab, setCurrentTab] = useState(initialTab);
 
   // 퀘스트 완료 테스트용
   const handleReward = (amount) => {
@@ -80,7 +82,7 @@ const [equippedItems, setEquippedItems] = useState([]);
   return (
     <div className="my-room-container">
       <div className="responsive-content">
-        
+        <Navbar />
         <div className="room-top-header">
 
           {/*프로필: 나중에 사용자가 원하는 프로필로 수정 가능 */}

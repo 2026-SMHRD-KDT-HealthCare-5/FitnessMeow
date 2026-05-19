@@ -1,58 +1,43 @@
-:root {
-  --main-orange: #ff823a;
-  --point-purple: #bc84ee;
-  --bg-cream: #fffbf4;
-}
-
-/* 1. 플로팅 상점 컨테이너 */
 .shop-fixed-container {
   position: fixed;
-  left: 0;
   right: 0;
-  margin: 0 auto;
-  width: 92%;
-  max-width: 600px; 
-  bottom: 85px; 
-  
-  /* ⭐️ 상점 전체 높이 */
-  height: 190px; 
-  background: rgba(255, 251, 244, 0.98); 
-  
-  border-radius: 24px; 
+  top: 0;
+  bottom: 70px; /* 네비바 높이만큼 */
+  width: 140px;
+  background: rgba(255, 251, 244, 0.98);
+  border-radius: 24px 0 0 24px;
   border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); 
-  
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  padding: 14px 0; /* 내부 스크롤 확보를 위해 상하 패딩 미세 축소 */
+  padding: 14px 0;
   box-sizing: border-box;
   z-index: 9998;
-  
-  animation: popUp 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+  animation: slideIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.15);
 }
 
-@keyframes popUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+@keyframes slideIn {
+  from { transform: translateX(140px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
-/* 2. 상단 카테고리 탭 */
+/* 카테고리 탭 - 세로로 */
 .shop-categories {
   display: flex;
+  flex-direction: column;
   background: rgba(0, 0, 0, 0.04);
   padding: 4px;
   border-radius: 14px;
-  margin: 0 auto 10px auto; /* 아래 간격 미세 축소 */
-  width: 92%;
+  margin: 0 8px 10px 8px;
 }
 
 .shop-categories button {
   flex: 1;
   background: none;
   border: none;
-  padding: 8px 0; 
+  padding: 8px 0;
   border-radius: 10px;
-  font-size: 14px; 
+  font-size: 11px;
   font-weight: bold;
   color: #777777;
   cursor: pointer;
@@ -65,27 +50,26 @@
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* 3. 아이템 가로 스크롤 영역 */
+/* 아이템 세로 스크롤 */
 .shop-item-list {
   display: flex;
-  gap: 12px; 
-  padding: 0 20px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-width: none;
-  /* ⭐️ 카드가 찌그러지지 않고 자기 높이를 가질 수 있도록 확보 */
-  flex: 1; 
+  flex: 1;
 }
+
 .shop-item-list::-webkit-scrollbar {
   display: none;
 }
 
-/* 4. 아이템 카드 디자인 */
+/* 아이템 카드 */
 .shop-item-card {
-  min-width: 105px; 
-  /* ⭐️ 상점 전체 높이(190px) 안에서 삐져나가지 않도록 110px -> 100px로 최적화 */
-  height: 100px;     
+  width: 100%;
+  height: 110px;
   background: #ffffff;
   border-radius: 18px;
   display: flex;
@@ -97,6 +81,7 @@
   transition: all 0.2s ease;
   border: 2px solid transparent;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .shop-item-card:hover {
@@ -109,33 +94,25 @@
   background: #faf5ff;
 }
 
-.shop-item-card.locked {
-  background: #f5f5f5;
-  filter: grayscale(1);
-  opacity: 0.4;
-}
-
-/* 이모지 크기 */
 .item-icon {
-  font-size: 28px; /* 카드 높이에 맞춰 34px -> 28px로 최적화 */
+  font-size: 28px;
   margin-bottom: 4px;
 }
 
-/* 아이템 텍스트 크기 */
 .item-name {
-  font-size: 11px; /* 12px -> 11px */
+  font-size: 10px;
   color: #222222;
   margin: 0 0 4px 0;
   font-weight: bold;
+  text-align: center;
 }
 
-/* 5. 🪙 게임 재화 코인 레이아웃 */
 .item-price {
-  font-size: 11px; 
+  font-size: 10px;
   color: var(--main-orange);
   font-weight: 800;
   background: rgba(255, 130, 58, 0.08);
-  padding: 2px 8px; 
+  padding: 2px 6px;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -143,13 +120,10 @@
   gap: 3px;
 }
 
-/* 🌟 [추가 된 부분] 카드 안의 츄르코인 png 이미지 스타일링 */
 .item-price .currency-img {
-  width: 14px !important;    /* 글자 크기(11px)에 맞춰 앙증맞고 깔끔하게 세팅 */
-  height: 14px !important;   /* 1:1 비율 유지 */
+  width: 12px !important;
+  height: 12px !important;
   object-fit: contain;
-  display: inline-block;
-  vertical-align: middle;
 }
 
 .shop-item-card.equipped .item-price,
@@ -157,31 +131,11 @@
   color: var(--point-purple);
   background: rgba(188, 132, 238, 0.08);
 }
-/* 상점 내부 상단 보유 코인 HUD */
-.shop-user-coin-hud {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0 24px;
-  margin-bottom: 6px;
-  font-size: 12px;
-  color: #666;
-}
-.shop-user-coin-hud .currency-img {
-  width: 14px !important;
-  height: 14px !important;
-  margin: 0 4px;
-}
-.shop-user-coin-hud strong {
-  color: var(--main-orange);
-  font-weight: 800;
-}
-/* 🌟 실제 이미지(cattower, ball1~3) 크기 및 여백 조절 */
+
 .item-icon .shop-item-png {
-  width: 32px !important;    /* 40px에서 32px로 줄여서 여백 확보 */
+  width: 32px !important;
   height: 32px !important;
-  object-fit: contain;      /* 이미지 비율 깨짐 방지 */
+  object-fit: contain;
   display: block;
   margin: 0 auto;
-  padding: 2px;             /* 이미지 주변에 미세한 공백을 줘서 덜 꽉 차 보이게 함 */
 }

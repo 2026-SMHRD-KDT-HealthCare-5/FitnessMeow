@@ -7,6 +7,9 @@ import MainLobby from './pages/MainLobby.jsx'
 import ExerciseSelect from './pages/ExerciseSelect.jsx'
 import Result from './pages/Result.jsx'
 import ExerciseSetting from './pages/ExerciseSetting.jsx'
+import Profile from './pages/Profile.jsx'
+import Collection from './pages/Collection.jsx'
+import MyRoom from './components/MyRoom.jsx'
 
 function App() {
   return (
@@ -26,6 +29,10 @@ function App() {
       <Route path="/exercisesetting" element={<ExerciseSetting page="setting" />} />
       <Route path="/exercise"        element={<ExerciseSetting page="exercise" />} />
 
+      {/* 5. 프로필 페이지 */}
+      <Route path="/info" element={<Profile />} />
+      <Route path="/collection" element={<Collection />} />
+      <Route path="/shop" element={<MyRoom initialTab="shop" />} />
     </Routes>
   )
 }
