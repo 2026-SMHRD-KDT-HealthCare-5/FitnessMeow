@@ -1,8 +1,11 @@
 import React from 'react';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import "../css/Login.css";
 import logoimg from "../assets/logo.png";
+import { Link } from 'react-router-dom'; // Link 컴포넌트 임포트
+
+
 
 const Login = () => {
   const [id, setId] = useState('');
