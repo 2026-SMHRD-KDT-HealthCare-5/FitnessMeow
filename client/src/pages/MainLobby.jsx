@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import MyRoom from "../components/MyRoom.jsx"; 
 import ExerciseSelect from "./ExerciseSelect.jsx"; 
+// ⭐️ 1. 컴포넌트 폴더에 있는 진짜 네비게이션 바 가져오기 (파일명에 맞게 수정하세요!)
 import Navbar from "../components/Navbar.jsx"; 
-// 💡 이제 MyRoom 안에서 Shop을 직접 열기 때문에 여기서 중복 임포트한 Shop은 지워도 됩니다!
 import "../App.css"; 
 
 const MainLobby = () => {
-  // 현재 선택된 탭 상태 관리 (기본값: 홈)
   const [currentTab, setCurrentTab] = useState("home");
 
   return (
