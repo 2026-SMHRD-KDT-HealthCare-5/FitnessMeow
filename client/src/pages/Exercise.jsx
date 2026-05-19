@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useWorkout } from '../context/WorkoutContext.jsx';
 import '../css/Exercise.css';
 
 const MEDIAPIPE_SCRIPTS = [
@@ -160,7 +162,10 @@ const LOGIC_BY_TYPE = {
   lunge: 'lunge',
 };
 
-function Exercise({ type = 'squat', settings, onBack }) {
+function Exercise({ type = 'squat', settings, onBack, onFinish }) {
+  const navigate = useNavigate();
+  const { setWorkout } = useWorkout();
+  
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const poseRef = useRef(null);
@@ -275,10 +280,24 @@ function Exercise({ type = 'squat', settings, onBack }) {
     }
 
     if (didCompleteSet) {
+      const nextCompletedSets = Math.min(totalSets, completedSets + 1);
+
+      if (nextCompletedSets >= totalSets) {
+        stopCamera();
+        onFinish?.({
+          exercise_key: selectedType,
+          sets: totalSets,
+          reps: targetCount,
+          totalReps: totalReps + 1,
+          ...resultStats,
+        });
+        return;
+      }
+
       stateRef.current = { count: 0, dir: 0 };
       isRestingRef.current = true;
       setCount(0);
-      setCompletedSets((sets) => Math.min(totalSets, sets + 1));
+      setCompletedSets(nextCompletedSets);
       setRestRemaining(restTime);
       setIsResting(true);
       setFeedback('휴식하세요!');
@@ -294,7 +313,7 @@ function Exercise({ type = 'squat', settings, onBack }) {
     setGradeText(
       `완벽 ${gradeCountsRef.current.perfect} 보통 ${gradeCountsRef.current.normal}`
     );
-  }, [isResting, restTime, targetCount, totalSets]);
+  }, [completedSets, isResting, onFinish, restTime, resultStats, selectedType, stopCamera, targetCount, totalReps, totalSets]);
 
   const onResults = useCallback(
     (results) => {
@@ -472,7 +491,37 @@ function Exercise({ type = 'squat', settings, onBack }) {
 
   const finishExercise = () => {
     stopCamera();
-    setShowResult(true);
+    
+    const workoutData = {
+      exercise_key: selectedType,
+      sets: totalSets,
+      reps: targetCount,
+      totalReps,
+      perfect: gradeCountsRef.current.perfect,
+      normal: gradeCountsRef.current.normal,
+      calories: resultStats.calories,
+    };
+
+    // POST /api/workouts 호출
+    fetch('http://localhost:3001/api/workouts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(workoutData),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        // Context에 저장
+        setWorkout(data.data || workoutData);
+        // Result 페이지로 이동
+        navigate('/result');
+      })
+      .catch((err) => {
+        console.error('운동 저장 실패:', err);
+        // 실패해도 일단 Result로 이동
+        setWorkout(workoutData);
+        navigate('/result');
+      });
   };
 
   const skipRest = () => {

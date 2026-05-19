@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useWorkout } from '../context/WorkoutContext.jsx';
 import "../css/Result.css";
 
 /* ════════════════════════════════════════════
@@ -119,151 +120,52 @@ function calcActualGain(postAccum, rawGain) {
 ════════════════════════════════════════════ */
 const Result = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { workoutData } = useWorkout();
 
-  /*
-    ── 운동 화면에서 useLocation으로 받는 데이터 ──
-    exercise_key : 'pushup' | 'lunge' | 'squat'
-    sets         : 세트 수
-    reps         : 세트당 반복 횟수
-
-    TODO: 정확도 평가 연동 시 아래 항목 추가 수신
-    perfect / good / done
-  */
+  // Context에서 운동 데이터 가져오기
   const {
     exercise_key = 'pushup',
-    sets         = 2,
-    reps         = 15,
-  } = location.state ?? {};
+    sets = 1,
+    reps = 15,
+    totalReps = 15,
+    perfect = 0,
+    normal = 0,
+    calories = 0,
+  } = workoutData ?? {};
 
-  const totalReps = sets * reps;
-
-  // ── 백엔드 응답 상태 ──
-  const [character, setCharacter] = useState(null);
-  const [prevLevel, setPrevLevel] = useState(null);
-  const [userInfo,  setUserInfo]  = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [apiError,  setApiError]  = useState(null);
-  const [barReady,  setBarReady]  = useState(false);
-
-  // ── API 호출 ──
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // TODO: user_idx를 인증 컨텍스트에서 가져오도록 수정
-        const user_idx = 1; // 임시 하드코딩
-
-        const [charRes, userRes] = await Promise.all([
-          /*
-            GET /api/characters/:user_idx
-            응답 예시:
-            {
-              character: {
-                animal_type : 'cat',
-                level       : '3',       ← 운동 반영 후 레벨
-                arm_exp     : 250,       ← 운동 반영 후 EXP (상한 250 적용)
-                chest_exp   : 180,
-                core_exp    : 250,
-                lower_exp   : 230
-              },
-              prev_level: '2'            ← 운동 직전 레벨
-            }
-
-            TODO: 정확한 실제 획득량 표시를 위해 prev_exp_map 추가 반환 요청
-            prev_exp_map: { arm_exp: 240, chest_exp: 150, ... }
-          */
-          fetch(`/api/characters/${user_idx}`),
-
-          /*
-            GET /api/users/:user_idx
-            응답 예시: { weight: 70.5, height: 175.0 }
-          */
-          fetch(`/api/users/${user_idx}`),
-        ]);
-
-        if (!charRes.ok || !userRes.ok) throw new Error('API 응답 오류');
-
-        const charData = await charRes.json();
-        const userData = await userRes.json();
-
-        setCharacter(charData.character);
-        setPrevLevel(charData.prev_level ?? charData.character.level);
-        setUserInfo(userData);
-      } catch (err) {
-        console.error('[Result] 데이터 로딩 실패:', err);
-        setApiError('데이터를 불러오지 못했습니다.');
-      } finally {
-        setIsLoading(false);
-        setTimeout(() => setBarReady(true), 150);
-      }
-    };
-
-    fetchData();
-  }, []);
+  // 임시 캐릭터 정보 (나중에 API로 연동)
+  const [character, setCharacter] = useState({
+    animal_type: 'cat',
+    level: '1',
+    arm_exp: 0,
+    chest_exp: 0,
+    core_exp: 0,
+    lower_exp: 0,
+  });
+  const [prevLevel] = useState('1');
+  const [isLoading, setIsLoading] = useState(false);
+  const [barReady, setBarReady] = useState(true);
 
   // ── 파생 계산값 ──
-
-  // 칼로리: 체중 × 총 횟수 × 운동별 상수
-  const calories = userInfo
-    ? calcCalories(exercise_key, totalReps, userInfo.weight)
-    : null;
-
-  // 총 점수 (TODO: 정확도 연동 후 실제 값 교체 → 현재 고정 40점)
-  const score = calcScore(0, 0, totalReps);
-
-  // 츄르: 1회당 1츄르
+  const done = Math.max(0, totalReps - perfect - normal);
+  const score = calcScore(perfect, normal, done);
   const churu = totalReps;
 
-  // 레벨업 여부: prev_level ≠ current level (백엔드에서 전 부위 250 도달 시에만 레벨업 처리)
-  const isLevelUp = character !== null
-    && prevLevel  !== null
-    && character.level !== prevLevel;
-
-  // 이번 운동으로 EXP 오른 부위
+  // ── 임시: 레벨업 없음 ──
+  const isLevelUp = false;
   const affectedParts = EXERCISE_EXP_MAP[exercise_key] ?? [];
-
-  // EXP 바 데이터
   const expBarData = affectedParts.map((part) => {
-    const meta        = EXP_PART_META[part];
-    const accumulated = Math.min(character?.[meta.dbKey] ?? 0, LEVEL_MAX_EXP); // 상한 보정
-    const actualGain  = calcActualGain(accumulated, totalReps);                // 실제 획득량
-    const isMaxed     = accumulated >= LEVEL_MAX_EXP;                          // 상한 도달 여부
-    const barWidth    = `${(accumulated / LEVEL_MAX_EXP) * 100}%`;
-
-    return { ...meta, accumulated, actualGain, isMaxed, barWidth };
+    const meta = EXP_PART_META[part];
+    const accumulated = 0;
+    const barWidth = '0%';
+    return { ...meta, accumulated, barWidth };
   });
 
-  // 동물 이미지 — fallback으로 레벨 1 이미지 사용
-  const animalType   = character?.animal_type ?? 'cat';
-  const currentLevel = character?.level       ?? '1';
-  const animalMap    = ANIMAL_IMAGES[animalType] ?? ANIMAL_IMAGES['cat'];
-  const currentImg   = animalMap[currentLevel]              ?? catLv1;
-  const prevImg      = animalMap[prevLevel ?? currentLevel] ?? catLv1;
-
-  // ── 로딩 ──
-  if (isLoading) {
-    return (
-      <div className="container">
-        <div className="overlay" />
-        <p className="status-text">결과 불러오는 중…</p>
-      </div>
-    );
-  }
-
-  // ── 에러 ──
-  if (apiError) {
-    return (
-      <div className="container">
-        <div className="overlay" />
-        <div className="error-wrap">
-          <p className="status-text error">{apiError}</p>
-          <button className="btn-primary btn-full" onClick={() => navigate('/exerciseselect')}>
-            로비로 돌아가기
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const animalType = character?.animal_type ?? 'cat';
+  const currentLevel = character?.level ?? '1';
+  const animalMap = ANIMAL_IMAGES[animalType] ?? ANIMAL_IMAGES['cat'];
+  const currentImg = animalMap[currentLevel] ?? catLv1;
+  const prevImg = animalMap[prevLevel ?? currentLevel] ?? catLv1;
 
   // ── 메인 렌더 ──
   return (

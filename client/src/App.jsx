@@ -3,10 +3,13 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import MainLobby from './pages/MainLobby.jsx'
 import ExerciseSetting from './pages/ExerciseSetting.jsx'
+import Result from './pages/Result.jsx'
+import { WorkoutProvider } from './context/WorkoutContext.jsx'
 
 function App() {
   return (
-    <Routes>
+    <WorkoutProvider>
+      <Routes>
       {/* 1. 처음 들어오면 로그인 페이지로 이동 */}
       <Route path="/" element={<Navigate to="/login" />} />
       
@@ -21,7 +24,9 @@ function App() {
       <Route path="/exerciseselect" element={<ExerciseSetting page="select" />} />
       <Route path="/exercisesetting" element={<ExerciseSetting page="setting" />} />
       <Route path="/exercise" element={<ExerciseSetting page="exercise" />} />
-    </Routes>
+      <Route path="/result" element={<Result />} />
+      </Routes>
+    </WorkoutProvider>
   )
 }
 

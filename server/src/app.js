@@ -4,6 +4,7 @@ const session = require('express-session');
 
 
 const authRoutes = require('./routes/auth.routes');
+const workoutsRoutes = require('./routes/workouts.routes');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use(session({
 }));
 
 app.use('/api/auth', authRoutes); //라우터 연결
+app.use('/api/workouts', workoutsRoutes); //라우터 연결
 
 app.get('/', (req, res) => {
   res.json({ message: '서버 작동 중 ' });

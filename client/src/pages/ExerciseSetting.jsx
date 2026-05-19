@@ -182,6 +182,7 @@ export default function ExerciseSetting({ page = 'select' }) {
         <Exercise
           type={selectedType}
           settings={exerciseSettings}
+          onFinish={(resultState) => navigate('/result', { state: resultState })}
           onBack={() => navigate('/exercisesetting', {
             state: { selectedType, exerciseSettings },
           })}
