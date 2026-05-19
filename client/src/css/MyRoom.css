@@ -26,12 +26,12 @@
   margin: 0 auto;            /* 중앙 정렬 보장 */
 }
 
-/* ==================== 👑 3. 상단 헤더 영역 (프로필 & 재화) ==================== */
+/* ==================== 👑 3. 상단 헤더 영역 (프로필 & 재화 - 전면 확대) ==================== */
 .room-top-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px; /* 헤더가 커진 만큼 아래 영역과의 간격도 넓힘 */
   width: 100%;
 }
 
@@ -39,17 +39,19 @@
 .profile-section {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px; 
   background: #ffffff;
-  padding: 4px 12px 4px 6px; 
-  border-radius: 24px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+  /* 🌟 이미지 확대에 맞춰 패딩 최적화 (상하 여백 조정으로 답답함 해소) */
+  padding: 6px 16px 6px 6px; 
+  border-radius: 30px; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
   border: 1px solid rgba(0, 0, 0, 0.02);
 }
 
 .profile-avatar {
-  width: 32px;
-  height: 32px;
+  /* 🌟 코인 이미지와 대칭을 맞추기 위해 32px -> 36px로 확대 */
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
   background: #FFEAD7; 
@@ -57,12 +59,12 @@
 }
 
 .profile-name {
-  font-size: 13px;
+  font-size: 15px; /* 이미지가 커진 만큼 텍스트도 14px -> 15px로 미세 확대 */
   font-weight: 800;
   color: #2b2b2b;
 }
 
-/* 👉 우측 재화 영역 */
+/* 👉 우측 재화 영역 (코인 이미지 프로필 급으로 확대) */
 .header-right {
   display: flex;
   align-items: center;
@@ -70,16 +72,40 @@
 }
 
 .currency-box {
+  display: flex;
+  align-items: center;
   background: #ffffff;
-  padding: 8px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 800;
-  color: #444444;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+  /* 🌟 좌측 프로필과 대칭감을 주기 위해 패딩 통일 */
+  padding: 6px 16px 6px 6px; 
+  border-radius: 30px; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
   border: 1px solid rgba(0, 0, 0, 0.02);
 }
 
+/* 🌟 [핵심 수정] 코인 이미지를 시원하게 36px로 추가 확대! */
+.currency-box .currency-img {
+  width: 32px !important;   /* 32px -> 36px로 확대 */
+  height: 32px !important;  /* 정사각 비율 유지 */
+  object-fit: contain;
+  margin-right: 8px;        
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* 🌟 이미지가 커진 만큼 라벨 텍스트 밸런스 조정 */
+.currency-box .currency-label {
+  font-size: 14px; /* 13px -> 14px 확대 */
+  font-weight: bold;
+  color: #666666;
+  margin-right: 6px;
+}
+
+/* 🌟 코인 숫자 텍스트도 더 돋보이도록 확대 */
+.currency-box .currency-amount {
+  font-size: 16px; /* 15px -> 16px 확대 */
+  font-weight: 900; 
+  color: #ff823a; 
+}
 /* ==================== 🏠 4. 마이룸 액자 상자 ==================== */
 .room-aspect-box {
   position: relative; /* 내부 퀘스트창과 고양이 absolute의 기준점 */
@@ -99,10 +125,10 @@
 
 .room-main-cat {
   position: absolute;   
-  bottom: 15%;          
+  bottom: 15%;            
   left: 50%;            
   transform: translateX(-50%); 
-  width: 22%;           
+  width: 22%;            
   height: auto;
   z-index: 5;           
 }
@@ -179,4 +205,31 @@
   .my-room-container {
     padding: 16px 16px 90px 16px; 
   }
+  
+  /* 모바일에서는 조금 과할 수 있으니 살짝만 축소 */
+  .profile-avatar,
+  .currency-box .currency-img {
+    width: 32px !important;
+    height: 32px !important;
+  }
 }
+/* ------------------------------------------------------------------------------------------------- */
+/* 방 안에 배치되는 가구 이미지 자유도 업그레이드 스타일 */
+.room-aspect-box .placed-item {
+  position: absolute;
+  object-fit: contain;
+  z-index: 5; /* 고양이와 배경보다 무조건 위에 오도록 높임 */
+  transform: translate(-50%, -50%); /* 마우스 커서가 가구 중심에 오도록 정렬 */
+  transition: transform 0.1s ease; /* 움직일 때 부드러운 맛 추가 */
+}
+
+.room-aspect-box .placed-item:active {
+  cursor: grabbing; /* 잡고 흔들 때는 꽉 쥔 손모양 커서 */
+  transform: translate(-50%, -50%) scale(1.1); /* 드래그할 때 살짝 커지는 효과 */
+}
+
+/* 🪜 가구 종류별 크기만 딱 정해주기 (기존의 bottom/left는 지워주세요!) */
+.room-aspect-box .item-id-101 { width: 180px; }  /* 캣타워 */
+.room-aspect-box .item-id-102 { width: 60px; }  /* 공 1 */
+.room-aspect-box .item-id-103 { width: 60px; }  /* 공 2 */
+.room-aspect-box .item-id-104 { width: 60px; }  /* 공 3 */
