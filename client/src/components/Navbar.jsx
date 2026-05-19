@@ -5,7 +5,7 @@ import '../css/Navbar.css';
 //수정사항 : 기존 코드 setCurrentTab 방식은 상태만 바꿈, URL변경/뒤로 가기/새로고침 유지 불가 -> router /navigate로 변경 
 
 const navItems = [
-  { key: "home",       path: "/mainlobby",  icon: "🏠",  label: "홈" },
+  { key: "mainlobby",  path: "/mainlobby",   icon: "🏠",  label: "홈" },
   { key: "shop",       path: "/shop",        icon: "🛍️", label: "꾸미기" },
   { key: "exercise",   path: "/exercise",    icon: "🏋️‍♂️", label: "운동" },
   { key: "collection", path: "/collection",  icon: "📖", label: "도감" },

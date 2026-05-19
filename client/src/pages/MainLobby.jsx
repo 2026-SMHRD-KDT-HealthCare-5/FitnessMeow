@@ -8,12 +8,12 @@ import Navbar from "../components/Navbar.jsx";
 import "../App.css";
 
 const MainLobby = () => {
-  const [currentTab, setCurrentTab] = useState("home");
+  const [currentTab, setCurrentTab] = useState("mainlobby");
 
   return (
     <div className="app-layout">
       <div className="main-content">
-        {currentTab === "home"       && <MyRoom />}
+        {currentTab === "mainlobby"       && <MyRoom />}
         {currentTab === "exercise"   && <ExerciseSelect />}
         {/*currentTab === "shop"       && <Shop />*/}
         {/*currentTab === "collection" && <Collection />*/}
