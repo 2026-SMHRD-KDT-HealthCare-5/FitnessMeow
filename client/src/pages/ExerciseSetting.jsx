@@ -34,6 +34,11 @@ const DEFAULT_SETTINGS = {
   rest: 60,
 };
 
+const normalizeSettingValue = (value) => {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? Math.max(1, Math.floor(numberValue)) : 1;
+};
+
 function ExerciseSettingForm({
   selectedType = 'squat',
   initialSettings = DEFAULT_SETTINGS,
@@ -46,13 +51,13 @@ function ExerciseSettingForm({
   }, [selectedType]);
 
   const [settings, setSettings] = useState({
-    sets: initialSettings.sets || DEFAULT_SETTINGS.sets,
-    reps: initialSettings.reps || DEFAULT_SETTINGS.reps,
-    rest: initialSettings.rest || DEFAULT_SETTINGS.rest,
+    sets: normalizeSettingValue(initialSettings.sets || DEFAULT_SETTINGS.sets),
+    reps: normalizeSettingValue(initialSettings.reps || DEFAULT_SETTINGS.reps),
+    rest: normalizeSettingValue(initialSettings.rest || DEFAULT_SETTINGS.rest),
   });
 
   const updateSetting = (field, value) => {
-    const nextValue = Math.max(1, Number(value) || 1);
+    const nextValue = normalizeSettingValue(value);
     const nextSettings = { ...settings, [field]: nextValue };
     setSettings(nextSettings);
     onSettingsChange?.(nextSettings);
@@ -95,6 +100,7 @@ function ExerciseSettingForm({
               id="sets"
               type="number"
               min="1"
+              step="1"
               value={settings.sets}
               onChange={(event) => updateSetting('sets', event.target.value)}
             />
@@ -106,6 +112,7 @@ function ExerciseSettingForm({
               id="reps"
               type="number"
               min="1"
+              step="1"
               value={settings.reps}
               onChange={(event) => updateSetting('reps', event.target.value)}
             />
@@ -116,7 +123,8 @@ function ExerciseSettingForm({
             <input
               id="rest"
               type="number"
-              min="10"
+              min="1"
+              step="1"
               value={settings.rest}
               onChange={(event) => updateSetting('rest', event.target.value)}
             />
