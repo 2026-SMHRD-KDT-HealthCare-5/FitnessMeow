@@ -1,0 +1,19 @@
+.app-layout { /* 또는 프로젝트에 따라 .lobby-container */
+  width: 100%;
+  max-width: 430px;
+  height: 100vh;
+  max-height: 920px;
+  
+  /* ⭐️ 메인 뼈대에 배경색과 패턴을 한 번에 주입! */
+  background-color: #fffbf4; 
+  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 2px, transparent 2px), 
+                    radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px, 15px 15px;
+  
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  position: relative; 
+  margin: 0 auto; 
+}
