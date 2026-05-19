@@ -2,6 +2,7 @@ import ExerciseSetting from './pages/ExerciseSetting.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import MainLobby from './pages/MainLobby.jsx'
 
 function App() {
   return (
@@ -9,6 +10,7 @@ function App() {
       <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/mainlobby" element={<MainLobby />} />
       <Route path="/exerciseselect" element={<ExerciseSetting page="select" />} />
       <Route path="/exercisesetting" element={<ExerciseSetting page="setting" />} />
       <Route path="/exercise" element={<ExerciseSetting page="exercise" />} />

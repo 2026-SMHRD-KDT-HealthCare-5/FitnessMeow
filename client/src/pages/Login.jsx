@@ -4,8 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import "../css/Login.css";
 import logoimg from "../assets/logo.png";
 
-
-
 const Login = () => {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
@@ -29,13 +27,12 @@ const Login = () => {
       }
 
       // 로그인 성공 후 메인 페이지로 이동
-       navigate('/main');
+       navigate('/mainlobby');
 
     } catch (err) {
       setError('서버에 연결할 수 없어요.');
     }
   }
-
 
   return (
     <div className="container">
@@ -63,7 +60,7 @@ const Login = () => {
 
         {/* 또는 구분선 추가 */}
         <div className="divider">
-          <span>------------------------------또는------------------------------</span>
+          <span>-----------------------------또는-----------------------------</span>
         </div>
 
         {/* 큰 회원가입 버튼 추가 */}
