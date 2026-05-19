@@ -1,8 +1,8 @@
 /* src/css/Result.css */
 
-/* ──────────────────────────────────────────
+/* ══════════════════════════════════════════
    전체 카드 레이아웃
-────────────────────────────────────────── */
+══════════════════════════════════════════ */
 .result-card {
   width: 420px;
   padding: 28px 35px 30px;
@@ -13,15 +13,22 @@
   overflow-y: auto;
   max-height: 100vh;
 }
+.result-card::-webkit-scrollbar { display: none; }
 
-.result-card::-webkit-scrollbar {
-  display: none;
+/* 공용 카드 */
+.card {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 20px 18px 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
 }
 
 
-/* ──────────────────────────────────────────
-   1. 운동 완료 헤더 + 파티클
-────────────────────────────────────────── */
+/* ══════════════════════════════════════════
+   1. 헤더 + 파티클
+══════════════════════════════════════════ */
 .result-header {
   width: 100%;
   text-align: center;
@@ -37,7 +44,6 @@
   text-shadow: 2px 2px rgba(0, 0, 0, 0.05);
   animation: popIn 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
-
 @keyframes popIn {
   0%   { opacity: 0; transform: scale(0.7); }
   70%  { transform: scale(1.1); }
@@ -46,23 +52,18 @@
 
 .particle-wrap {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   pointer-events: none;
   overflow: hidden;
 }
-
 .particle {
   position: absolute;
-  width: 9px;
-  height: 9px;
+  width: 9px; height: 9px;
   border-radius: 50%;
   opacity: 0;
   animation: confettiFall 1.6s ease-in forwards;
 }
-
 @keyframes confettiFall {
   0%   { opacity: 1; transform: translateY(-10px) rotate(0deg) scale(1); }
   60%  { opacity: 1; }
@@ -70,23 +71,25 @@
 }
 
 
-/* ──────────────────────────────────────────
-   2. EXP 획득 + 레벨업 고양이 섹션
-────────────────────────────────────────── */
-.level-up-section {
-  width: 100%;
-  background: #ffffff;
-  border-radius: 22px;
-  padding: 20px 18px 18px;
-  margin-bottom: 14px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
-}
+/* ══════════════════════════════════════════
+   2. 캐릭터 영역
+══════════════════════════════════════════ */
 
-.level-up-cats {
+/* 레벨업 O: 이전 → 현재 비교 */
+.cat-compare {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* 레벨업 X: 현재 캐릭터 단독 */
+.cat-single {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
   margin-bottom: 16px;
 }
 
@@ -97,40 +100,39 @@
   gap: 5px;
 }
 
-.level-badge {
+.lv-badge {
   font-size: 13px;
   font-weight: 800;
   color: #bbbbbb;
   letter-spacing: 0.3px;
 }
-
-.level-badge.active {
+.lv-badge.highlight {
   font-size: 15px;
   color: #ff8c42;
 }
 
-/* ✅ 1. 고양이 이미지 크기 키우기: 94px → 120px */
+/* 픽셀 고양이 이미지 — 픽셀 아트 선명하게 렌더링 */
 .cat-img {
   width: 120px;
   height: 120px;
   object-fit: contain;
+  image-rendering: pixelated; /* 픽셀 아트 계단 현상 방지 */
 }
-
-.cat-img.leveled {
-  filter: drop-shadow(0 0 8px rgba(255, 140, 66, 0.45));
+.cat-img.glow {
   animation: glow 1.6s ease-in-out infinite alternate;
 }
-
 @keyframes glow {
   from { filter: drop-shadow(0 0 4px rgba(255, 140, 66, 0.3)); }
-  to   { filter: drop-shadow(0 0 12px rgba(255, 140, 66, 0.65)); }
+  to   { filter: drop-shadow(0 0 14px rgba(255, 140, 66, 0.7)); }
 }
 
-.level-arrow {
+.arrow {
   font-size: 26px;
   margin-top: -14px;
+  color: #cccccc;
 }
 
+/* 레벨업 배너 */
 .levelup-banner {
   display: flex;
   align-items: center;
@@ -146,12 +148,15 @@
   margin-bottom: 16px;
   animation: slideUp 0.4s 0.3s ease-out both;
 }
-
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+
+/* ══════════════════════════════════════════
+   EXP 바
+══════════════════════════════════════════ */
 .exp-list {
   display: flex;
   flex-direction: column;
@@ -167,8 +172,8 @@
 .exp-label {
   font-size: 13px;
   font-weight: 700;
-  color: #555;
-  width: 65px;
+  color: #555555;
+  width: 68px;
   flex-shrink: 0;
 }
 
@@ -183,138 +188,81 @@
 .exp-bar-fill {
   height: 100%;
   border-radius: 99px;
-  animation: growBar 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   width: 0%;
+  transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes growBar {
-  from { width: 0%; }
+/* 파트별 그라디언트 */
+.bar-arm   { background: linear-gradient(90deg, #6ec6ff, #3a8fd4); }
+.bar-chest { background: linear-gradient(90deg, #a8e063, #56ab2f); }
+.bar-core  { background: linear-gradient(90deg, #f7c59f, #e05a5a); }
+.bar-leg   { background: linear-gradient(90deg, #b8f4a0, #43c97a); }
+
+/* 바 오른쪽: 누적 EXP + 획득량 */
+.exp-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  min-width: 62px;
 }
 
-.bar-arm    { background: linear-gradient(90deg, #6ec6ff, #3a8fd4); }
-.bar-chest  { background: linear-gradient(90deg, #a8e063, #56ab2f); }
-.bar-core   { background: linear-gradient(90deg, #f7c59f, #e05a5a); }
-.bar-leg    { background: linear-gradient(90deg, #b8f4a0, #43c97a); }
+/* 누적 EXP (예: 230/250) */
+.exp-accum {
+  font-size: 10px;
+  font-weight: 600;
+  color: #bbbbbb;
+  line-height: 1;
+}
 
+/* 획득량 (예: +30) */
 .exp-gain {
   font-size: 13px;
   font-weight: 800;
   color: #ff8c42;
-  width: 36px;
-  text-align: right;
+  line-height: 1;
 }
 
-/* 츄르 구분선 */
-.churu-divider {
+/* 상한 250 도달 시 MAX 표시 */
+.exp-gain.maxed {
+  font-size: 11px;
+  font-weight: 900;
+  color: #ffffff;
+  background: #ff8c42;
+  padding: 1px 6px;
+  border-radius: 99px;
+  letter-spacing: 0.3px;
+}
+
+/* 구분선 */
+.divider {
   width: 100%;
   height: 1px;
   background: #f0f0f0;
   margin: 12px 0 10px;
 }
 
-/* 츄르 획득 행 */
+/* 츄르 행 */
 .churu-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-
-.churu-icon {
-  font-size: 20px;
-  line-height: 1;
-}
-
-.churu-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: #555;
-  flex: 1;
-}
-
-.churu-gain {
-  font-size: 14px;
-  font-weight: 800;
-  color: #ff8c42;
-}
+.churu-icon  { font-size: 20px; line-height: 1; }
+.churu-label { font-size: 13px; font-weight: 700; color: #555555; flex: 1; }
+.churu-gain  { font-size: 14px; font-weight: 800; color: #ff8c42; }
 
 
-/* ──────────────────────────────────────────
-   3. 정확도 평가 대시보드
-────────────────────────────────────────── */
-.accuracy-section {
-  width: 100%;
-  background: #ffffff;
-  border-radius: 22px;
-  padding: 18px 20px;
-  margin-bottom: 14px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
-}
-
-.section-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: #999;
-  margin-bottom: 14px;
-  letter-spacing: 0.2px;
-}
-
-.accuracy-grid {
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
-  text-align: center;
-}
-
-.acc-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.acc-tag {
-  font-size: 11px;
-  font-weight: 900;
-  padding: 4px 12px;
-  border-radius: 99px;
-  letter-spacing: 0.5px;
-}
-
-.tag-perfect { background: #EAFBF0; color: #34c759; }
-.tag-good    { background: #FFF5EC; color: #ff8c42; }
-.tag-done    { background: #EEF3FF; color: #5b7cf7; }
-
-.acc-count {
-  font-size: 32px;
-  font-weight: 900;
-  color: #2b2b2b;
-  line-height: 1;
-}
-
-.acc-divider {
-  width: 1px;
-  height: 48px;
-  background: #f0f0f0;
-  margin-bottom: 4px;
-}
-
-
-/* ──────────────────────────────────────────
-   4. 총 점수 + 칼로리 대시보드
-────────────────────────────────────────── */
-.score-section {
-  width: 100%;
-  background: #ffffff;
-  border-radius: 22px;
-  padding: 18px 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+/* ══════════════════════════════════════════
+   4. 총 점수 + 칼로리 카드
+══════════════════════════════════════════ */
+.score-card {
   display: flex;
   justify-content: space-around;
   align-items: center;
 }
 
-.score-divider {
+.vdivider {
   width: 1px;
   height: 52px;
   background: #f0f0f0;
@@ -330,24 +278,20 @@
 .score-label {
   font-size: 12px;
   font-weight: 600;
-  color: #999;
+  color: #999999;
 }
 
 .score-value {
   font-size: 42px;
   font-weight: 900;
-  color: #ff8c42;
   letter-spacing: -2px;
   line-height: 1.1;
 }
-
-/* ✅ 2. 칼로리 숫자 검정색으로 변경: #ff8c42 → #2b2b2b */
-.score-value-sm {
+.score-value.orange { color: #ff8c42; }          /* 총 점수: 주황 */
+.score-value.dark {                               /* 칼로리: 검정 + 살짝 작게 */
   font-size: 32px;
-  font-weight: 900;
-  color: #2b2b2b;
   letter-spacing: -1px;
-  line-height: 1.1;
+  color: #2b2b2b;
 }
 
 .calorie-row {
@@ -355,55 +299,61 @@
   align-items: baseline;
   gap: 4px;
 }
-
 .score-unit {
   font-size: 13px;
   font-weight: 600;
-  color: #bbb;
+  color: #bbbbbb;
 }
 
 
-/* ──────────────────────────────────────────
-   5. 하단 버튼 (로비 / 기록 상세)
-────────────────────────────────────────── */
-.result-buttons {
+/* ══════════════════════════════════════════
+   5. 버튼
+══════════════════════════════════════════ */
+.btn-row {
   width: 100%;
   display: flex;
   gap: 12px;
 }
 
-.result-btn-secondary {
-  flex: 1;
-  padding: 15px;
-  border: 1.5px solid #e0e0e0;
-  border-radius: 14px;
-  background: #ffffff;
-  font-size: 15px;
-  font-weight: 700;
-  color: #555555;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.result-btn-secondary:hover {
-  background: #f9f9f9;
-  transform: translateY(-2px);
-}
-
-.result-btn-primary {
+.btn-primary {
   flex: 1;
   padding: 15px;
   border: none;
   border-radius: 14px;
   background: #ff8c42;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: bold;
   color: #ffffff;
   cursor: pointer;
   transition: 0.2s;
 }
-
-.result-btn-primary:hover {
+.btn-primary:hover {
   background: #ff7420;
   transform: translateY(-2px);
 }
+
+.btn-full {
+  flex: none;
+  width: 100%;
+}
+
+
+/* ══════════════════════════════════════════
+   로딩 / 에러 상태
+══════════════════════════════════════════ */
+.error-wrap {
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: #888888;
+  text-align: center;
+  z-index: 1;
+}
+.status-text.error { color: #e05a5a; }
