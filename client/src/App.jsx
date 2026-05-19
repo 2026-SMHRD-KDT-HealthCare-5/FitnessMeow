@@ -16,7 +16,7 @@ function App() {
       <Route path="/register" element={<Register />} />
       
       {/* 3. 메인 로비 홈 화면 */}
-      <Route path="/main" element={<MainLobby />} />
+      <Route path="/mainlobby" element={<MainLobby />} />
       
       {/* 4. 운동 선택 화면 개별 주소 */}
       <Route path="/exerciseselect" element={<ExerciseSelect />} />

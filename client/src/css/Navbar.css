@@ -1,50 +1,6 @@
-/* 💡 하단 네비게이션 메뉴바 (화면 왜곡 완벽 방지 버전) */
-.footer-nav {
-  position: fixed;
-  bottom: 16px;              /* 바닥에서 살짝 띄운 귀여운 플로팅 스타일 */
-  
-  /* ⭐️ 정중앙 정렬 절대 공식으로 수정 */
-  left: 0;
-  right: 0;
-  margin: 0 auto;            /* left:0, right:0 설정 후 margin: auto를 주면 부모 상관없이 무조건 화면 중앙에 옵니다 */
-  
-  width: 90%;                /* 모바일 액정 양옆 여백 배치 */
-  max-width: 400px;          /* 다른 페이지들과 이질감 없는 예쁜 가로폭 고정 */
-  height: 65px;
-  
-  background: #ffffff;
-  display: flex;
-  justify-content: space-around; /* 아이템들을 균등하게 배분 */
-  align-items: center;
-  padding: 8px 12px;
-  
-  border-radius: 20px;       /* 둥글둥글 귀여운 모서리 */
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06); 
-  z-index: 9999;             /* 그 어떤 요소보다 무조건 맨 위에 노출 */
-  box-sizing: border-box;
-}
-
-/* 개별 아이템 스타일 */
 .nav-item {
-  text-align: center;
-  color: #aaaaaa;
+  border: none;
+  background: none;
   cursor: pointer;
-  flex: 1;
-  transition: all 0.2s ease;
-}
-
-.nav-item span {
-  font-size: 20px;
-}
-
-.nav-item p {
-  font-size: 11px;
-  margin-top: 2px;
-  font-weight: bold;
-}
-
-/* 활성화 메뉴 주황색 불 켜기 */
-.nav-item.active {
-  color: #ff8c42; 
+  font-family: inherit;
 }
