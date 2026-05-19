@@ -39,6 +39,16 @@ const normalizeSettingValue = (value) => {
   return Number.isFinite(numberValue) ? Math.max(1, Math.floor(numberValue)) : 1;
 };
 
+const isPositiveIntegerInput = (value) => value === '' || /^[1-9]\d*$/.test(value);
+const hasValidSettings = (settings) => {
+  return Object.values(settings).every((value) => /^[1-9]\d*$/.test(String(value)));
+};
+const toNumericSettings = (settings) => ({
+  sets: Number(settings.sets),
+  reps: Number(settings.reps),
+  rest: Number(settings.rest),
+});
+
 function ExerciseSettingForm({
   selectedType = 'squat',
   initialSettings = DEFAULT_SETTINGS,
@@ -57,10 +67,20 @@ function ExerciseSettingForm({
   });
 
   const updateSetting = (field, value) => {
-    const nextValue = normalizeSettingValue(value);
-    const nextSettings = { ...settings, [field]: nextValue };
+    if (!isPositiveIntegerInput(value)) return;
+
+    const nextSettings = { ...settings, [field]: value };
     setSettings(nextSettings);
-    onSettingsChange?.(nextSettings);
+    if (hasValidSettings(nextSettings)) {
+      onSettingsChange?.(toNumericSettings(nextSettings));
+    }
+  };
+
+  const startExercise = () => {
+    if (!hasValidSettings(settings)) return;
+
+    const nextSettings = toNumericSettings(settings);
+    onStart?.(exercise.id, nextSettings);
   };
 
   return (
@@ -134,7 +154,8 @@ function ExerciseSettingForm({
         <button
           type="button"
           className="primary-button"
-          onClick={() => onStart?.(exercise.id, settings)}
+          onClick={startExercise}
+          disabled={!hasValidSettings(settings)}
         >
           {"\uC6B4\uB3D9 \uC2DC\uC791\uD558\uAE30"}
         </button>
