@@ -71,6 +71,7 @@
   z-index: 20; 
 }
 
+/*화폐*/
 .currency-box {
   display: flex;
   align-items: center;
