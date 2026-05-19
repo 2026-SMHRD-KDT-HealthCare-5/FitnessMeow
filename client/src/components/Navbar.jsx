@@ -1,35 +1,56 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom'; // 👈 라우터 링크 기능을 불러옵니다.
-import '../css/Navbar.css'; // 👈 네비게이션 바 스타일을 위한 CSS 파일
+import '../css/Navbar.css'; // 👈 팀원분이 만든 CSS 스타일 그대로 유지
 
-const Navbar = () => {
+// 부모(MainLobby)한테 탭 상태를 받아옵니다.
+const Navbar = ({ currentTab, setCurrentTab }) => {
   return (
     <div className="footer-nav">
     
-      <NavLink to="/home" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+      {/* 1. 홈 */}
+      <div 
+        className={`nav-item ${currentTab === "home" ? "active" : ""}`}
+        onClick={() => setCurrentTab("home")}
+      >
         <span>🏠</span>
         <p>홈</p>
-      </NavLink>
+      </div>
       
-      <NavLink to="/exercise" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+      {/* 2. 운동 */}
+      <div 
+        className={`nav-item ${currentTab === "exercise" ? "active" : ""}`}
+        onClick={() => setCurrentTab("exercise")}
+      >
         <span>🏋️‍♂️</span>
         <p>운동</p>
-      </NavLink>
+      </div>
       
-      <NavLink to="/shop" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+      {/* 3. 꾸미기 */}
+      <div 
+        className={`nav-item ${currentTab === "shop" ? "active" : ""}`}
+        onClick={() => setCurrentTab("shop")}
+      >
         <span>🛍️</span>
         <p>꾸미기</p>
-      </NavLink>
+      </div>
       
-      <NavLink to="/dictionary" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+      {/* 4. 도감 */}
+      <div 
+        className={`nav-item ${currentTab === "dogam" ? "active" : ""}`}
+        onClick={() => setCurrentTab("dogam")}
+      >
         <span>📖</span>
         <p>도감</p>
-      </NavLink>
+      </div>
       
-      <NavLink to="/profile" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+      {/* 5. 내 정보 */}
+      <div 
+        className={`nav-item ${currentTab === "info" ? "active" : ""}`}
+        onClick={() => setCurrentTab("info")}
+      >
         <span>👤</span>
         <p>내 정보</p>
-      </NavLink>
+      </div>
+      
     </div>
   );
 };
