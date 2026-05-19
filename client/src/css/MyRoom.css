@@ -82,6 +82,7 @@
 
 /* ==================== 🏠 4. 마이룸 액자 상자 ==================== */
 .room-aspect-box {
+  flex: 1;
   position: relative; /* 내부 퀘스트창과 고양이 absolute의 기준점 */
   width: 100%;
   border-radius: 24px;   /* 운동선택 카드와 일치하는 부드러운 라운딩 */
@@ -89,6 +90,8 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
   background: #ffffff;
   border: 2px solid #f2ede4;
+  max-height: calc(100vh - 65px - 120px); 
+  
 }
 
 .room-background-img {
@@ -174,9 +177,23 @@
   color: #666;
 }
 
-/* ==================== 📱 7. 모바일 전용 미세 조정 ==================== */
+.my-room-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #fffbf4 !important;
+  background-image: radial-gradient(rgba(255,255,255,0.15) 2px, transparent 2px),
+                    radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px) !important;
+  background-size: 20px 20px, 15px 15px !important;
+  box-sizing: border-box;       /* ✅ padding이 height 안에 포함되어 삐져나오지 않음 */
+}
+
+/* @media는 미세조정만 */
 @media (max-width: 500px) {
   .my-room-container {
-    padding: 16px 16px 90px 16px; 
+    padding: 16px;
   }
 }

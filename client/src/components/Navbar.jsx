@@ -1,57 +1,36 @@
 import React from 'react';
-import '../css/Navbar.css'; // 👈 팀원분이 만든 CSS 스타일 그대로 유지
+import { useNavigate, useLocation } from 'react-router-dom';
+import '../css/Navbar.css';
 
-// 부모(MainLobby)한테 탭 상태를 받아옵니다.
-const Navbar = ({ currentTab, setCurrentTab }) => {
+//수정사항 : 기존 코드 setCurrentTab 방식은 상태만 바꿈, URL변경/뒤로 가기/새로고침 유지 불가 -> router /navigate로 변경 
+
+const navItems = [
+  { key: "mainlobby",  path: "/mainlobby",   icon: "🏠",  label: "홈" },
+  { key: "shop",       path: "/shop",        icon: "🛍️", label: "꾸미기" },
+  { key: "exercise",   path: "/exercise",    icon: "🏋️‍♂️", label: "운동" },
+  { key: "collection", path: "/collection",  icon: "📖", label: "도감" },
+  { key: "info",       path: "/info",        icon: "👤", label: "내 정보" },
+];
+
+const Navbar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
-    <div className="footer-nav">
-    
-      {/* 1. 홈 */}
-      <div 
-        className={`nav-item ${currentTab === "home" ? "active" : ""}`}
-        onClick={() => setCurrentTab("home")}
-      >
-        <span>🏠</span>
-        <p>홈</p>
-      </div>
-      
-      {/* 2. 운동 */}
-      <div 
-        className={`nav-item ${currentTab === "exercise" ? "active" : ""}`}
-        onClick={() => setCurrentTab("exercise")}
-      >
-        <span>🏋️‍♂️</span>
-        <p>운동</p>
-      </div>
-      
-      {/* 3. 꾸미기 */}
-      <div 
-        className={`nav-item ${currentTab === "shop" ? "active" : ""}`}
-        onClick={() => setCurrentTab("shop")}
-      >
-        <span>🛍️</span>
-        <p>꾸미기</p>
-      </div>
-      
-      {/* 4. 도감 */}
-      <div 
-        className={`nav-item ${currentTab === "dogam" ? "active" : ""}`}
-        onClick={() => setCurrentTab("dogam")}
-      >
-        <span>📖</span>
-        <p>도감</p>
-      </div>
-      
-      {/* 5. 내 정보 */}
-      <div 
-        className={`nav-item ${currentTab === "info" ? "active" : ""}`}
-        onClick={() => setCurrentTab("info")}
-      >
-        <span>👤</span>
-        <p>내 정보</p>
-      </div>
-      
-    </div>
+    <nav className="footer-nav">
+      {navItems.map((item) => (
+        <button
+          key={item.key}
+          type="button"
+          className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+          onClick={() => navigate(item.path)}
+          aria-label={item.label}
+        >
+          <span aria-hidden="true">{item.icon}</span>
+          <p>{item.label}</p>
+        </button>
+      ))}
+    </nav>
   );
 };
 
