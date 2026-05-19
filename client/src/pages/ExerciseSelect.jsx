@@ -1,5 +1,7 @@
 import React from 'react';
 import "../css/ExerciseSelect.css";
+import Navbar from "../components/Navbar.jsx"; // 네비게이션 바 컴포넌트 불러오기
+import { useNavigate } from 'react-router-dom';
 
 import squatCat from "../assets/s-cat.png"; // 스쿼트 고양이 이미지
 import pushupCat from "../assets/p-cat.png"; // 푸시업 고양이 이미지
@@ -8,7 +10,9 @@ import coreIcon from "../assets/core-icon.png"; // 코어 강화 아이콘
 import lowerIcon from "../assets/leg-icon.png"; // 하체 강화 아이콘
 import upperIcon from "../assets/8icon.png"; // 상체 강화 아이콘
 
-const ExerciseSelect = () => {
+const ExerciseSelect = ({ onSelect = () => {} }) => {
+   const handleSelect = (exercise) => {onSelect(exercise);};
+
   return (
     <div className="container">
       <div className="overlay"></div>
@@ -22,7 +26,7 @@ const ExerciseSelect = () => {
         <div className="exercise-list">
           
           {/* 스쿼트 카드 (하체 + 코어) */}
-          <div className="exercise-card squat-theme">
+          <div className="exercise-card squat-theme" onClick={() => onSelect('squat')}>
             <div className="cat-section">
               <img src={squatCat} className="cat-main-img" alt="스쿼트 고양이" />
             </div>
@@ -31,6 +35,7 @@ const ExerciseSelect = () => {
               <p className="sub-desc">하체를 집중적으로 강화해요!</p>
               <div className="icon-group">
                 <div className="icon-item">
+
                   <img src={lowerIcon} alt="하체 강화" />
                   <span>하체 강화</span>
                 </div>
@@ -40,11 +45,14 @@ const ExerciseSelect = () => {
                 </div>
               </div>
             </div>
-            <button className="arrow-button">〉</button>
+
+            <button className="arrow-button" type="button">
+              〉
+            </button>
           </div>
 
           {/* 푸시업 카드 (상체 + 코어) */}
-          <div className="exercise-card pushup-theme">
+          <div className="exercise-card pushup-theme" onClick={() => onSelect('pushup')}>
             <div className="cat-section">
               <img src={pushupCat} className="cat-main-img" alt="푸시업 고양이" />
             </div>
@@ -62,11 +70,13 @@ const ExerciseSelect = () => {
                 </div>
               </div>
             </div>
-            <button className="arrow-button">〉</button>
+            <button className="arrow-button" type="button">
+              〉
+            </button>
           </div>
 
           {/* 런지 카드 (하체 + 코어) */}
-          <div className="exercise-card lunge-theme">
+          <div className="exercise-card lunge-theme" onClick={() => onSelect('lunge')}>
             <div className="cat-section">
               <img src={lungeCat} className="cat-main-img" alt="런지 고양이" />
             </div>
@@ -84,10 +94,11 @@ const ExerciseSelect = () => {
                 </div>
               </div>
             </div>
-            <button className="arrow-button">〉</button>
+            <button className="arrow-button" type="button">
+              〉
+            </button>
           </div>
         </div>
-        <Navbar />
       </div>
     </div>
   );

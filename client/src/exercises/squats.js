@@ -1,4 +1,5 @@
 function squatsLogic(landmarks, width, height) {
+  const previousWholeCount = Math.floor(count + 1e-6);
   const legAngles = {
     left: angleBetween(
       getPoint(landmarks, 23, width, height),
@@ -49,10 +50,6 @@ function squatsLogic(landmarks, width, height) {
   const kneeOverToe = leftToeMoreFront ? leftKneeOverToe : rightToeMoreFront ? rightKneeOverToe : leftKneeOverToe || rightKneeOverToe;
   //왼발이 더 앞으로 나갔으면 왼쪽 무릎이 발끝보다 앞으로 나갔는지 판단, 오른발이 더 앞으로 나갔으면 오른쪽 무릎이 발끝보다 앞으로 나갔는지 판단, 둘 다 비슷하면 둘 중 하나라도 무릎이 발끝보다 앞으로 나갔는지 판단
 
-  // === 새로운 추가된 로직: 스쿼트 등급을 계산하여 오른쪽 상단에 표시 ===
-  const grade = !kneeOverToe ? '퍼펙트' : '그냥저냥';
-  // === 새로운 추가된 로직 끝 ===
-
   let feedback = '';
 
   // === 새로운 추가된 로직: 앞모습이면 옆모습을 보여주세요 경고, 횟수 측정 차단 ===
@@ -62,7 +59,7 @@ function squatsLogic(landmarks, width, height) {
   const rightHip = getPoint(landmarks, 24, width, height);
   const shoulderDist = Math.abs(leftShoulder.x - rightShoulder.x);
   const hipDist = Math.abs(leftHip.x - rightHip.x);
-  const frontView = shoulderDist < width * 0.22 && hipDist < width * 0.22;
+  const frontView = shoulderDist > width * 0.22 && hipDist > width * 0.22;
   if (frontView) {
     feedback = '옆모습을 보여주세요.';
     return { count, dir, feedback, avgPer, grade };
@@ -85,6 +82,15 @@ function squatsLogic(landmarks, width, height) {
   if (kneeOverToe) feedback = '무릎이 발끝보다 앞으로 나갔습니다!';
   else if (!properHip) feedback = '힙 힌지를 유지하세요!';
   else if (Math.abs(leftPer - rightPer) > 15) feedback = '무게 중심을 고르게 유지하세요!';
+
+  if (kneeOverToe) {
+    repHadIssue = true;
+  }
+
+  const grade = repHadIssue ? '그냥저냥' : '퍼펙트';
+  if (Math.floor(count + 1e-6) > previousWholeCount) {
+    repHadIssue = false;
+  }
 
   return { count, dir, feedback, avgPer, grade };
 }
