@@ -5,6 +5,7 @@ const session = require('express-session');
 
 const authRoutes = require('./routes/auth.routes');
 
+
 const app = express();
 
 app.use(express.json()); // ← 이거 추가
@@ -27,6 +28,7 @@ app.use(session({
 }));
 
 app.use('/api/auth', authRoutes); //라우터 연결
+
 
 app.get('/', (req, res) => {
   res.json({ message: '서버 작동 중 ' });

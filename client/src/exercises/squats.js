@@ -62,7 +62,7 @@ function squatsLogic(landmarks, width, height) {
   const frontView = shoulderDist > width * 0.22 && hipDist > width * 0.22;
   if (frontView) {
     feedback = '옆모습을 보여주세요.';
-    return { count, dir, feedback, avgPer, grade };
+    return { count, dir, feedback, avgPer };
   }
   // === 새로운 추가된 로직 끝 ===
 

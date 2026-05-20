@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../css/Exercise.css';
 
 const MEDIAPIPE_SCRIPTS = [
@@ -23,24 +24,9 @@ const EXERCISE_LOGIC_FILES = {
 };
 
 const EXERCISES = {
-  squat: {
-    name: '스쿼트',
-    targetCount: 15,
-    kcal: 48,
-    themeClass: 'exercise-page--squat',
-  },
-  pushup: {
-    name: '푸쉬업',
-    targetCount: 12,
-    kcal: 36,
-    themeClass: 'exercise-page--pushup',
-  },
-  lunge: {
-    name: '런지',
-    targetCount: 20,
-    kcal: 52,
-    themeClass: 'exercise-page--lunge',
-  },
+  squat: { name: '스쿼트' },
+  pushup: { name: '푸쉬업' },
+  lunge: { name: '런지' },
 };
 
 const EMPTY_BODY_INFO = {
@@ -54,22 +40,35 @@ const CALORIE_COEFFICIENTS = {
   lunge: 0.0016,
 };
 
-const KOREAN_COUNT_LABELS = ['하나!', '둘!', '셋!', '넷!', '다섯!', '여섯!', '일곱!', '여덟!', '아홉!', '열!'];
-const KOREAN_TENS_LABELS = ['', '열', '스물', '서른', '마흔', '쉰', '예순', '일흔', '여든', '아흔'];
-
-function getKoreanCountLabel(countValue) {
-  if (countValue <= KOREAN_COUNT_LABELS.length) return KOREAN_COUNT_LABELS[countValue - 1];
-  if (countValue < 100) {
-    const tens = Math.floor(countValue / 10);
-    const ones = countValue % 10;
-    return `${KOREAN_TENS_LABELS[tens]}${ones > 0 ? KOREAN_COUNT_LABELS[ones - 1].replace('!', '') : ''}!`;
-  }
-  return `${countValue}!`;
-}
-
 function calcCalories(type, weightKg, heightCm, reps) {
   const h = heightCm / 100;
   return +(weightKg * h * reps * CALORIE_COEFFICIENTS[type]).toFixed(2);
+}
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function postWorkoutWithRetry(workoutData, onRetry, maxAttempts = 3) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const response = await fetch('http://localhost:3001/api/workouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(workoutData),
+      });
+
+      if (response.ok) return;
+    } catch {}
+
+    onRetry?.();
+    if (attempt < maxAttempts) await wait(250);
+  }
+
+  throw new Error('Failed to save workout');
 }
 
 function loadScript(src) {
@@ -160,7 +159,10 @@ const LOGIC_BY_TYPE = {
   lunge: 'lunge',
 };
 
-function Exercise({ type = 'squat', settings, onBack }) {
+function Exercise({ type = 'squat', settings, onBack, onFinish }) {
+  const navigate = useNavigate();
+  
+  // ------------------ Refs ------------------
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const poseRef = useRef(null);
@@ -173,6 +175,7 @@ function Exercise({ type = 'squat', settings, onBack }) {
   const [selectedType, setSelectedType] = useState(type);
   const previousTypeRef = useRef(type);
 
+  // ------------------ State ------------------
   const [count, setCount] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [feedback, setFeedback] = useState('준비');
@@ -182,17 +185,17 @@ function Exercise({ type = 'squat', settings, onBack }) {
   const [completedSets, setCompletedSets] = useState(0);
   const [totalReps, setTotalReps] = useState(0);
   const [restRemaining, setRestRemaining] = useState(0);
-  const [showResult, setShowResult] = useState(false);
   const [isTypeMenuOpen, setIsTypeMenuOpen] = useState(false);
   const [message, setMessage] = useState('시작을 눌러 카메라를 켜세요.');
   const [rewardTick, setRewardTick] = useState(0);
   const [bodyInfo, setBodyInfo] = useState(EMPTY_BODY_INFO);
 
+  // ------------------ Derived values ------------------
   const exercise = useMemo(() => {
     return EXERCISES[selectedType] ?? EXERCISES.squat;
   }, [selectedType]);
 
-  const targetCount = settings?.reps || exercise.targetCount;
+  const targetCount = settings?.reps || 1;
   const totalSets = settings?.sets || 1;
   const restTime = settings?.rest || 60;
   const progress = Math.min(100, ((count % targetCount) / targetCount) * 100);
@@ -247,6 +250,7 @@ function Exercise({ type = 'squat', settings, onBack }) {
     setMessage('운동을 정지했습니다.');
   }, []);
 
+  // ------------------ Exercise state ------------------
   const updateExerciseState = useCallback((nextState) => {
     if (isRestingRef.current) return;
 
@@ -275,10 +279,24 @@ function Exercise({ type = 'squat', settings, onBack }) {
     }
 
     if (didCompleteSet) {
+      const nextCompletedSets = Math.min(totalSets, completedSets + 1);
+
+      if (nextCompletedSets >= totalSets) {
+        stopCamera();
+        onFinish?.({
+          exercise_key: selectedType,
+          sets: totalSets,
+          reps: targetCount,
+          totalReps: totalReps + 1,
+          ...resultStats,
+        });
+        return;
+      }
+
       stateRef.current = { count: 0, dir: 0 };
       isRestingRef.current = true;
       setCount(0);
-      setCompletedSets((sets) => Math.min(totalSets, sets + 1));
+      setCompletedSets(nextCompletedSets);
       setRestRemaining(restTime);
       setIsResting(true);
       setFeedback('휴식하세요!');
@@ -287,15 +305,16 @@ function Exercise({ type = 'squat', settings, onBack }) {
       if (nextState.feedback) {
         setFeedback(nextState.feedback);
       } else if (didCompleteRep) {
-        setFeedback(`${getKoreanCountLabel(nextCount)} 좋아요!`);
+        setFeedback('좋아요!');
       }
     }
 
     setGradeText(
       `완벽 ${gradeCountsRef.current.perfect} 보통 ${gradeCountsRef.current.normal}`
     );
-  }, [isResting, restTime, targetCount, totalSets]);
+  }, [completedSets, isResting, onFinish, restTime, resultStats, selectedType, stopCamera, targetCount, totalReps, totalSets]);
 
+  // ------------------ Pose detection ------------------
   const onResults = useCallback(
     (results) => {
       const video = videoRef.current;
@@ -338,31 +357,39 @@ function Exercise({ type = 'squat', settings, onBack }) {
     [selectedType, updateExerciseState]
   );
 
+  const createPose = useCallback(() => {
+    const pose = new window.Pose({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
+    });
+
+    pose.setOptions({
+      modelComplexity: 1,
+      smoothLandmarks: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    });
+    pose.onResults(onResults);
+    poseRef.current = pose;
+    return pose;
+  }, [onResults]);
+
   const startCamera = async () => {
     try {
-      setShowResult(false);
       setMessage('자세 인식 모델을 불러오는 중입니다.');
       await Promise.all(MEDIAPIPE_SCRIPTS.map(loadScript));
       await loadExerciseLogicFiles();
 
       if (!videoRef.current) return;
 
-      const pose = new window.Pose({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
-      });
-
-      pose.setOptions({
-        modelComplexity: 1,
-        smoothLandmarks: true,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5,
-      });
-      pose.onResults(onResults);
-      poseRef.current = pose;
+      const pose = createPose();
 
       const camera = new window.Camera(videoRef.current, {
         onFrame: async () => {
-          await pose.send({ image: videoRef.current });
+          try {
+            await pose.send({ image: videoRef.current });
+          } catch {
+            setMessage('자세 인식 중 오류가 발생했습니다.');
+          }
         },
         width: 640,
         height: 480,
@@ -379,6 +406,7 @@ function Exercise({ type = 'squat', settings, onBack }) {
     }
   };
 
+  // ------------------ Screen capture ------------------
   const processScreenFrame = useCallback(async () => {
     const video = videoRef.current;
     const pose = poseRef.current;
@@ -386,7 +414,11 @@ function Exercise({ type = 'squat', settings, onBack }) {
     if (!video || !pose || video.paused || video.ended) return;
 
     if (video.videoWidth > 0 && video.videoHeight > 0) {
-      await pose.send({ image: video });
+      try {
+        await pose.send({ image: video });
+      } catch {
+        setMessage('자세 인식 중 오류가 발생했습니다.');
+      }
     }
 
     screenFrameRef.current = requestAnimationFrame(processScreenFrame);
@@ -395,7 +427,6 @@ function Exercise({ type = 'squat', settings, onBack }) {
   const startScreenCapture = async () => {
     try {
       // TODO: 테스트용 화면공유 측정 기능입니다. 최종 배포 전에 삭제 예정입니다.
-      setShowResult(false);
       await Promise.all(MEDIAPIPE_SCRIPTS.map(loadScript));
       await loadExerciseLogicFiles();
       stopCamera();
@@ -408,18 +439,7 @@ function Exercise({ type = 'squat', settings, onBack }) {
         audio: false,
       });
 
-      const pose = new window.Pose({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
-      });
-
-      pose.setOptions({
-        modelComplexity: 1,
-        smoothLandmarks: true,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5,
-      });
-      pose.onResults(onResults);
-      poseRef.current = pose;
+      const pose = createPose();
 
       videoRef.current.srcObject = stream;
       videoRef.current.controls = false;
@@ -457,16 +477,35 @@ function Exercise({ type = 'squat', settings, onBack }) {
     setElapsedTime(0);
     setFeedback('준비');
     setGradeText('완벽 0 보통 0');
-    setShowResult(false);
     setRewardTick(0);
     setMessage('카운트를 초기화했습니다.');
   };
 
   const finishExercise = () => {
     stopCamera();
-    setShowResult(true);
+    
+    const workoutData = {
+      exercise_key: selectedType,
+      sets: totalSets,
+      reps: targetCount,
+      total_score: resultStats.score,
+      calories: resultStats.calories,
+      perfect_count: gradeCountsRef.current.perfect,
+      normal_count: gradeCountsRef.current.normal,
+    };
+
+    postWorkoutWithRetry(workoutData, () => {
+      alert('에러났습니다.');
+    })
+      .then(() => {
+        navigate('/result');
+      })
+      .catch(() => {
+        navigate('/result');
+      });
   };
 
+  // ------------------ Controls ------------------
   const skipRest = () => {
     setRestRemaining(0);
     isRestingRef.current = false;
@@ -493,11 +532,11 @@ function Exercise({ type = 'squat', settings, onBack }) {
     setElapsedTime(0);
     setFeedback('준비');
     setGradeText('완벽 0 보통 0');
-    setShowResult(false);
     setRewardTick(0);
     setMessage('운동이 변경되었습니다. 시작을 눌러 카메라를 켜세요.');
   };
 
+  // ------------------ Effects ------------------
   useEffect(() => {
     fetch('http://localhost:3001/api/auth/me', {
       credentials: 'include',
@@ -530,7 +569,6 @@ function Exercise({ type = 'squat', settings, onBack }) {
     setElapsedTime(0);
     setFeedback('준비');
     setGradeText('완벽 0 보통 0');
-    setShowResult(false);
     setRewardTick(0);
     setMessage('시작을 눌러 카메라를 켜세요.');
   }, [type]);
@@ -572,8 +610,9 @@ function Exercise({ type = 'squat', settings, onBack }) {
     };
   }, [stopCamera]);
 
+  // ------------------ Render ------------------
   return (
-    <main className={`exercise-page ${exercise.themeClass}`}>
+    <main className="exercise-page">
       <section className="exercise-phone">
         <section className="exercise-camera-card">
           <video ref={videoRef} playsInline muted className="exercise-video" />
