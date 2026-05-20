@@ -24,18 +24,9 @@ const EXERCISE_LOGIC_FILES = {
 };
 
 const EXERCISES = {
-  squat: {
-    name: '스쿼트',
-    
-  },
-  pushup: {
-    name: '푸쉬업',
-    
-  },
-  lunge: {
-    name: '런지',
-    
-  },
+  squat: { name: '스쿼트' },
+  pushup: { name: '푸쉬업' },
+  lunge: { name: '런지' },
 };
 
 const EMPTY_BODY_INFO = {
@@ -171,6 +162,7 @@ const LOGIC_BY_TYPE = {
 function Exercise({ type = 'squat', settings, onBack, onFinish }) {
   const navigate = useNavigate();
   
+  // ------------------ Refs ------------------
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const poseRef = useRef(null);
@@ -183,6 +175,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
   const [selectedType, setSelectedType] = useState(type);
   const previousTypeRef = useRef(type);
 
+  // ------------------ State ------------------
   const [count, setCount] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [feedback, setFeedback] = useState('준비');
@@ -192,17 +185,17 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
   const [completedSets, setCompletedSets] = useState(0);
   const [totalReps, setTotalReps] = useState(0);
   const [restRemaining, setRestRemaining] = useState(0);
-  const [showResult, setShowResult] = useState(false);
   const [isTypeMenuOpen, setIsTypeMenuOpen] = useState(false);
   const [message, setMessage] = useState('시작을 눌러 카메라를 켜세요.');
   const [rewardTick, setRewardTick] = useState(0);
   const [bodyInfo, setBodyInfo] = useState(EMPTY_BODY_INFO);
 
+  // ------------------ Derived values ------------------
   const exercise = useMemo(() => {
     return EXERCISES[selectedType] ?? EXERCISES.squat;
   }, [selectedType]);
 
-  const targetCount = settings?.reps || exercise.targetCount;
+  const targetCount = settings?.reps || 1;
   const totalSets = settings?.sets || 1;
   const restTime = settings?.rest || 60;
   const progress = Math.min(100, ((count % targetCount) / targetCount) * 100);
@@ -257,6 +250,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     setMessage('운동을 정지했습니다.');
   }, []);
 
+  // ------------------ Exercise state ------------------
   const updateExerciseState = useCallback((nextState) => {
     if (isRestingRef.current) return;
 
@@ -320,6 +314,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     );
   }, [completedSets, isResting, onFinish, restTime, resultStats, selectedType, stopCamera, targetCount, totalReps, totalSets]);
 
+  // ------------------ Pose detection ------------------
   const onResults = useCallback(
     (results) => {
       const video = videoRef.current;
@@ -362,27 +357,31 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     [selectedType, updateExerciseState]
   );
 
+  const createPose = useCallback(() => {
+    const pose = new window.Pose({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
+    });
+
+    pose.setOptions({
+      modelComplexity: 1,
+      smoothLandmarks: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    });
+    pose.onResults(onResults);
+    poseRef.current = pose;
+    return pose;
+  }, [onResults]);
+
   const startCamera = async () => {
     try {
-      setShowResult(false);
       setMessage('자세 인식 모델을 불러오는 중입니다.');
       await Promise.all(MEDIAPIPE_SCRIPTS.map(loadScript));
       await loadExerciseLogicFiles();
 
       if (!videoRef.current) return;
 
-      const pose = new window.Pose({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
-      });
-
-      pose.setOptions({
-        modelComplexity: 1,
-        smoothLandmarks: true,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5,
-      });
-      pose.onResults(onResults);
-      poseRef.current = pose;
+      const pose = createPose();
 
       const camera = new window.Camera(videoRef.current, {
         onFrame: async () => {
@@ -407,6 +406,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     }
   };
 
+  // ------------------ Screen capture ------------------
   const processScreenFrame = useCallback(async () => {
     const video = videoRef.current;
     const pose = poseRef.current;
@@ -427,7 +427,6 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
   const startScreenCapture = async () => {
     try {
       // TODO: 테스트용 화면공유 측정 기능입니다. 최종 배포 전에 삭제 예정입니다.
-      setShowResult(false);
       await Promise.all(MEDIAPIPE_SCRIPTS.map(loadScript));
       await loadExerciseLogicFiles();
       stopCamera();
@@ -440,18 +439,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
         audio: false,
       });
 
-      const pose = new window.Pose({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
-      });
-
-      pose.setOptions({
-        modelComplexity: 1,
-        smoothLandmarks: true,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5,
-      });
-      pose.onResults(onResults);
-      poseRef.current = pose;
+      const pose = createPose();
 
       videoRef.current.srcObject = stream;
       videoRef.current.controls = false;
@@ -489,7 +477,6 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     setElapsedTime(0);
     setFeedback('준비');
     setGradeText('완벽 0 보통 0');
-    setShowResult(false);
     setRewardTick(0);
     setMessage('카운트를 초기화했습니다.');
   };
@@ -518,6 +505,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
       });
   };
 
+  // ------------------ Controls ------------------
   const skipRest = () => {
     setRestRemaining(0);
     isRestingRef.current = false;
@@ -544,11 +532,11 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     setElapsedTime(0);
     setFeedback('준비');
     setGradeText('완벽 0 보통 0');
-    setShowResult(false);
     setRewardTick(0);
     setMessage('운동이 변경되었습니다. 시작을 눌러 카메라를 켜세요.');
   };
 
+  // ------------------ Effects ------------------
   useEffect(() => {
     fetch('http://localhost:3001/api/auth/me', {
       credentials: 'include',
@@ -581,7 +569,6 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     setElapsedTime(0);
     setFeedback('준비');
     setGradeText('완벽 0 보통 0');
-    setShowResult(false);
     setRewardTick(0);
     setMessage('시작을 눌러 카메라를 켜세요.');
   }, [type]);
@@ -623,6 +610,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     };
   }, [stopCamera]);
 
+  // ------------------ Render ------------------
   return (
     <main className="exercise-page">
       <section className="exercise-phone">
