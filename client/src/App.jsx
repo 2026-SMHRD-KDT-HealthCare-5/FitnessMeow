@@ -10,7 +10,7 @@ import ExerciseSetting from './pages/ExerciseSetting.jsx'
 
 function App() {
   return (
-    <WorkoutProvider>
+
       <Routes>
       {/* 1. 처음 들어오면 로그인 페이지로 이동 */}
       <Route path="/" element={<Navigate to="/login" />} />
@@ -28,7 +28,7 @@ function App() {
       <Route path="/exercise" element={<ExerciseSetting page="exercise" />} />
       <Route path="/result" element={<Result />} />
       </Routes>
-    </WorkoutProvider>
+
   )
 }
 
