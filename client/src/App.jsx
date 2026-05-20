@@ -10,6 +10,7 @@ import ExerciseSetting from './pages/ExerciseSetting.jsx'
 import Profile from './pages/Profile.jsx'
 import Collection from './pages/Collection.jsx'
 import MyRoom from './components/MyRoom.jsx'
+import Shop from "./pages/Shop.jsx";
 
 function App() {
   return (
@@ -33,6 +34,10 @@ function App() {
       <Route path="/info" element={<Profile />} />
       <Route path="/collection" element={<Collection />} />
       <Route path="/inventory" element={<MyRoom initialTab="inventory" />} />
+
+      {/* 6. 상점 페이지 */}
+      <Route path="/shop" element={<Shop />} />
+
     </Routes>
   )
 }
