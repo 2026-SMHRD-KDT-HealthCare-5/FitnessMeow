@@ -24,14 +24,23 @@ const EXERCISE_LOGIC_FILES = {
 };
 
 const EXERCISES = {
-  squat: { name: '스쿼트' },
-  pushup: { name: '푸쉬업' },
-  lunge: { name: '런지' },
+  squat: {
+    name: '스쿼트',
+    
+  },
+  pushup: {
+    name: '푸쉬업',
+    
+  },
+  lunge: {
+    name: '런지',
+    
+  },
 };
 
 const EMPTY_BODY_INFO = {
   weightKg: '',
-  heightCm: '',
+  heightCm: '', 
 };
 
 const CALORIE_COEFFICIENTS = {
@@ -162,7 +171,6 @@ const LOGIC_BY_TYPE = {
 function Exercise({ type = 'squat', settings, onBack, onFinish }) {
   const navigate = useNavigate();
   
-  // ------------------ Refs ------------------
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const poseRef = useRef(null);
