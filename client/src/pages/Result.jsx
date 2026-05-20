@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWorkout } from '../context/WorkoutContext.jsx';
 import "../css/Result.css";
 
 /* ════════════════════════════════════════════
@@ -120,9 +119,7 @@ function calcActualGain(postAccum, rawGain) {
 ════════════════════════════════════════════ */
 const Result = () => {
   const navigate = useNavigate();
-  const { workoutData } = useWorkout();
 
-  // Context에서 운동 데이터 가져오기
   const {
     exercise_key = 'pushup',
     sets = 1,
@@ -131,7 +128,7 @@ const Result = () => {
     perfect_count = 0,
     normal_count = 0,
     calories = 0,
-  } = workoutData ?? {};
+  } = {};
 
   // 임시 캐릭터 정보 (나중에 API로 연동)
   const [character, setCharacter] = useState({
