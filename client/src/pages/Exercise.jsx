@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWorkout } from '../context/WorkoutContext.jsx';
 import '../css/Exercise.css';
 
 const MEDIAPIPE_SCRIPTS = [
@@ -27,21 +26,15 @@ const EXERCISE_LOGIC_FILES = {
 const EXERCISES = {
   squat: {
     name: '스쿼트',
-    targetCount: 15,
-    kcal: 48,
-    themeClass: 'exercise-page--squat',
+    
   },
   pushup: {
     name: '푸쉬업',
-    targetCount: 12,
-    kcal: 36,
-    themeClass: 'exercise-page--pushup',
+    
   },
   lunge: {
     name: '런지',
-    targetCount: 20,
-    kcal: 52,
-    themeClass: 'exercise-page--lunge',
+    
   },
 };
 
@@ -56,22 +49,35 @@ const CALORIE_COEFFICIENTS = {
   lunge: 0.0016,
 };
 
-const KOREAN_COUNT_LABELS = ['하나!', '둘!', '셋!', '넷!', '다섯!', '여섯!', '일곱!', '여덟!', '아홉!', '열!'];
-const KOREAN_TENS_LABELS = ['', '열', '스물', '서른', '마흔', '쉰', '예순', '일흔', '여든', '아흔'];
-
-function getKoreanCountLabel(countValue) {
-  if (countValue <= KOREAN_COUNT_LABELS.length) return KOREAN_COUNT_LABELS[countValue - 1];
-  if (countValue < 100) {
-    const tens = Math.floor(countValue / 10);
-    const ones = countValue % 10;
-    return `${KOREAN_TENS_LABELS[tens]}${ones > 0 ? KOREAN_COUNT_LABELS[ones - 1].replace('!', '') : ''}!`;
-  }
-  return `${countValue}!`;
-}
-
 function calcCalories(type, weightKg, heightCm, reps) {
   const h = heightCm / 100;
   return +(weightKg * h * reps * CALORIE_COEFFICIENTS[type]).toFixed(2);
+}
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function postWorkoutWithRetry(workoutData, onRetry, maxAttempts = 3) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const response = await fetch('http://localhost:3001/api/workouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(workoutData),
+      });
+
+      if (response.ok) return;
+    } catch {}
+
+    onRetry?.();
+    if (attempt < maxAttempts) await wait(250);
+  }
+
+  throw new Error('Failed to save workout');
 }
 
 function loadScript(src) {
@@ -164,7 +170,6 @@ const LOGIC_BY_TYPE = {
 
 function Exercise({ type = 'squat', settings, onBack, onFinish }) {
   const navigate = useNavigate();
-  const { setWorkout } = useWorkout();
   
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -306,7 +311,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
       if (nextState.feedback) {
         setFeedback(nextState.feedback);
       } else if (didCompleteRep) {
-        setFeedback(`${getKoreanCountLabel(nextCount)} 좋아요!`);
+        setFeedback('좋아요!');
       }
     }
 
@@ -502,24 +507,13 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
       normal_count: gradeCountsRef.current.normal,
     };
 
-    // POST /api/workouts 호출
-    fetch('http://localhost:3001/api/workouts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(workoutData),
+    postWorkoutWithRetry(workoutData, () => {
+      alert('에러났습니다.');
     })
-      .then((res) => res.json())
-      .then((data) => {
-        // Context에 저장
-        setWorkout(data.data || workoutData);
-        // Result 페이지로 이동
+      .then(() => {
         navigate('/result');
       })
-      .catch((err) => {
-        console.error('운동 저장 실패:', err);
-        // 실패해도 일단 Result로 이동
-        setWorkout(workoutData);
+      .catch(() => {
         navigate('/result');
       });
   };
@@ -630,7 +624,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
   }, [stopCamera]);
 
   return (
-    <main className={`exercise-page ${exercise.themeClass}`}>
+    <main className="exercise-page">
       <section className="exercise-phone">
         <section className="exercise-camera-card">
           <video ref={videoRef} playsInline muted className="exercise-video" />

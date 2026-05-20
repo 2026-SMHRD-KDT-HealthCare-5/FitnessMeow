@@ -12,18 +12,6 @@
   font-family: system-ui, 'Segoe UI', sans-serif;
 }
 
-.exercise-page--squat {
-  --exercise-theme: #36e66c;
-}
-
-.exercise-page--pushup {
-  --exercise-theme: #48d7ff;
-}
-
-.exercise-page--lunge {
-  --exercise-theme: #b68cff;
-}
-
 .exercise-phone {
   width: min(100%, 390px);
   height: 100%;
