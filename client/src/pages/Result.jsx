@@ -127,9 +127,9 @@ const Result = () => {
     exercise_key = 'pushup',
     sets = 1,
     reps = 15,
-    totalReps = 15,
-    perfect = 0,
-    normal = 0,
+    total_score = 0,
+    perfect_count = 0,
+    normal_count = 0,
     calories = 0,
   } = workoutData ?? {};
 
@@ -147,9 +147,7 @@ const Result = () => {
   const [barReady, setBarReady] = useState(true);
 
   // ── 파생 계산값 ──
-  const done = Math.max(0, totalReps - perfect - normal);
-  const score = calcScore(perfect, normal, done);
-  const churu = totalReps;
+  const churu = Math.max(sets * reps, perfect_count + normal_count);
 
   // ── 임시: 레벨업 없음 ──
   const isLevelUp = false;
@@ -260,7 +258,7 @@ const Result = () => {
           <div className="score-item">
             <span className="score-label">총 점수</span>
             {/* TODO: 정확도 연동 후 실제 점수 반영 */}
-            <span className="score-value orange">{score}</span>
+            <span className="score-value orange">{total_score}</span>
           </div>
           <div className="vdivider" />
           <div className="score-item">
@@ -276,7 +274,7 @@ const Result = () => {
         <div className="btn-row">
           <button
             className="btn-primary btn-full"
-            onClick={() => navigate('/exerciseselect')}
+            onClick={() => navigate('/mainlobby')}
           >
             로비로 돌아가기
           </button>

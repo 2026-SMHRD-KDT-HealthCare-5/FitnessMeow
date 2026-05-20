@@ -496,10 +496,10 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
       exercise_key: selectedType,
       sets: totalSets,
       reps: targetCount,
-      totalReps,
-      perfect: gradeCountsRef.current.perfect,
-      normal: gradeCountsRef.current.normal,
+      total_score: resultStats.score,
       calories: resultStats.calories,
+      perfect_count: gradeCountsRef.current.perfect,
+      normal_count: gradeCountsRef.current.normal,
     };
 
     // POST /api/workouts 호출

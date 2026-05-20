@@ -19,10 +19,10 @@ router.post('/', async (req, res) => {
       exercise_key,
       sets,
       reps,
-      totalReps,
-      perfect = 0,
-      normal = 0,
+      total_score,
       calories = 0,
+      perfect_count = 0,
+      normal_count = 0,
     } = req.body;
 
     // TODO: 실제 user_idx는 세션/토큰에서 가져오기
@@ -32,9 +32,9 @@ router.post('/', async (req, res) => {
 
     // workouts 테이블에 기록 저장
     await conn.query(
-      `INSERT INTO workouts (user_idx, exercise_key, sets, reps, totalReps, perfect, normal, calories, created_at)
+      `INSERT INTO workouts (user_idx, exercise_key, sets, reps, total_score, calories, perfect_count, normal_count, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [user_idx, exercise_key, sets, reps, totalReps, perfect, normal, calories]
+      [user_idx, exercise_key, sets, reps, total_score, calories, perfect_count, normal_count]
     );
 
     conn.release();
@@ -45,10 +45,10 @@ router.post('/', async (req, res) => {
         exercise_key,
         sets,
         reps,
-        totalReps,
-        perfect,
-        normal,
+        total_score,
         calories,
+        perfect_count,
+        normal_count,
       },
     });
   } catch (err) {
