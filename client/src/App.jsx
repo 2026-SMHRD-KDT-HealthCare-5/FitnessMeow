@@ -1,10 +1,12 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom' 
+
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import MainLobby from './pages/MainLobby.jsx'
-import ExerciseSetting from './pages/ExerciseSetting.jsx'
+import ExerciseSelect from './pages/ExerciseSelect.jsx'
 import Result from './pages/Result.jsx'
-import { WorkoutProvider } from './context/WorkoutContext.jsx'
+import ExerciseSetting from './pages/ExerciseSetting.jsx'
 
 function App() {
   return (

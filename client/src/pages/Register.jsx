@@ -67,7 +67,7 @@ const [error,setError]= useState('');
       
       <div className="register-card">
         <img src={logoImg} className="logo" alt="Logo" />
-        <p className="sub-text">운동하고 고양이를 키워보세요 🐾</p>
+  
         
         <input type="text" name="id" placeholder="아이디 입력" value={form.id} onChange={handleChange} />
         <input type="password" name="password" placeholder="비밀번호 입력" value={form.password} onChange={handleChange} />
