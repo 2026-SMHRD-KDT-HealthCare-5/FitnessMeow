@@ -29,10 +29,10 @@ function App() {
       <Route path="/exercisesetting" element={<ExerciseSetting page="setting" />} />
       <Route path="/exercise"        element={<ExerciseSetting page="exercise" />} />
 
-      {/* 5. 프로필 페이지 */}
+      {/* 5. 프로필 및 인벤토리 페이지 */}
       <Route path="/info" element={<Profile />} />
       <Route path="/collection" element={<Collection />} />
-      <Route path="/shop" element={<MyRoom initialTab="shop" />} />
+      <Route path="/inventory" element={<MyRoom initialTab="inventory" />} />
     </Routes>
   )
 }

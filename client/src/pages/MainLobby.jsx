@@ -14,9 +14,8 @@ const MainLobby = () => {
     <div className="app-layout">
       <div className="main-content">
         
-        {/* ⭐️ 홈("home")이거나 꾸미기("shop") 일 때 마이룸을 보여줍니다. */}
-        {/* 이제 Shop 컴포넌트는 MyRoom 내부에서 아름답게 띄워줄 겁니다. */}
-        {(currentTab === "home" || currentTab === "shop") && (
+        {/* ⭐️ 홈("home")이거나 꾸미기("inventory") 일 때 마이룸을 보여줍니다. */}
+        {(currentTab === "home" || currentTab === "inventory") && (
           <MyRoom currentTab={currentTab} />
         )}
         
