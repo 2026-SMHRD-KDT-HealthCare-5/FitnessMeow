@@ -1,19 +1,47 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import "../css/Result.css";
+import { CHARACTER_CONFIG } from '../config/characters.js';
 
 /* ════════════════════════════════════════════
-   레벨별 고양이 이미지 매핑
-   assets 폴더에 LV_1.png / LV_2.png / LV_3.png 복사 필요
+   캐릭터 이미지 매핑
+   assets 폴더의 파일명 규칙:
+   {character_name}LV_{level}.png
+   예) korean_shorthairLV_1.png
 ════════════════════════════════════════════ */
-import catLv1 from '../assets/LV_1.png'; // LV1: 엎드린 픽셀 고양이
-import catLv2 from '../assets/LV_2.png'; // LV2: 서있는 픽셀 고양이
-import catLv3 from '../assets/LV_3.png'; // LV3: 앉아있는 픽셀 고양이
+import ks1 from '../assets/korean_shorthairLV_1.png';
+import ks2 from '../assets/korean_shorthairLV_2.png';
+import ks3 from '../assets/korean_shorthairLV_3.png';
+import rb1 from '../assets/russian_blueLV_1.png';
+import rb2 from '../assets/russian_blueLV_2.png';
+import rb3 from '../assets/russian_blueLV_3.png';
+import mk1 from '../assets/munchkinLV_1.png';
+import mk2 from '../assets/munchkinLV_2.png';
+import mk3 from '../assets/munchkinLV_3.png';
 
 const ANIMAL_IMAGES = {
-  cat: { '1': catLv1, '2': catLv2, '3': catLv3 },
-  // 동물 추가 예시: dog: { '1': dogLv1, '2': dogLv2, '3': dogLv3 },
+  korean_shorthair: { '1': ks1, '2': ks2, '3': ks3 },
+  russian_blue:     { '1': rb1, '2': rb2, '3': rb3 },
+  munchkin:         { '1': mk1, '2': mk2, '3': mk3 },
 };
+
+/* ════════════════════════════════════════════
+   레벨 키 매핑 (CHARACTER_CONFIG.max_exp 참조용)
+   character.level('1'|'2'|'3') → max_exp.lv1|lv2|lv3
+════════════════════════════════════════════ */
+const LEVEL_KEY_MAP = { '1': 'lv1', '2': 'lv2', '3': 'lv3' };
+
+/**
+ * 캐릭터 종류 + 레벨에 따른 부위별 EXP 최대값 반환
+ * @param {string} characterName  'korean_shorthair' | 'russian_blue' | 'munchkin'
+ * @param {string} level          '1' | '2' | '3'
+ * @returns {number}              해당 레벨의 EXP 최대값
+ */
+function getMaxExp(characterName, level) {
+  const config   = CHARACTER_CONFIG[characterName];
+  const levelKey = LEVEL_KEY_MAP[level] ?? 'lv1';
+  return config?.max_exp?.[levelKey] ?? 50; // fallback 50
+}
 
 /* ════════════════════════════════════════════
    운동 종류 → EXP 적용 부위 매핑
@@ -26,16 +54,6 @@ const EXERCISE_EXP_MAP = {
 };
 
 /* ════════════════════════════════════════════
-   운동별 칼로리 상수 (kcal_per_kg_per_rep)
-   공식: 체중(kg) × 총 횟수 × 상수
-════════════════════════════════════════════ */
-const EXERCISE_KCAL_PER_KG_PER_REP = {
-  squat:  0.004375,
-  lunge:  0.003938,
-  pushup: 0.003325,
-};
-
-/* ════════════════════════════════════════════
    EXP 부위별 UI 메타 정보
    dbKey: characters 테이블 컬럼명과 일치
 ════════════════════════════════════════════ */
@@ -45,14 +63,6 @@ const EXP_PART_META = {
   core:  { label: '복근 EXP',    barClass: 'bar-core',  dbKey: 'core_exp'  },
   lower: { label: '하체 EXP',    barClass: 'bar-leg',   dbKey: 'lower_exp' },
 };
-
-/* ════════════════════════════════════════════
-   EXP 상수
-   - LEVEL_MAX_EXP: 부위별 최대 EXP (250)
-   - 모든 부위가 250 도달 시에만 레벨업 (백엔드 처리)
-   - 최대치 도달 부위는 이후 운동에도 250에서 고정
-════════════════════════════════════════════ */
-const LEVEL_MAX_EXP = 250;
 
 /* ════════════════════════════════════════════
    파티클 설정
@@ -73,45 +83,31 @@ const PARTICLE_CONFIG = [
 ════════════════════════════════════════════ */
 
 /**
- * 칼로리 계산
- * 공식: 체중(kg) × 총 횟수 × kcal_per_kg_per_rep 상수
- *
- * @param {string} exerciseKey  'pushup' | 'lunge' | 'squat'
- * @param {number} totalReps    총 횟수 (sets × reps)
- * @param {number} weightKg     체중 kg (users.weight)
- * @returns {number}            소비 칼로리 (소수점 1자리)
- */
-function calcCalories(exerciseKey, totalReps, weightKg) {
-  const factor = EXERCISE_KCAL_PER_KG_PER_REP[exerciseKey] ?? 0.004375;
-  return Math.round(weightKg * totalReps * factor * 10) / 10;
-}
-
-/**
  * 총 점수 계산 (100점 만점)
- * PERFECT: 100점 / GOOD: 70점 / DONE: 40점 가중 평균
- * TODO: 정확도 평가 연동 후 perfect/good/done 실제 값 사용
- *       현재는 전체 횟수를 DONE으로 처리하여 임시 산출 → 항상 40점
+ * 완벽: 100점 기여 / 보통: 60점 기여
+ * 공식: (완벽 × 100 + 보통 × 60) / totalReps
+ *
+ * @param {number} perfect    완벽 횟수
+ * @param {number} normal     보통 횟수
+ * @param {number} totalReps  총 횟수 (sets × reps)
+ * @returns {number}          0~100 정수
  */
-function calcScore(perfect, good, done) {
-  const total = perfect + good + done;
-  if (total === 0) return 0;
-  return Math.round((perfect * 100 + good * 70 + done * 40) / total);
+function calcScore(perfect, normal, totalReps) {
+  if (totalReps === 0) return 0;
+  return Math.min(100, Math.round((perfect * 100 + normal * 60) / totalReps));
 }
 
 /**
  * 부위별 실제 획득 EXP 계산
- * - 운동 후 누적값(post)에서 운동 전 누적값(pre)을 역산
- * - 백엔드가 상한(250)을 적용한 후의 값을 반환하므로
- *   pre = max(0, post - gain) 로 근사 계산
- * - 정확한 값이 필요하면 백엔드에서 prev_exp_map 함께 반환 필요
+ * 백엔드가 max_exp 상한 적용 후 저장하므로 역산
  *
- * @param {number} postAccum  운동 후 누적 EXP (DB 값, 최대 250)
+ * @param {number} postAccum  운동 후 누적 EXP (DB 값)
  * @param {number} rawGain    이론상 획득량 (totalReps)
  * @returns {number}          실제 반영된 획득량
  */
 function calcActualGain(postAccum, rawGain) {
   const preAccum = Math.max(0, postAccum - rawGain);
-  return postAccum - preAccum; // 상한 적용 후 실제 증가분
+  return postAccum - preAccum;
 }
 
 /* ════════════════════════════════════════════
@@ -122,18 +118,21 @@ const Result = () => {
   const location = useLocation();
 
   /*
-    ── 운동 화면에서 useLocation으로 받는 데이터 ──
+    ── Exercise.jsx에서 navigate('/result', { state: {...} })로 전달받는 데이터 ──
     exercise_key : 'pushup' | 'lunge' | 'squat'
     sets         : 세트 수
     reps         : 세트당 반복 횟수
-
-    TODO: 정확도 평가 연동 시 아래 항목 추가 수신
-    perfect / good / done
+    perfect      : 완벽 횟수  (Exercise.jsx gradeCountsRef.current.perfect)
+    normal       : 보통 횟수  (Exercise.jsx gradeCountsRef.current.normal)
+    calories     : 칼로리     (Exercise.jsx calcCalories 결과값)
   */
   const {
     exercise_key = 'pushup',
     sets         = 2,
     reps         = 15,
+    perfect      = 0,
+    normal       = 0,
+    calories     = null, // Exercise.jsx에서 계산한 값 그대로 수신
   } = location.state ?? {};
 
   const totalReps = sets * reps;
@@ -141,7 +140,6 @@ const Result = () => {
   // ── 백엔드 응답 상태 ──
   const [character, setCharacter] = useState(null);
   const [prevLevel, setPrevLevel] = useState(null);
-  const [userInfo,  setUserInfo]  = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [apiError,  setApiError]  = useState(null);
   const [barReady,  setBarReady]  = useState(false);
@@ -150,45 +148,15 @@ const Result = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // TODO: user_idx를 인증 컨텍스트에서 가져오도록 수정
+        // TODO: user_idx를 AuthContext에서 가져오도록 수정
         const user_idx = 1; // 임시 하드코딩
 
-        const [charRes, userRes] = await Promise.all([
-          /*
-            GET /api/characters/:user_idx
-            응답 예시:
-            {
-              character: {
-                animal_type : 'cat',
-                level       : '3',       ← 운동 반영 후 레벨
-                arm_exp     : 250,       ← 운동 반영 후 EXP (상한 250 적용)
-                chest_exp   : 180,
-                core_exp    : 250,
-                lower_exp   : 230
-              },
-              prev_level: '2'            ← 운동 직전 레벨
-            }
+        const res = await fetch(`/api/characters/${user_idx}`);
+        if (!res.ok) throw new Error('API 응답 오류');
 
-            TODO: 정확한 실제 획득량 표시를 위해 prev_exp_map 추가 반환 요청
-            prev_exp_map: { arm_exp: 240, chest_exp: 150, ... }
-          */
-          fetch(`/api/characters/${user_idx}`),
-
-          /*
-            GET /api/users/:user_idx
-            응답 예시: { weight: 70.5, height: 175.0 }
-          */
-          fetch(`/api/users/${user_idx}`),
-        ]);
-
-        if (!charRes.ok || !userRes.ok) throw new Error('API 응답 오류');
-
-        const charData = await charRes.json();
-        const userData = await userRes.json();
-
+        const charData = await res.json();
         setCharacter(charData.character);
         setPrevLevel(charData.prev_level ?? charData.character.level);
-        setUserInfo(userData);
       } catch (err) {
         console.error('[Result] 데이터 로딩 실패:', err);
         setApiError('데이터를 불러오지 못했습니다.');
@@ -203,21 +171,23 @@ const Result = () => {
 
   // ── 파생 계산값 ──
 
-  // 칼로리: 체중 × 총 횟수 × 운동별 상수
-  const calories = userInfo
-    ? calcCalories(exercise_key, totalReps, userInfo.weight)
-    : null;
-
-  // 총 점수 (TODO: 정확도 연동 후 실제 값 교체 → 현재 고정 40점)
-  const score = calcScore(0, 0, totalReps);
+  // 총 점수: 완벽/보통 기반 새 공식
+  const score = calcScore(perfect, normal, totalReps);
 
   // 츄르: 1회당 1츄르
   const churu = totalReps;
 
-  // 레벨업 여부: prev_level ≠ current level (백엔드에서 전 부위 250 도달 시에만 레벨업 처리)
+  // 레벨업 여부
   const isLevelUp = character !== null
     && prevLevel  !== null
     && character.level !== prevLevel;
+
+  // 캐릭터 종류 및 레벨
+  const characterName = character?.character_name ?? 'korean_shorthair';
+  const currentLevel  = character?.level ?? '1';
+
+  // 현재 레벨 기준 EXP 최대값 (종류 + 레벨에 따라 다름)
+  const maxExp = getMaxExp(characterName, currentLevel);
 
   // 이번 운동으로 EXP 오른 부위
   const affectedParts = EXERCISE_EXP_MAP[exercise_key] ?? [];
@@ -225,20 +195,18 @@ const Result = () => {
   // EXP 바 데이터
   const expBarData = affectedParts.map((part) => {
     const meta        = EXP_PART_META[part];
-    const accumulated = Math.min(character?.[meta.dbKey] ?? 0, LEVEL_MAX_EXP); // 상한 보정
-    const actualGain  = calcActualGain(accumulated, totalReps);                // 실제 획득량
-    const isMaxed     = accumulated >= LEVEL_MAX_EXP;                          // 상한 도달 여부
-    const barWidth    = `${(accumulated / LEVEL_MAX_EXP) * 100}%`;
+    const accumulated = Math.min(character?.[meta.dbKey] ?? 0, maxExp); // 상한 보정
+    const actualGain  = calcActualGain(accumulated, totalReps);
+    const isMaxed     = accumulated >= maxExp;
+    const barWidth    = `${(accumulated / maxExp) * 100}%`;
 
     return { ...meta, accumulated, actualGain, isMaxed, barWidth };
   });
 
-  // 동물 이미지 — fallback으로 레벨 1 이미지 사용
-  const animalType   = character?.animal_type ?? 'cat';
-  const currentLevel = character?.level       ?? '1';
-  const animalMap    = ANIMAL_IMAGES[animalType] ?? ANIMAL_IMAGES['cat'];
-  const currentImg   = animalMap[currentLevel]              ?? catLv1;
-  const prevImg      = animalMap[prevLevel ?? currentLevel] ?? catLv1;
+  // 동물 이미지
+  const animalMap  = ANIMAL_IMAGES[characterName] ?? ANIMAL_IMAGES['korean_shorthair'];
+  const currentImg = animalMap[currentLevel]              ?? ks1;
+  const prevImg    = animalMap[prevLevel ?? currentLevel] ?? ks1;
 
   // ── 로딩 ──
   if (isLoading) {
@@ -290,7 +258,7 @@ const Result = () => {
         <div className="card">
 
           {isLevelUp ? (
-            /* 레벨업 O: 이전 → 현재 비교 + 축하 배너 */
+            /* 레벨업 O */
             <>
               <div className="cat-compare">
                 <div className="cat-slot">
@@ -308,14 +276,14 @@ const Result = () => {
               </div>
             </>
           ) : (
-            /* 레벨업 X: 현재 캐릭터 단독 */
+            /* 레벨업 X */
             <div className="cat-single">
               <span className="lv-badge">LV. {currentLevel}</span>
               <img src={currentImg} className="cat-img" alt={`LV${currentLevel} 고양이`} />
             </div>
           )}
 
-          {/* EXP 바 (운동 부위만 표시) */}
+          {/* EXP 바 */}
           <div className="exp-list">
             {expBarData.map((item, i) => (
               <div className="exp-row" key={i}>
@@ -327,11 +295,7 @@ const Result = () => {
                   />
                 </div>
                 <div className="exp-right">
-                  {/* 누적 EXP / 최대 EXP */}
-                  <span className="exp-accum">
-                    {item.accumulated}/{LEVEL_MAX_EXP}
-                  </span>
-                  {/* 이번 획득량 — 상한 도달 시 MAX 표시 */}
+                  <span className="exp-accum">{item.accumulated}/{maxExp}</span>
                   {item.isMaxed && item.actualGain === 0 ? (
                     <span className="exp-gain maxed">MAX</span>
                   ) : (
@@ -342,7 +306,7 @@ const Result = () => {
             ))}
           </div>
 
-          {/* 츄르 획득량 */}
+          {/* 츄르 */}
           <div className="divider" />
           <div className="churu-row">
             <span className="churu-icon">🍣</span>
@@ -351,13 +315,26 @@ const Result = () => {
           </div>
         </div>
 
-        {/* ── 3. 정확도 평가 — TODO: 연동 후 구현 ── */}
+        {/* ── 3. 정확도 평가 ── */}
+        <div className="card accuracy-card">
+          <p className="section-label">정확도 평가</p>
+          <div className="accuracy-grid">
+            <div className="acc-item">
+              <span className="acc-tag tag-perfect">완벽</span>
+              <span className="acc-count">{perfect}</span>
+            </div>
+            <div className="acc-divider" />
+            <div className="acc-item">
+              <span className="acc-tag tag-normal">보통</span>
+              <span className="acc-count">{normal}</span>
+            </div>
+          </div>
+        </div>
 
         {/* ── 4. 총 점수 + 칼로리 카드 ── */}
         <div className="card score-card">
           <div className="score-item">
             <span className="score-label">총 점수</span>
-            {/* TODO: 정확도 연동 후 실제 점수 반영 */}
             <span className="score-value orange">{score}</span>
           </div>
           <div className="vdivider" />
