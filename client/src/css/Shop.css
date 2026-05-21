@@ -11,7 +11,7 @@
   font-family: sans-serif;
 }
 
-/* 헤더 */
+/* ------------------------------- 헤더 -------------------------------  */
 .shop-header {
   display: flex;
   align-items: center;
@@ -25,7 +25,7 @@
   color: #333;
   margin: 0;
 }
-
+/*------------------------------------------- 재화 -------------------------------------------*/
 .user-coin {
   display: flex;
   align-items: center;
@@ -44,7 +44,7 @@
   object-fit: contain;
 }
 
-/* 탭 */
+/* ------------------------------- 탭 ------------------------------- */
 .shop-tabs {
   display: flex;
   border-bottom: 1px solid #F0EAE1;
@@ -84,15 +84,15 @@
   border-radius: 4px 4px 0 0;
 }
 
-/* 그리드 */
+/* ------------------------------- 그리드 ------------------------------- */
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 14px;
   padding: 16px;
 }
 
-/* 카드 */
+/* ------------------------------- 카드 ------------------------------- */
 .shop-item-card {
   background: #FFFFFF;
   border-radius: 18px;
@@ -168,8 +168,8 @@
   height: 13px;
   object-fit: contain;
 }
-/*----------------------------------------------------------------------------*/
-/* Modal */
+/*---------------------- Modal ----------------------*/
+
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -267,7 +267,7 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-/*------------------------------------ 토스트 /*------------------------------------ */
+/*------------------------------------ 토스트 ----------------------------------- */
 .toast {
   position: fixed;
   top: 350px;

@@ -6,6 +6,7 @@ import UserCoin from '../components/UserCoin.jsx';
 import ShopItemCard from '../components/ShopItemCard.jsx';
 import PurchaseModal from '../components/PurchaseModal.jsx';
 import ToastMessage from '../components/ToastMessage.jsx';
+import { shopApi } from '../services/shopApi.js';
 
 import cattowerImg from '../assets/cattower.png';
 import ball1Img from '../assets/ball1.png';
@@ -17,12 +18,10 @@ import ball3Img from '../assets/ball3.png';
   타일 : [],
   가구: [
     { id: 101, name: '원목 캣타워', price: 1500, img: cattowerImg },
-  ],
-  장난감: [
     { id: 102, name: '털뭉치 1',   price: 500,  img: ball1Img },
     { id: 103, name: '털뭉치 2',   price: 800,  img: ball2Img },
     { id: 104, name: '털뭉치 3',   price: 2000, img: ball3Img },
-  ],
+  ]
 };
 
 const Shop = () => {

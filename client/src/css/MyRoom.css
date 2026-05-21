@@ -79,7 +79,6 @@
   /* 🌟 좌측 프로필과 대칭감을 주기 위해 패딩 통일 */
   padding: 6px 16px 6px 6px; 
   border-radius: 30px; 
-  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
   border: 1px solid rgba(0, 0, 0, 0.02);
 }
 
