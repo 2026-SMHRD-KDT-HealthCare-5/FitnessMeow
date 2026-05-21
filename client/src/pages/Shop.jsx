@@ -11,12 +11,10 @@ import cattowerImg from '../assets/cattower.png';
 import ball1Img from '../assets/ball1.png';
 import ball2Img from '../assets/ball2.png';
 import ball3Img from '../assets/ball3.png';
-import woodCat1Img from '../assets/wood---1.png';
-import woodCat2Img from '../assets/wood---2.png';
 
   const SHOP_ITEMS = {
   벽지 : [],
-  바닥 : [],
+  타일 : [],
   가구: [
     { id: 101, name: '원목 캣타워', price: 1500, img: cattowerImg },
   ],
