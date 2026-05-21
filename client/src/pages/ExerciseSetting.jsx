@@ -6,25 +6,25 @@ import Exercise from './Exercise.jsx';
 
 const EXERCISE_INFO = {
   squat: {
-    id: 'squat',
-    name: '스쿼트',
-    description: '하체와 코어를 함께 강화하는 기본 운동입니다.',
-    gif: '',
-    hint: '발을 어깨너비로 벌리고 무릎이 발끝을 넘지 않도록 내려주세요.',
+    id: "squat",
+    name: "스쿼트",
+    description: "하체와 코어를 함께 강화하는 기본 운동입니다.",
+    gif: "",
+    hint: "발을 어깨너비로 벌리고 무릎이 발끝을 넘지 않도록 내려가세요.",
   },
   pushup: {
-    id: 'pushup',
-    name: '푸시업',
-    description: '가슴과 어깨, 코어를 다지는 전신 체중 운동입니다.',
-    gif: '',
-    hint: '몸은 일직선을 유지하고 팔꿈치를 뒤쪽으로 붙여 내립니다.',
+    id: "pushup",
+    name: "푸시업",
+    description: "가슴과 팔, 코어를 함께 쓰는 전신 체중 운동입니다.",
+    gif: "",
+    hint: "몸을 일직선으로 유지하고 팔꿈치를 자연스럽게 굽혀 내려가세요.",
   },
   lunge: {
-    id: 'lunge',
-    name: '런지',
-    description: '하체 균형과 다리 힘을 동시에 기르는 운동입니다.',
-    gif: '',
-    hint: '앞발에 체중을 싣고 뒷무릎이 바닥에 닿기 직전까지 내려가세요.',
+    id: "lunge",
+    name: "런지",
+    description: "하체 균형과 다리 힘을 동시에 기르는 운동입니다.",
+    gif: "",
+    hint: "앞발에 체중을 싣고 뒷무릎이 바닥에 닿기 직전까지 내려가세요.",
   },
 };
 
@@ -38,6 +38,16 @@ const normalizeSettingValue = (value) => {
   const numberValue = Number(value);
   return Number.isFinite(numberValue) ? Math.max(1, Math.floor(numberValue)) : 1;
 };
+
+const isPositiveIntegerInput = (value) => value === '' || /^[1-9]\d*$/.test(value);
+const hasValidSettings = (settings) => {
+  return Object.values(settings).every((value) => /^[1-9]\d*$/.test(String(value)));
+};
+const toNumericSettings = (settings) => ({
+  sets: Number(settings.sets),
+  reps: Number(settings.reps),
+  rest: Number(settings.rest),
+});
 
 function ExerciseSettingForm({
   selectedType = 'squat',
@@ -57,17 +67,27 @@ function ExerciseSettingForm({
   });
 
   const updateSetting = (field, value) => {
-    const nextValue = normalizeSettingValue(value);
-    const nextSettings = { ...settings, [field]: nextValue };
+    if (!isPositiveIntegerInput(value)) return;
+
+    const nextSettings = { ...settings, [field]: value };
     setSettings(nextSettings);
-    onSettingsChange?.(nextSettings);
+    if (hasValidSettings(nextSettings)) {
+      onSettingsChange?.(toNumericSettings(nextSettings));
+    }
+  };
+
+  const startExercise = () => {
+    if (!hasValidSettings(settings)) return;
+
+    const nextSettings = toNumericSettings(settings);
+    onStart?.(exercise.id, nextSettings);
   };
 
   return (
     <div className="setting-page">
       <div className="setting-card">
         <button type="button" className="setting-back-button" onClick={onBack}>
-          ← 이전
+          이전
         </button>
 
         <div className="setting-hero">
@@ -131,18 +151,11 @@ function ExerciseSettingForm({
           </div>
         </div>
 
-        <div className="summary-card">
-          <h2>운동 요약</h2>
-          <p>운동 종류: {exercise.name}</p>
-          <p>세트: {settings.sets}회</p>
-          <p>횟수: {settings.reps}회</p>
-          <p>휴식: {settings.rest}초</p>
-        </div>
-
         <button
           type="button"
           className="primary-button"
-          onClick={() => onStart?.(exercise.id, settings)}
+          onClick={startExercise}
+          disabled={!hasValidSettings(settings)}
         >
           운동 시작하기
         </button>
@@ -190,6 +203,7 @@ export default function ExerciseSetting({ page = 'select' }) {
         <Exercise
           type={selectedType}
           settings={exerciseSettings}
+          onFinish={(resultState) => navigate('/result', { state: resultState })}
           onBack={() => navigate('/exercisesetting', {
             state: { selectedType, exerciseSettings },
           })}

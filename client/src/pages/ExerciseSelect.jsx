@@ -11,8 +11,6 @@ import lowerIcon from "../assets/leg-icon.png"; // 하체 강화 아이콘
 import upperIcon from "../assets/8icon.png"; // 상체 강화 아이콘
 
 const ExerciseSelect = ({ onSelect = () => {} }) => {
-   const handleSelect = (exercise) => {onSelect(exercise);};
-
   return (
     <div className="container">
       <div className="overlay"></div>
@@ -45,7 +43,6 @@ const ExerciseSelect = ({ onSelect = () => {} }) => {
                 </div>
               </div>
             </div>
-
             <button className="arrow-button" type="button">
               〉
             </button>

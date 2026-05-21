@@ -7,8 +7,6 @@ import { Link } from 'react-router-dom'; // Link 컴포넌트 임포트
 
 
 
-
-
 const Login = () => {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
@@ -38,7 +36,6 @@ const Login = () => {
       setError('서버에 연결할 수 없어요.');
     }
   }
-
 
   return (
     <div className="container">
