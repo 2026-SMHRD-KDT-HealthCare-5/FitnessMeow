@@ -81,7 +81,7 @@ const [error,setError]= useState('');
 
         {/* 하단 메뉴 */}
         <div className="bottom-menu">
-          <span>이미 계정이 있으신가요?  <Link to="/login">로그인하기</Link></span>
+          <span>이미 계정이 있으신가요? <Link to="/login">로그인하기</Link></span>
         </div>
       </div>
     </div>

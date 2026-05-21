@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import "../css/Result.css";
 import { CHARACTER_CONFIG } from '../config/characters.js';
 
@@ -97,7 +97,6 @@ function calcActualGain(postAccum, rawGain) {
 ════════════════════════════════════════════ */
 const Result = () => {
   const navigate = useNavigate();
-  const location = useLocation();
 
   /*
     Exercise.jsx의 POST /api/workouts 응답을 navigate state로 전달받음
@@ -358,7 +357,7 @@ const Result = () => {
         <div className="btn-row">
           <button
             className="btn-primary btn-full"
-            onClick={() => navigate('/exerciseselect')}
+            onClick={() => navigate('/mainlobby')}
           >
             로비로 돌아가기
           </button>
