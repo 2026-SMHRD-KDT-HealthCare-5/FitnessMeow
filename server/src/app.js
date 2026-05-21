@@ -4,6 +4,8 @@ const session = require('express-session');
 
 
 const authRoutes = require('./routes/auth.routes');
+const workoutRoutes= require('./routes/workout.routes');
+const characterRoutes=require('./routes/character.routes');
 
 
 const app = express();
@@ -28,6 +30,8 @@ app.use(session({
 }));
 
 app.use('/api/auth', authRoutes); //라우터 연결
+app.use('/api/workouts', workoutRoutes);
+app.use('/api/character', characterRoutes);
 
 
 app.get('/', (req, res) => {
