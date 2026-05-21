@@ -148,6 +148,24 @@
   margin-bottom: 16px;
   animation: slideUp 0.4s 0.3s ease-out both;
 }
+
+/* 새 종 해금 배너 — 레벨업 배너 아래 표시 */
+.unlock-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  background: #EEF3FF;
+  border: 1.5px solid #B8CCFF;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #5b7cf7;
+  margin-bottom: 16px;
+  text-align: center;
+  line-height: 1.4;
+  animation: slideUp 0.4s 0.5s ease-out both;
+}
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -251,6 +269,58 @@
 .churu-icon  { font-size: 20px; line-height: 1; }
 .churu-label { font-size: 13px; font-weight: 700; color: #555555; flex: 1; }
 .churu-gain  { font-size: 14px; font-weight: 800; color: #ff8c42; }
+
+
+/* ══════════════════════════════════════════
+   3. 정확도 평가 카드
+══════════════════════════════════════════ */
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #999999;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.accuracy-grid {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  text-align: center;
+}
+
+.acc-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.acc-tag {
+  font-size: 12px;
+  font-weight: 900;
+  padding: 4px 16px;
+  border-radius: 99px;
+  letter-spacing: 0.5px;
+}
+
+/* 완벽: 초록 / 보통: 주황 */
+.tag-perfect { background: #EAFBF0; color: #34c759; }
+.tag-normal  { background: #FFF5EC; color: #ff8c42; }
+
+.acc-count {
+  font-size: 32px;
+  font-weight: 900;
+  color: #2b2b2b;
+  line-height: 1;
+}
+
+.acc-divider {
+  width: 1px;
+  height: 48px;
+  background: #f0f0f0;
+  margin-bottom: 4px;
+}
 
 
 /* ══════════════════════════════════════════
