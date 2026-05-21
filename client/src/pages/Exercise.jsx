@@ -179,6 +179,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
   const startTimeRef = useRef(null);
   const stateRef = useRef({ count: 0, dir: 0 });
   const isRestingRef = useRef(false);
+  const completedSetsRef = useRef(0);
   const gradeCountsRef = useRef({ perfect: 0, normal: 0 });
   const [selectedType, setSelectedType] = useState(type);
   const previousTypeRef = useRef(type);
@@ -287,7 +288,8 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     }
 
     if (didCompleteSet) {
-      const nextCompletedSets = Math.min(totalSets, completedSets + 1);
+      const nextCompletedSets = Math.min(totalSets, completedSetsRef.current + 1);
+      completedSetsRef.current = nextCompletedSets;
 
       if (nextCompletedSets >= totalSets) {
         stopCamera();
@@ -320,7 +322,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     setGradeText(
       `완벽 ${gradeCountsRef.current.perfect} 보통 ${gradeCountsRef.current.normal}`
     );
-  }, [completedSets, isResting, onFinish, restTime, resultStats, selectedType, stopCamera, targetCount, totalReps, totalSets]);
+  }, [isResting, onFinish, restTime, resultStats, selectedType, stopCamera, targetCount, totalReps, totalSets]);
 
   // ------------------ Pose detection ------------------
   const onResults = useCallback(
@@ -477,6 +479,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     gradeCountsRef.current = { perfect: 0, normal: 0 };
     startTimeRef.current = isCameraOn ? performance.now() : null;
     setCount(0);
+    completedSetsRef.current = 0;
     setCompletedSets(0);
     setTotalReps(0);
     setRestRemaining(0);
@@ -502,9 +505,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
       normal_count: gradeCountsRef.current.normal,
     };
 
-    postWorkoutWithRetry(workoutData, () => {
-      alert('에러났습니다.');
-    })
+    postWorkoutWithRetry(workoutData)
       .then(() => {
         navigate('/result');
       })
@@ -532,6 +533,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     previousTypeRef.current = nextType;
     setSelectedType(nextType);
     setCount(0);
+    completedSetsRef.current = 0;
     setCompletedSets(0);
     setTotalReps(0);
     setRestRemaining(0);
@@ -569,6 +571,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     gradeCountsRef.current = { perfect: 0, normal: 0 };
     startTimeRef.current = isCameraOn ? performance.now() : null;
     setCount(0);
+    completedSetsRef.current = 0;
     setCompletedSets(0);
     setTotalReps(0);
     setRestRemaining(0);
