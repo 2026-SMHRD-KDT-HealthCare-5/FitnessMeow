@@ -1,7 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const mysql = require('mysql2/promise');
 const rateLimit = require('express-rate-limit');
+const router = express.Router();
+const db = require('../db');
 
 /**
 200 → 성공
@@ -12,20 +13,6 @@ const rateLimit = require('express-rate-limit');
 409 → 충돌
 500 → 서버 오류
  */
-
-
-
-
-const router = express.Router();
-
-const db = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
-
 
 //  로그인 rate limit (5분에 10번)
 const loginLimiter = rateLimit({
@@ -80,14 +67,27 @@ router.post('/register', async (req, res) => {
     //bmi 계산 
     const bmi = calcBmi(parseFloat(weight), parseFloat(height));
 
-    await db.query(
+    //회원가입 처리후 
+    //DB table:users에 회원정보 삽입
+    const [result] = await db.query(
       `INSERT INTO users (id, name, email, password_hash, weight, height, bmi)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [id, name, email, password_hash, weight, height, bmi]
     );
 
+    const user_idx = result.insertId; // 방금 생성된 user_idx
+
+    //DB table: characters에 기본 캐릭터 생성
+    await db.query(
+      `INSERT INTO characters (user_idx, character_name, level, arm_exp, chest_exp, core_exp, lower_exp)
+      VALUES (?, '치즈코리안숏헤어', '1', 0, 0, 0, 0)`,
+      [user_idx]
+    );
+
     res.status(201).json({ success: true, message: '회원가입 완료!' });
 
+  //이미 사용중인 아이디 일때
+  //프론트 나중에 수정
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ success: false, message: '이미 사용 중인 아이디 또는 이메일입니다.' });
@@ -98,7 +98,7 @@ router.post('/register', async (req, res) => {
 });
 
 
-// ✅ 로그인 (rate limit 적용)
+//  로그인 (rate limit 적용)
 router.post('/login', loginLimiter, async (req, res) => {
   try {
     const { id, password } = req.body;

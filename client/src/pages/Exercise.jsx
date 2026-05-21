@@ -480,7 +480,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     setRewardTick(0);
     setMessage('카운트를 초기화했습니다.');
   };
-
+//운동완료후 카메라 종로,db에 운동기록 저장을 백엔드로 요청
   const finishExercise = () => {
     stopCamera();
     
@@ -501,7 +501,8 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
         navigate('/result');
       })
       .catch(() => {
-        navigate('/result');
+        //navigate('/result');
+        console.error('운동 기록 저장 실패');
       });
   };
 
