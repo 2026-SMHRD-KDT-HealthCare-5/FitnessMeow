@@ -28,7 +28,7 @@ function App() {
       <Route path="/exercise" element={<ExerciseSetting page="exercise" />} />
       <Route path="/result" element={<Result />} />
       </Routes>
-   
+
   )
 }
 
