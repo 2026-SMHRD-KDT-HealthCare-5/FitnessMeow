@@ -7,24 +7,24 @@ import Exercise from './Exercise.jsx';
 const EXERCISE_INFO = {
   squat: {
     id: "squat",
-    name: "\uC2A4\uCFFC\uD2B8",
-    description: "\uD558\uCCB4\uC640 \uCF54\uC5B4\uB97C \uD568\uAED8 \uAC15\uD654\uD558\uB294 \uAE30\uBCF8 \uC6B4\uB3D9\uC785\uB2C8\uB2E4.",
+    name: "스쿼트",
+    description: "하체와 코어를 함께 강화하는 기본 운동입니다.",
     gif: "",
-    hint: "\uBC1C\uC744 \uC5B4\uAE68\uB108\uBE44\uB85C \uBC8C\uB9AC\uACE0 \uBB34\uB98E\uC774 \uBC1C\uB05D\uC744 \uB118\uC9C0 \uC54A\uB3C4\uB85D \uB0B4\uB824\uAC00\uC138\uC694.",
+    hint: "발을 어깨너비로 벌리고 무릎이 발끝을 넘지 않도록 내려가세요.",
   },
   pushup: {
     id: "pushup",
-    name: "\uD478\uC2DC\uC5C5",
-    description: "\uAC00\uC2B4\uACFC \uD314, \uCF54\uC5B4\uB97C \uD568\uAED8 \uC4F0\uB294 \uC804\uC2E0 \uCCB4\uC911 \uC6B4\uB3D9\uC785\uB2C8\uB2E4.",
+    name: "푸시업",
+    description: "가슴과 팔, 코어를 함께 쓰는 전신 체중 운동입니다.",
     gif: "",
-    hint: "\uBAB8\uC744 \uC77C\uC9C1\uC120\uC73C\uB85C \uC720\uC9C0\uD558\uACE0 \uD314\uAFC8\uCE58\uB97C \uC790\uC5F0\uC2A4\uB7FD\uAC8C \uAD7D\uD600 \uB0B4\uB824\uAC00\uC138\uC694.",
+    hint: "몸을 일직선으로 유지하고 팔꿈치를 자연스럽게 굽혀 내려가세요.",
   },
   lunge: {
     id: "lunge",
-    name: "\uB7F0\uC9C0",
-    description: "\uD558\uCCB4 \uADE0\uD615\uACFC \uB2E4\uB9AC \uD798\uC744 \uB3D9\uC2DC\uC5D0 \uAE30\uB974\uB294 \uC6B4\uB3D9\uC785\uB2C8\uB2E4.",
+    name: "런지",
+    description: "하체 균형과 다리 힘을 동시에 기르는 운동입니다.",
     gif: "",
-    hint: "\uC55E\uBC1C\uC5D0 \uCCB4\uC911\uC744 \uC2E3\uACE0 \uB4B7\uBB34\uB98E\uC774 \uBC14\uB2E5\uC5D0 \uB2FF\uAE30 \uC9C1\uC804\uAE4C\uC9C0 \uB0B4\uB824\uAC00\uC138\uC694.",
+    hint: "앞발에 체중을 싣고 뒷무릎이 바닥에 닿기 직전까지 내려가세요.",
   },
 };
 
@@ -87,35 +87,35 @@ function ExerciseSettingForm({
     <div className="setting-page">
       <div className="setting-card">
         <button type="button" className="setting-back-button" onClick={onBack}>
-          {"\uC774\uC804"}
+          이전
         </button>
 
         <div className="setting-hero">
           <div>
-            <p className="setting-label">{"\uC6B4\uB3D9 \uC124\uC815"}</p>
+            <p className="setting-label">운동 설정</p>
             <h1>{exercise.name}</h1>
             <p className="setting-description">{exercise.description}</p>
           </div>
-          <div className="setting-badge">{"\uC120\uD0DD"}: {exercise.id.toUpperCase()}</div>
+          <div className="setting-badge">선택: {exercise.id.toUpperCase()}</div>
         </div>
 
         <div className="guide-section">
           <div className="guide-media">
             {exercise.gif ? (
-              <img src={exercise.gif} alt={exercise.name + " \uC6B4\uB3D9 \uAC00\uC774\uB4DC"} />
+              <img src={exercise.gif} alt={`${exercise.name} 운동 가이드`} />
             ) : (
-              <div className="guide-empty">{"GIF \uC815\uBCF4\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."}</div>
+              <div className="guide-empty">GIF 정보가 없습니다.</div>
             )}
           </div>
           <div className="guide-info">
-            <h2>{"\uAC00\uC774\uB4DC"}</h2>
+            <h2>가이드</h2>
             <p>{exercise.hint}</p>
           </div>
         </div>
 
         <div className="setting-form">
           <div className="field-row">
-            <label htmlFor="sets">{"\uC138\uD2B8 \uC218"}</label>
+            <label htmlFor="sets">세트 수</label>
             <input
               id="sets"
               type="number"
@@ -127,7 +127,7 @@ function ExerciseSettingForm({
           </div>
 
           <div className="field-row">
-            <label htmlFor="reps">{"\uD69F\uC218"}</label>
+            <label htmlFor="reps">횟수</label>
             <input
               id="reps"
               type="number"
@@ -139,7 +139,7 @@ function ExerciseSettingForm({
           </div>
 
           <div className="field-row">
-            <label htmlFor="rest">{"\uD734\uC2DD \uC2DC\uAC04 (\uCD08)"}</label>
+            <label htmlFor="rest">휴식 시간 (초)</label>
             <input
               id="rest"
               type="number"
@@ -157,7 +157,7 @@ function ExerciseSettingForm({
           onClick={startExercise}
           disabled={!hasValidSettings(settings)}
         >
-          {"\uC6B4\uB3D9 \uC2DC\uC791\uD558\uAE30"}
+          운동 시작하기
         </button>
       </div>
     </div>
