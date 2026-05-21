@@ -1,237 +1,84 @@
+// src/Exercise.jsx
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../css/Exercise.css';
 
-const MEDIAPIPE_SCRIPTS = [
-  'https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js',
-  'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js',
-  'https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js',
-];
+import { MEDIAPIPE_SCRIPTS, EXERCISES, LOGIC_BY_TYPE } from '../constants/exerciseConfig';
+import { calcCalories }                                 from '../utils/calcCalories';
+import { postWorkoutWithRetry }                         from '../utils/exerciseApi';
+import { loadScript, loadExerciseLogicFiles }           from '../utils/scriptLoader';
+import { useBodyInfo }                                  from '../hooks/useBodyInfo';
 
-const EXERCISE_LOGIC_FILES = {
-  squat: {
-    src: '/src/exercises/squats.js',
-    globalName: 'squatsLogic',
-  },
-  pushup: {
-    src: '/src/exercises/push_up.js',
-    globalName: 'pushUpLogic',
-  },
-  lunge: {
-    src: '/src/exercises/lunges.js',
-    globalName: 'lungesLogic',
-  },
-};
-
-const EXERCISES = {
-  squat: {
-    name: '스쿼트',
-    
-  },
-  pushup: {
-    name: '푸쉬업',
-    
-  },
-  lunge: {
-    name: '런지',
-    
-  },
-};
-
-const EMPTY_BODY_INFO = {
-  weightKg: '',
-  heightCm: '', 
-};
-
-const CALORIE_COEFFICIENTS = {
-  squat: 0.0020,
-  pushup: 0.0009,
-  lunge: 0.0016,
-};
-
-function calcCalories(type, weightKg, heightCm, reps) {
-  const h = heightCm / 100;
-  return +(weightKg * h * reps * CALORIE_COEFFICIENTS[type]).toFixed(2);
-}
-
-function wait(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-async function postWorkoutWithRetry(workoutData, onRetry, maxAttempts = 3) {
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    try {
-      const response = await fetch('http://localhost:3001/api/workouts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(workoutData),
-      });
-
-      if (response.ok) return;
-    } catch {}
-
-    onRetry?.();
-    if (attempt < maxAttempts) await wait(250);
-  }
-
-  throw new Error('Failed to save workout');
-}
-
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    const existingScript = document.querySelector(`script[src="${src}"]`);
-
-    if (existingScript) {
-      resolve();
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = src;
-    script.async = true;
-    script.onload = resolve;
-    script.onerror = reject;
-    document.body.appendChild(script);
-  });
-}// 외부 스크립트를 동적으로 로드하는 함수입니다. src를 받아 해당 스크립트를 문서에 추가하고, 로드가 완료되면 resolve, 실패하면 reject를 호출합니다.
-
-const EXERCISE_LOGIC_HELPERS = `
-function interp(value, [min1, max1], [min2, max2]) {
-  const ratio = (value - min1) / (max1 - min1);
-  return min2 + ratio * (max2 - min2);
-}
-//
-function angleBetween(p1, p2, p3) {
-  let angle = Math.abs(
-    (Math.atan2(p3.y - p2.y, p3.x - p2.x) - Math.atan2(p1.y - p2.y, p1.x - p2.x)) *
-      (180 / Math.PI)
-  );
-  if (angle > 360) angle %= 360;
-  if (angle < 0) angle += 360;
-  if (angle > 180) angle = 360 - angle;
-  return angle;
-}
-
-function getPoint(landmarks, index, width, height) {
-  const lm = landmarks[index];
-  return { x: lm.x * width, y: lm.y * height };
-}
-
-function getPercent(angle, minAngle, maxAngle) {
-  return Math.max(0, Math.min(100, interp(angle, [minAngle, maxAngle], [0, 100])));
-}
-`;
-
-async function loadExerciseLogicFiles() {
-  if (window.__fitnessMeowExerciseLogicLoaded) return;
-
-  await Promise.all(
-    Object.entries(EXERCISE_LOGIC_FILES).map(async ([type, config]) => {
-      const response = await fetch(config.src);
-
-      if (!response.ok) {
-        throw new Error(`Failed to load ${config.src}`);
-      }
-
-      const source = await response.text();
-      const installLogic = new Function(
-        'window',
-        `
-${EXERCISE_LOGIC_HELPERS}
-let count = 0;
-let dir = 0;
-let repHadIssue = false;
-${source}
-window.__fitnessMeowLogic = window.__fitnessMeowLogic || {};
-window.__fitnessMeowLogic.${type} = function runExerciseLogic(landmarks, width, height, state) {
-  count = state.count;
-  dir = state.dir;
-  const result = ${config.globalName}(landmarks, width, height);
-  return result;
-};
-`
-      );
-
-      installLogic(window);
-    })
-  );
-
-  window.__fitnessMeowExerciseLogicLoaded = true;
-}
-
-const LOGIC_BY_TYPE = {
-  squat: 'squat',
-  pushup: 'pushup',
-  lunge: 'lunge',
-};
-
-function Exercise({ type = 'squat', settings, onBack, onFinish }) {
+function Exercise({ type = 'squat', settings, onBack }) {
   const navigate = useNavigate();
-  
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const poseRef = useRef(null);
-  const cameraRef = useRef(null);
-  const screenFrameRef = useRef(null);
-  const startTimeRef = useRef(null);
-  const stateRef = useRef({ count: 0, dir: 0 });
-  const isRestingRef = useRef(false);
-  const completedSetsRef = useRef(0);
-  const gradeCountsRef = useRef({ perfect: 0, normal: 0 });
-  const [selectedType, setSelectedType] = useState(type);
-  const previousTypeRef = useRef(type);
+  const bodyInfo = useBodyInfo();
 
-  // ------------------ State ------------------
-  const [count, setCount] = useState(0);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [feedback, setFeedback] = useState('준비');
-  const [gradeText, setGradeText] = useState('완벽 0 보통 0');
-  const [isCameraOn, setIsCameraOn] = useState(false);
-  const [isResting, setIsResting] = useState(false);
-  const [completedSets, setCompletedSets] = useState(0);
-  const [totalReps, setTotalReps] = useState(0);
-  const [restRemaining, setRestRemaining] = useState(0);
-  const [isTypeMenuOpen, setIsTypeMenuOpen] = useState(false);
-  const [message, setMessage] = useState('시작을 눌러 카메라를 켜세요.');
-  const [rewardTick, setRewardTick] = useState(0);
-  const [bodyInfo, setBodyInfo] = useState(EMPTY_BODY_INFO);
+  /* ─────────────────────────────────────────
+     1. Refs
+     - DOM 참조 및 렌더링 없이 유지할 값들
+  ───────────────────────────────────────── */
+  const videoRef         = useRef(null); // 카메라 영상
+  const canvasRef        = useRef(null); // 포즈 드로잉 캔버스
+  const poseRef          = useRef(null); // MediaPipe Pose 인스턴스
+  const cameraRef        = useRef(null); // MediaPipe Camera 인스턴스
+  const screenFrameRef   = useRef(null); // 화면공유 requestAnimationFrame ID
+  const startTimeRef     = useRef(null); // 운동 시작 시각 (경과시간 계산용)
+  const stateRef         = useRef({ count: 0, dir: 0 }); // 운동 로직 내부 상태
+  const isRestingRef     = useRef(false);  // 휴식 중 여부 (포즈 감지 차단용)
+  const completedSetsRef = useRef(0);      // 완료된 세트 수 (클로저 문제 방지용)
+  const gradeCountsRef   = useRef({ perfect: 0, normal: 0 }); // 퍼펙트/일반 횟수
+  const previousTypeRef  = useRef(type);   // 이전 운동 종목 (변경 감지용)
 
-  // ------------------ Derived values ------------------
-  const exercise = useMemo(() => {
-    return EXERCISES[selectedType] ?? EXERCISES.squat;
-  }, [selectedType]);
+  /* ─────────────────────────────────────────
+     2. State
+     - UI 렌더링에 필요한 상태값들
+  ───────────────────────────────────────── */
+  const [selectedType,   setSelectedType]   = useState(type);   // 현재 운동 종목
+  const [count,          setCount]          = useState(0);       // 현재 세트 내 횟수
+  const [elapsedTime,    setElapsedTime]    = useState(0);       // 경과 시간(초)
+  const [feedback,       setFeedback]       = useState('준비');  // 자세 피드백 텍스트
+  const [gradeText,      setGradeText]      = useState('완벽 0 보통 0'); // 등급 텍스트
+  const [isCameraOn,     setIsCameraOn]     = useState(false);   // 카메라 ON/OFF
+  const [isResting,      setIsResting]      = useState(false);   // 휴식 중 여부
+  const [completedSets,  setCompletedSets]  = useState(0);       // 완료 세트 수 (UI용)
+  const [totalReps,      setTotalReps]      = useState(0);       // 누적 총 횟수
+  const [restRemaining,  setRestRemaining]  = useState(0);       // 남은 휴식 시간(초)
+  const [isTypeMenuOpen, setIsTypeMenuOpen] = useState(false);   // 종목 선택 드롭다운
+  const [message,        setMessage]        = useState('시작을 눌러 카메라를 켜세요.');
+  const [rewardTick,     setRewardTick]     = useState(0);       // EXP 팝업 트리거
 
-  const targetCount = settings?.reps || 1;
-  const totalSets = settings?.sets || 1;
-  const restTime = settings?.rest || 60;
-  const progress = Math.min(100, ((count % targetCount) / targetCount) * 100);
-  const caloriesBurned = calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalReps);
+  /* ─────────────────────────────────────────
+     3. Derived Values
+     - state/settings에서 파생된 계산값들
+  ───────────────────────────────────────── */
+  const exercise        = useMemo(() => EXERCISES[selectedType] ?? EXERCISES.squat, [selectedType]);
+  const targetCount     = settings?.reps || 1;  // 목표 횟수
+  const totalSets       = settings?.sets || 1;  // 목표 세트
+  const restTime        = settings?.rest || 60; // 휴식 시간(초)
+  const progress        = Math.min(100, (count / targetCount) * 100); // 진행 바 %
+  const caloriesBurned  = calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalReps); // 실시간 칼로리
   const restDisplayTime = isResting ? restRemaining : restTime;
-  const restTimeText = `${String(Math.floor(restDisplayTime / 60)).padStart(2, '0')}:${String(restDisplayTime % 60).padStart(2, '0')}`;
-  const resultStats = useMemo(() => {
-    const perfect = gradeCountsRef.current.perfect;
-    const normal = gradeCountsRef.current.normal;
-    const done = Math.max(0, totalReps - perfect - normal);
+  const restTimeText    = `${String(Math.floor(restDisplayTime / 60)).padStart(2, '0')}:${String(restDisplayTime % 60).padStart(2, '0')}`;
 
-    return {
-      score: Math.min(999, 800 + totalReps * 10 + perfect * 8),
-      calories: calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalReps),
-      perfect,
-      normal,
-      done,
-      exp: totalReps,
-      chur: 300,
-    };
-  }, [bodyInfo.heightCm, bodyInfo.weightKg, selectedType, totalReps]);
+  /* ─────────────────────────────────────────
+     4. Result Stats
+     - 운동 완료 시 DB에 저장할 최종 결과값
+     - totalSets * targetCount 로 직접 계산 (totalReps 클로저 문제 방지)
+  ───────────────────────────────────────── */
+  const resultStats = useMemo(() => ({
+    score:    Math.min(999, 800 + totalReps * 10 + gradeCountsRef.current.perfect * 8),
+    calories: calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalSets * targetCount),
+    perfect:  gradeCountsRef.current.perfect,
+    normal:   gradeCountsRef.current.normal,
+  }), [bodyInfo.heightCm, bodyInfo.weightKg, selectedType, totalReps, totalSets, targetCount]);
 
+  /* ─────────────────────────────────────────
+     5. 카메라 정지
+     - 카메라/캔버스/스트림 전부 정리
+  ───────────────────────────────────────── */
   const stopCamera = useCallback(() => {
-    if (cameraRef.current) {
-      cameraRef.current.stop?.();
-      cameraRef.current = null;
-    }
+    cameraRef.current?.stop?.();
+    cameraRef.current = null;
 
     if (screenFrameRef.current) {
       cancelAnimationFrame(screenFrameRef.current);
@@ -239,17 +86,13 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     }
 
     const stream = videoRef.current?.srcObject;
-
     if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
+      stream.getTracks().forEach((t) => t.stop());
       videoRef.current.srcObject = null;
     }
 
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext('2d');
-    if (canvas && context) {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    const ctx = canvasRef.current?.getContext('2d');
+    if (canvasRef.current && ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
     startTimeRef.current = null;
     setIsCameraOn(false);
@@ -259,150 +102,161 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     setMessage('운동을 정지했습니다.');
   }, []);
 
-  // ------------------ Exercise state ------------------
-  const updateExerciseState = useCallback((nextState) => {
-    if (isRestingRef.current) return;
+  /* ─────────────────────────────────────────
+     6. 운동 완료 처리
+     - 카메라 정지 → DB 저장 → result 페이지 이동
+     - updateExerciseState 보다 먼저 선언 필요
+  ───────────────────────────────────────── */
+const finishExercise = useCallback(() => {
+    stopCamera();
 
-    const previousCount = Math.floor(stateRef.current.count + 1e-6);
-    const nextCount = Math.floor(nextState.count + 1e-6);
-    const didCompleteRep = nextCount > previousCount;
-    const didCompleteSet = didCompleteRep && nextCount >= targetCount;
+    const finalReps = totalSets * targetCount; // ← totalReps 대신 직접 계산
 
-    stateRef.current = {
-      count: nextState.count,
-      dir: nextState.dir,
+    const workoutData = {
+      exercise_key  : selectedType,
+      sets          : totalSets,
+      reps          : targetCount,
+      total_score   : Math.min(999, 800 + finalReps * 10 + gradeCountsRef.current.perfect * 8),
+      calories      : calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, finalReps),
+      perfect_count : gradeCountsRef.current.perfect,
+      normal_count  : gradeCountsRef.current.normal,
     };
 
+    postWorkoutWithRetry(workoutData)
+      .then(() => navigate('/result'))
+      .catch(() => console.error('운동 기록 저장 실패'));
+
+  }, [stopCamera, selectedType, totalSets, targetCount, bodyInfo, navigate]); // ← resultStats 제거
+  /* ─────────────────────────────────────────
+     7. 운동 상태 업데이트
+     - 포즈 감지 결과를 받아 횟수/세트/휴식 처리
+     - 매 프레임 호출됨
+  ───────────────────────────────────────── */
+  const updateExerciseState = useCallback((nextState) => {
+    if (isRestingRef.current) return; // 휴식 중이면 처리 차단
+
+    const previousCount  = Math.floor(stateRef.current.count + 1e-6);
+    const nextCount      = Math.floor(nextState.count + 1e-6);
+    const didCompleteRep = nextCount > previousCount;          // 1회 완료 여부
+    const didCompleteSet = didCompleteRep && nextCount >= targetCount; // 세트 완료 여부
+
+    stateRef.current = { count: nextState.count, dir: nextState.dir };
+
+    // 7-1. 등급 카운트 업데이트
     if (nextState.grade && didCompleteRep) {
-      if (nextState.grade === 'PERFECT' || nextState.grade === '퍼펙트') {
-        gradeCountsRef.current.perfect += 1;
-      }
-      if (nextState.grade === 'NORMAL' || nextState.grade === '그냥저냥') {
-        gradeCountsRef.current.normal += 1;
-      }
+      if (nextState.grade === 'PERFECT' || nextState.grade === '퍼펙트') gradeCountsRef.current.perfect += 1;
+      if (nextState.grade === 'NORMAL'  || nextState.grade === '그냥저냥') gradeCountsRef.current.normal  += 1;
     }
 
+    // 7-2. 총 횟수 업데이트
     if (didCompleteRep) {
-      setRewardTick((tick) => tick + 1);
-      setTotalReps((reps) => reps + 1);
+      setRewardTick((t) => t + 1);
+      setTotalReps((r) => r + 1);
     }
 
+    // 7-3. 세트 완료 처리
     if (didCompleteSet) {
       const nextCompletedSets = Math.min(totalSets, completedSetsRef.current + 1);
       completedSetsRef.current = nextCompletedSets;
 
+      setCount(nextCount);         // 목표 횟수 잠깐 표시
+      isRestingRef.current = true; // 다음 프레임 포즈 감지 차단
+
+      // 마지막 세트 완료 → 0.5초 후 운동 완료 처리
       if (nextCompletedSets >= totalSets) {
-        stopCamera();
-        onFinish?.({
-          exercise_key: selectedType,
-          sets: totalSets,
-          reps: targetCount,
-          totalReps: totalReps + 1,
-          ...resultStats,
-        });
+        setTimeout(() => {
+          isRestingRef.current = false;
+          finishExercise();
+        }, 500);
         return;
       }
 
-      stateRef.current = { count: 0, dir: 0 };
-      isRestingRef.current = true;
-      setCount(0);
-      setCompletedSets(nextCompletedSets);
-      setRestRemaining(restTime);
-      setIsResting(true);
-      setFeedback('휴식하세요!');
+      // 다음 세트 → 0.5초 후 휴식 시작
+      setTimeout(() => {
+        stateRef.current = { count: 0, dir: 0 };
+        setCount(0);
+        setCompletedSets(nextCompletedSets);
+        setRestRemaining(restTime);
+        setIsResting(true);
+        setFeedback('휴식하세요!');
+      }, 500);
+
+    // 7-4. 일반 횟수 업데이트
     } else {
       setCount(nextCount);
-      if (nextState.feedback) {
-        setFeedback(nextState.feedback);
-      } else if (didCompleteRep) {
-        setFeedback('좋아요!');
+      if (nextState.feedback)  setFeedback(nextState.feedback);
+      else if (didCompleteRep) setFeedback('좋아요!');
+    }
+
+    setGradeText(`완벽 ${gradeCountsRef.current.perfect} 보통 ${gradeCountsRef.current.normal}`);
+  }, [finishExercise, restTime, targetCount, totalSets]);
+
+  /* ─────────────────────────────────────────
+     8. 포즈 감지 결과 처리
+     - 캔버스에 영상/스켈레톤 그리기
+     - 운동 로직 실행 → updateExerciseState 호출
+  ───────────────────────────────────────── */
+  const onResults = useCallback((results) => {
+    const video  = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx    = canvas?.getContext('2d');
+    const fw     = video?.videoWidth  || results.image?.width  || 640;
+    const fh     = video?.videoHeight || results.image?.height || 480;
+
+    if (!video || !canvas || !ctx || fw === 0 || fh === 0) return;
+
+    canvas.width  = fw;
+    canvas.height = fh;
+    ctx.save();
+    ctx.clearRect(0, 0, fw, fh);
+    ctx.drawImage(results.image, 0, 0, fw, fh);
+
+    if (results.poseLandmarks) {
+      window.drawConnectors?.(ctx, results.poseLandmarks, window.POSE_CONNECTIONS, { color: '#30e465', lineWidth: 4 });
+      window.drawLandmarks?.(ctx, results.poseLandmarks, { color: '#ff4d3d', lineWidth: 2 });
+
+      const logic = window.__fitnessMeowLogic?.[LOGIC_BY_TYPE[selectedType] ?? 'squat'];
+      if (typeof logic === 'function') {
+        updateExerciseState(logic(results.poseLandmarks, fw, fh, stateRef.current));
+      } else {
+        setMessage('운동 측정 로직을 불러오지 못했습니다.');
       }
     }
 
-    setGradeText(
-      `완벽 ${gradeCountsRef.current.perfect} 보통 ${gradeCountsRef.current.normal}`
-    );
-  }, [isResting, onFinish, restTime, resultStats, selectedType, stopCamera, targetCount, totalReps, totalSets]);
+    ctx.restore();
+  }, [selectedType, updateExerciseState]);
 
-  // ------------------ Pose detection ------------------
-  const onResults = useCallback(
-    (results) => {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const context = canvas?.getContext('2d');
-      const frameWidth = video?.videoWidth || results.image?.videoWidth || results.image?.width || 640;
-      const frameHeight = video?.videoHeight || results.image?.videoHeight || results.image?.height || 480;
-
-      if (!video || !canvas || !context || frameWidth === 0 || frameHeight === 0) {
-        return;
-      }
-
-      canvas.width = frameWidth;
-      canvas.height = frameHeight;
-      context.save();
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(results.image, 0, 0, canvas.width, canvas.height);
-
-      if (results.poseLandmarks) {
-        window.drawConnectors?.(context, results.poseLandmarks, window.POSE_CONNECTIONS, {
-          color: '#30e465',
-          lineWidth: 4,
-        });
-        window.drawLandmarks?.(context, results.poseLandmarks, {
-          color: '#ff4d3d',
-          lineWidth: 2,
-        });
-
-        const logic = window.__fitnessMeowLogic?.[LOGIC_BY_TYPE[selectedType] ?? 'squat'];
-
-        if (typeof logic === 'function') {
-          updateExerciseState(logic(results.poseLandmarks, canvas.width, canvas.height, stateRef.current));
-        } else {
-          setMessage('운동 측정 로직을 불러오지 못했습니다.');
-        }
-      }
-
-      context.restore();
-    },
-    [selectedType, updateExerciseState]
-  );
-
+  /* ─────────────────────────────────────────
+     9. Pose 인스턴스 생성
+  ───────────────────────────────────────── */
   const createPose = useCallback(() => {
     const pose = new window.Pose({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
     });
-
-    pose.setOptions({
-      modelComplexity: 1,
-      smoothLandmarks: true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-    });
+    pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
     pose.onResults(onResults);
     poseRef.current = pose;
     return pose;
   }, [onResults]);
 
+  /* ─────────────────────────────────────────
+     10. 카메라 시작
+     - MediaPipe 스크립트 로드 → Pose 생성 → Camera 시작
+  ───────────────────────────────────────── */
   const startCamera = async () => {
     try {
       setMessage('자세 인식 모델을 불러오는 중입니다.');
       await Promise.all(MEDIAPIPE_SCRIPTS.map(loadScript));
       await loadExerciseLogicFiles();
-
       if (!videoRef.current) return;
 
-      const pose = createPose();
-
+      const pose   = createPose();
       const camera = new window.Camera(videoRef.current, {
         onFrame: async () => {
-          try {
-            await pose.send({ image: videoRef.current });
-          } catch {
-            setMessage('자세 인식 중 오류가 발생했습니다.');
-          }
+          try { await pose.send({ image: videoRef.current }); }
+          catch { setMessage('자세 인식 중 오류가 발생했습니다.'); }
         },
-        width: 640,
-        height: 480,
+        width: 640, height: 480,
       });
 
       cameraRef.current = camera;
@@ -416,57 +270,41 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     }
   };
 
-  // ------------------ Screen capture ------------------
+  /* ─────────────────────────────────────────
+     11. 화면공유 테스트 (TODO: 배포 전 삭제)
+     - 웹캠 대신 화면공유 스트림으로 포즈 감지
+  ───────────────────────────────────────── */
   const processScreenFrame = useCallback(async () => {
     const video = videoRef.current;
-    const pose = poseRef.current;
-
+    const pose  = poseRef.current;
     if (!video || !pose || video.paused || video.ended) return;
-
     if (video.videoWidth > 0 && video.videoHeight > 0) {
-      try {
-        await pose.send({ image: video });
-      } catch {
-        setMessage('자세 인식 중 오류가 발생했습니다.');
-      }
+      try { await pose.send({ image: video }); }
+      catch { setMessage('자세 인식 중 오류가 발생했습니다.'); }
     }
-
     screenFrameRef.current = requestAnimationFrame(processScreenFrame);
   }, []);
 
   const startScreenCapture = async () => {
     try {
-      // TODO: 테스트용 화면공유 측정 기능입니다. 최종 배포 전에 삭제 예정입니다.
       await Promise.all(MEDIAPIPE_SCRIPTS.map(loadScript));
       await loadExerciseLogicFiles();
       stopCamera();
-      setMessage('테스트용 화면공유 측정을 준비하는 중입니다.');
-
       if (!videoRef.current) return;
 
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: false,
-      });
-
-      const pose = createPose();
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+      const pose   = createPose();
 
       videoRef.current.srcObject = stream;
-      videoRef.current.controls = false;
-      videoRef.current.muted = true;
+      videoRef.current.muted     = true;
       await videoRef.current.play();
 
       const [track] = stream.getVideoTracks();
-      if (track) {
-        track.onended = () => {
-          stopCamera();
-          setMessage('테스트용 화면공유 측정이 종료되었습니다.');
-        };
-      }
+      if (track) track.onended = () => { stopCamera(); setMessage('화면공유 측정이 종료되었습니다.'); };
 
       startTimeRef.current = performance.now();
       setIsCameraOn(true);
-      setMessage('테스트용 화면공유 영상으로 자세를 인식하는 중입니다.');
+      setMessage('화면공유 영상으로 자세를 인식하는 중입니다.');
       screenFrameRef.current = requestAnimationFrame(processScreenFrame);
     } catch {
       stopCamera();
@@ -474,48 +312,9 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     }
   };
 
-  const resetExercise = () => {
-    stateRef.current = { count: 0, dir: 0 };
-    gradeCountsRef.current = { perfect: 0, normal: 0 };
-    startTimeRef.current = isCameraOn ? performance.now() : null;
-    setCount(0);
-    completedSetsRef.current = 0;
-    setCompletedSets(0);
-    setTotalReps(0);
-    setRestRemaining(0);
-    isRestingRef.current = false;
-    setIsResting(false);
-    setElapsedTime(0);
-    setFeedback('준비');
-    setGradeText('완벽 0 보통 0');
-    setRewardTick(0);
-    setMessage('카운트를 초기화했습니다.');
-  };
-//운동완료후 카메라 종로,db에 운동기록 저장을 백엔드로 요청
-  const finishExercise = () => {
-    stopCamera();
-    
-    const workoutData = {
-      exercise_key: selectedType,
-      sets: totalSets,
-      reps: targetCount,
-      total_score: resultStats.score,
-      calories: resultStats.calories,
-      perfect_count: gradeCountsRef.current.perfect,
-      normal_count: gradeCountsRef.current.normal,
-    };
-
-    postWorkoutWithRetry(workoutData)
-      .then(() => {
-        navigate('/result');
-      })
-      .catch(() => {
-        //navigate('/result');
-        console.error('운동 기록 저장 실패');
-      });
-  };
-
-  // ------------------ Controls ------------------
+  /* ─────────────────────────────────────────
+     12. 휴식 건너뛰기
+  ───────────────────────────────────────── */
   const skipRest = () => {
     setRestRemaining(0);
     isRestingRef.current = false;
@@ -523,109 +322,84 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
     setFeedback('준비');
   };
 
+  /* ─────────────────────────────────────────
+     13. 운동 종목 변경
+     - 카메라/상태 전부 초기화 후 종목 변경
+  ───────────────────────────────────────── */
   const changeExerciseType = (nextType) => {
     setIsTypeMenuOpen(false);
     if (nextType === selectedType) return;
-
     stopCamera();
-    stateRef.current = { count: 0, dir: 0 };
-    gradeCountsRef.current = { perfect: 0, normal: 0 };
-    startTimeRef.current = null;
-    previousTypeRef.current = nextType;
-    setSelectedType(nextType);
-    setCount(0);
+    stateRef.current         = { count: 0, dir: 0 };
+    gradeCountsRef.current   = { perfect: 0, normal: 0 };
     completedSetsRef.current = 0;
-    setCompletedSets(0);
-    setTotalReps(0);
-    setRestRemaining(0);
+    previousTypeRef.current  = nextType;
+    setSelectedType(nextType);
+    setCount(0); setCompletedSets(0); setTotalReps(0);
+    setRestRemaining(0); setElapsedTime(0);
     isRestingRef.current = false;
     setIsResting(false);
-    setElapsedTime(0);
     setFeedback('준비');
     setGradeText('완벽 0 보통 0');
     setRewardTick(0);
     setMessage('운동이 변경되었습니다. 시작을 눌러 카메라를 켜세요.');
   };
 
-  // ------------------ Effects ------------------
-  useEffect(() => {
-    fetch('http://localhost:3001/api/auth/me', {
-      credentials: 'include',
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (!data.success) return;
-        setBodyInfo({
-          weightKg: data.data.weight,
-          heightCm: data.data.height,
-        });
-      })
-      .catch(() => {});
-  }, []);
+  /* ─────────────────────────────────────────
+     14. Effects
+  ───────────────────────────────────────── */
 
+  // 14-1. 외부 type prop 변경 감지 → 상태 초기화
   useEffect(() => {
     if (previousTypeRef.current === type) return;
-
-    previousTypeRef.current = type;
-    setSelectedType(type);
-    stateRef.current = { count: 0, dir: 0 };
-    gradeCountsRef.current = { perfect: 0, normal: 0 };
-    startTimeRef.current = isCameraOn ? performance.now() : null;
-    setCount(0);
+    previousTypeRef.current  = type;
     completedSetsRef.current = 0;
-    setCompletedSets(0);
-    setTotalReps(0);
-    setRestRemaining(0);
+    stateRef.current         = { count: 0, dir: 0 };
+    gradeCountsRef.current   = { perfect: 0, normal: 0 };
+    setSelectedType(type);
+    setCount(0); setCompletedSets(0); setTotalReps(0);
+    setRestRemaining(0); setElapsedTime(0);
     isRestingRef.current = false;
     setIsResting(false);
-    setElapsedTime(0);
     setFeedback('준비');
     setGradeText('완벽 0 보통 0');
     setRewardTick(0);
     setMessage('시작을 눌러 카메라를 켜세요.');
   }, [type]);
 
+  // 14-2. 경과 시간 타이머
   useEffect(() => {
-    if (!isCameraOn || startTimeRef.current === null) return undefined;
-
+    if (!isCameraOn || startTimeRef.current === null) return;
     const timer = setInterval(() => {
       setElapsedTime(Math.floor((performance.now() - startTimeRef.current) / 1000));
     }, 1000);
-
-    return () => {
-      clearInterval(timer);
-    };
+    return () => clearInterval(timer);
   }, [isCameraOn]);
 
+  // 14-3. 휴식 카운트다운 타이머
   useEffect(() => {
-    if (!isResting) return undefined;
-
+    if (!isResting) return;
     if (restRemaining <= 0) {
       isRestingRef.current = false;
       setIsResting(false);
       setFeedback('준비');
-      return undefined;
+      return;
     }
-
-    const timer = setTimeout(() => {
-      setRestRemaining((remaining) => remaining - 1);
-    }, 1000);
-
-    return () => {
-      clearTimeout(timer);
-    };
+    const timer = setTimeout(() => setRestRemaining((r) => r - 1), 1000);
+    return () => clearTimeout(timer);
   }, [isResting, restRemaining]);
 
-  useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, [stopCamera]);
+  // 14-4. 컴포넌트 언마운트 시 카메라 정리
+  useEffect(() => () => stopCamera(), [stopCamera]);
 
-  // ------------------ Render ------------------
+  /* ─────────────────────────────────────────
+     15. Render
+  ───────────────────────────────────────── */
   return (
     <main className="exercise-page">
       <section className="exercise-phone">
+
+        {/* 15-1. 카메라 카드 */}
         <section className="exercise-camera-card">
           <video ref={videoRef} playsInline muted className="exercise-video" />
           <canvas ref={canvasRef} className="exercise-pose-canvas" aria-hidden="true" />
@@ -636,20 +410,18 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
             </div>
           )}
 
-          <button type="button" className="exercise-back-button" onClick={onBack}>
-            Back
-          </button>
+          <button type="button" className="exercise-back-button" onClick={onBack}>Back</button>
 
+          {/* 15-2. 운동 종목 선택 드롭다운 */}
           <div className="exercise-type-picker">
             <span>운동</span>
             <button
               type="button"
               className="exercise-type-trigger"
-              onClick={() => setIsTypeMenuOpen((isOpen) => !isOpen)}
+              onClick={() => setIsTypeMenuOpen((o) => !o)}
               aria-expanded={isTypeMenuOpen}
             >
-              {exercise.name}
-              <span aria-hidden="true">⌄</span>
+              {exercise.name}<span aria-hidden="true">⌄</span>
             </button>
             {isTypeMenuOpen && (
               <div className="exercise-type-menu">
@@ -667,6 +439,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
             )}
           </div>
 
+          {/* 15-3. 횟수/세트 배지 */}
           <div className="exercise-counter-badge">
             <small>{completedSets}/{totalSets} Set</small>
             <strong>{count}</strong>
@@ -674,18 +447,18 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
             <em>횟수</em>
           </div>
 
+          {/* 15-4. 피드백 / 등급 배지 */}
           <div key={feedback} className="exercise-feedback-badge">{feedback}</div>
-
           <div className="exercise-grade-badge">{gradeText}</div>
 
+          {/* 15-5. EXP 리워드 */}
           <div className="exercise-reward-slot">
             <strong>{totalReps} EXP</strong>
-            {rewardTick > 0 && (
-              <span key={rewardTick} className="exercise-reward-pop">+1 EXP</span>
-            )}
+            {rewardTick > 0 && <span key={rewardTick} className="exercise-reward-pop">+1 EXP</span>}
           </div>
         </section>
 
+        {/* 15-6. 칼로리 / 시간 / 휴식 정보 바 */}
         <section className="exercise-info-bar">
           <div className="exercise-metric">
             <span className="metric-icon">K</span>
@@ -694,36 +467,30 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
           </div>
           <div className="exercise-metric exercise-metric--center">
             <span className="metric-icon">T</span>
-            <strong>{String(Math.floor(elapsedTime / 60)).padStart(2, '0')}:{String(elapsedTime % 60).padStart(2, '0')}</strong>
+            <strong>
+              {String(Math.floor(elapsedTime / 60)).padStart(2, '0')}:
+              {String(elapsedTime % 60).padStart(2, '0')}
+            </strong>
           </div>
-          <button
-            type="button"
-            className="exercise-rest"
-            onClick={skipRest}
-            disabled={!isResting}
-            aria-label="휴식"
-          >
+          <button type="button" className="exercise-rest" onClick={skipRest} disabled={!isResting} aria-label="휴식">
             <span>휴식</span>
             <strong>{restTimeText}</strong>
           </button>
         </section>
 
+        {/* 15-7. 진행 바 */}
         <div className="exercise-progress">
           <span style={{ width: `${progress}%` }} />
         </div>
 
+        {/* 15-8. 상태 메시지 */}
         <p className="exercise-message">{message}</p>
 
+        {/* 15-9. 컨트롤 버튼 */}
         <section className={`exercise-controls ${!isCameraOn ? 'exercise-controls--setup' : ''}`}>
           {!isCameraOn ? (
             <>
-              <button
-                type="button"
-                className="exercise-control-button exercise-control-button--pause"
-                onClick={startCamera}
-                aria-label="시작"
-                title="시작"
-              >
+              <button type="button" className="exercise-control-button exercise-control-button--pause" onClick={startCamera} aria-label="시작">
                 <span className="exercise-control-icon" aria-hidden="true">▶</span>
                 <span>시작</span>
               </button>
@@ -731,13 +498,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
                 <span className="exercise-control-icon exercise-control-icon--stop" aria-hidden="true" />
                 <span>정지</span>
               </button>
-              <button
-                type="button"
-                className="exercise-control-button exercise-control-button--screen"
-                onClick={startScreenCapture}
-                aria-label="테스트용 화면공유 측정"
-                title="테스트용 화면공유 측정"
-              >
+              <button type="button" className="exercise-control-button exercise-control-button--screen" onClick={startScreenCapture}>
                 <span className="exercise-control-icon" aria-hidden="true">▣</span>
                 <span>화면공유 테스트</span>
               </button>
@@ -748,7 +509,6 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
               className="exercise-control-button exercise-control-button--pause"
               onClick={isResting ? skipRest : stopCamera}
               aria-label={isResting ? '휴식 건너뛰기' : '일시정지'}
-              title={isResting ? '휴식 건너뛰기' : '일시정지'}
             >
               <span className="exercise-control-icon" aria-hidden="true">Ⅱ</span>
               <span>{isResting ? '휴식 건너뛰기' : '일시정지'}</span>
@@ -761,6 +521,7 @@ function Exercise({ type = 'squat', settings, onBack, onFinish }) {
             </button>
           )}
         </section>
+
       </section>
     </main>
   );
