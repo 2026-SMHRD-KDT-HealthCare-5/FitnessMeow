@@ -1,73 +1,63 @@
-/* src/css/Shop.css */
+/* Shop.css */
 
-.new-shop-page {
+.shop-page {
   width: 100%;
-  max-width: 430px; /* 모바일 전용 콤팩트 너비 */
+  max-width: 430px;
   min-height: 100vh;
-  background-color: #FFFDF9; /* 시안과 동일한 부드러운 크림색 배경 */
   margin: 0 auto;
+  background-color: #FFFDF9;
   box-sizing: border-box;
-  padding-bottom: 90px; /* 하단 네비게이션 바에 가려지지 않도록 넉넉한 여백 */
+  padding-bottom: 90px;
   font-family: sans-serif;
 }
 
-/* 1. 상단 헤더 영역 */
-.new-shop-header {
+/* 헤더 */
+.shop-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  position: relative;
 }
 
-.new-shop-header h2 {
-  font-size: 18px;
+.shop-header h2 {
+  font-size: 20px;
   font-weight: bold;
   color: #333;
   margin: 0;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%); /* 글자 정중앙 정렬 */
 }
 
-.back-btn {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #444;
-  padding: 4px;
-}
-
-.user-chur-box {
+.user-coin {
   display: flex;
   align-items: center;
-  background: #FFF2DF; /* 츄르 코인 배경 연한 주황빛 */
+  gap: 6px;
+  background: #FFF2DF;
   padding: 6px 14px;
   border-radius: 20px;
-  gap: 6px;
-  font-weight: bold;
   font-size: 13px;
+  font-weight: bold;
   color: #555;
-  margin-left: auto;
 }
 
-.chur-icon {
+.user-coin img {
   width: 16px;
   height: 16px;
   object-fit: contain;
 }
 
-/* 2. 카테고리 탭 (가구 / 고양이 반반 정렬) */
-.new-shop-tabs {
+/* 탭 */
+.shop-tabs {
   display: flex;
-  justify-content: space-around;
   border-bottom: 1px solid #F0EAE1;
-  background: #FFFDF9;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.tab-item {
-  flex: 1; /* 💡 가구, 고양이 버튼이 정확히 50%씩 균등하게 화면을 차지하도록 설정 */
+.shop-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.shop-tab {
+  flex: 1;
   background: none;
   border: none;
   padding: 14px 0;
@@ -79,12 +69,11 @@
   text-align: center;
 }
 
-.tab-item.active {
+.shop-tab.active {
   color: #333;
 }
 
-/* 활성화 탭 밑줄 포인트 오렌지 바 */
-.tab-item.active::after {
+.shop-tab.active::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -95,65 +84,74 @@
   border-radius: 4px 4px 0 0;
 }
 
-/* 3. 아이템 2열 그리드 배치 리스트 구역 */
-.new-shop-content {
+/* 그리드 */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
   padding: 16px;
 }
 
-.item-grid-layout {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 시안이랑 똑같은 완벽한 2열 배열 */
-  gap: 14px;
-}
-
-/* 4. 아이템 개별 카드 디자인 */
-.new-shop-card {
+/* 카드 */
+.shop-item-card {
   background: #FFFFFF;
   border-radius: 18px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
   border: 1px solid #F7F3EC;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
-.new-shop-card:hover {
+.shop-item-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
 }
 
-/* 아이템 이미지 틀 감싸기 */
-.shop-img-wrapper {
+.shop-item-card.owned {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.shop-item-img-wrapper {
   width: 100%;
   height: 100px;
-  background: #FAF8F4; /* 은은한 크림 베이지 톤 박스 */
+  background: #FAF8F4;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 10px;
-  overflow: hidden; /* 이미지가 영역 밖으로 절대 안 튀어나가게 방어 */
+  overflow: hidden;
+  position: relative;
 }
 
-/* 💡 [핵심] 실제 png 가구/고양이 도트 이미지용 전용 규격 */
-.shop-item-png {
+.shop-item-img-wrapper img {
   max-width: 75%;
   max-height: 75%;
-  object-fit: contain; /* 가로세로 비율 강제로 깨지지 않게 보존 */
+  object-fit: contain;
 }
 
-.shop-item-title {
+.owned-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #ff9f43;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.shop-item-name {
   font-size: 13px;
   color: #666;
-  margin: 0 0 8px 0;
   font-weight: 600;
+  margin: 0 0 8px 0;
 }
 
-/* 5. 하단 가격 태그 라벨 */
-.shop-price-tag {
+.shop-item-price {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -165,16 +163,131 @@
   color: #333;
 }
 
-.card-coin-icon {
+.shop-item-price img {
   width: 13px;
   height: 13px;
   object-fit: contain;
 }
+/*----------------------------------------------------------------------------*/
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
 
-/* 카테고리가 텅 비었을 때 예외 문구 스타일 */
-.empty-category {
-  text-align: center;
-  color: #bbb;
-  padding: 60px 0;
+.modal-box {
+  background: #FFFDF9;
+  border-radius: 24px;
+  padding: 28px 24px;
+  width: 80%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-box img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.modal-box p {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.modal-price {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 14px;
+  color: #555;
+}
+
+.modal-price img {
+  width: 16px;
+  height: 16px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.modal-buttons button {
+  flex: 1;
+  padding: 12px 0;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.modal-buttons button:first-child {
+  background: #F0EAE1;
+  color: #666;
+}
+
+.modal-buttons button:last-child {
+  background: #ff9f43;
+  color: white;
+}
+
+.modal-buttons button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* 스피너 */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+/*------------------------------------ 토스트 /*------------------------------------ */
+.toast {
+  position: fixed;
+  top: 350px;
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 1000;
+  white-space: nowrap;
+}
+
+.toast-success {
+  background: #ff9f43;
+  color: white;
+}
+
+.toast-error {
+  background: #ff6b6b;
+  color: white;
 }
