@@ -9,7 +9,6 @@ import Result from './pages/Result.jsx'
 import ExerciseSetting from './pages/ExerciseSetting.jsx'
 import Profile from './pages/Profile.jsx'
 import Collection from './pages/Collection.jsx'
-import MyRoom from './components/MyRoom.jsx'
 import Shop from "./pages/Shop.jsx";
 
 function App() {

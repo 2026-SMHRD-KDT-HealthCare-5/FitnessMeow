@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar.jsx";
-import { getCollection } from "../services/characterService.js";
 import "../App.css";
 
 const Collection = () => {

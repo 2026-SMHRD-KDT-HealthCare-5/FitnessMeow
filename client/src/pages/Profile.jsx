@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar.jsx";
-import { getWorkouts } from "../services/workoutService.js";
 import "../App.css";
 
 const Profile = () => {

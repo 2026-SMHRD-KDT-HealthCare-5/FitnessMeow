@@ -6,7 +6,6 @@ import UserCoin from '../components/UserCoin.jsx';
 import ShopItemCard from '../components/ShopItemCard.jsx';
 import PurchaseModal from '../components/PurchaseModal.jsx';
 import ToastMessage from '../components/ToastMessage.jsx';
-import { shopApi } from '../services/shopApi.js';
 
 import cattowerImg from '../assets/cattower.png';
 import ball1Img from '../assets/ball1.png';
