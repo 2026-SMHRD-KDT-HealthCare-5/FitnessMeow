@@ -2,7 +2,7 @@ import React from 'react';
 import "../css/ExerciseSelect.css";
 import Navbar from "../components/Navbar.jsx";
 
-//유지 보수 편하게 운동카드 데이터를 객체로 바꾸고 map으로 화면 구성
+//수정 편하게 운동카드 데이터를 객체로 바꾸고 map으로 화면 구성
 /* ════════════════════════════════════════════
    아이콘 폴더 전체 import
 ════════════════════════════════════════════ */
@@ -74,6 +74,7 @@ const ExerciseSelect = ({ onSelect = () => {} }) => {
               <div className="cat-section">
                 <img src={cat} className="cat-main-img" alt={`${label} 고양이`} />
               </div>
+
               <div className="info-section">
                 <h3>{label}</h3>
                 <p className="sub-desc">{desc}</p>
@@ -86,6 +87,7 @@ const ExerciseSelect = ({ onSelect = () => {} }) => {
                   ))}
                 </div>
               </div>
+              
               <button className="arrow-button" type="button">〉</button>
             </div>
           ))}
