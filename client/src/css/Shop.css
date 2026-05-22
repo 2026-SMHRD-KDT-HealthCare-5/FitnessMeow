@@ -1,0 +1,293 @@
+/* Shop.css */
+
+.shop-page {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background-color: #FFFDF9;
+  box-sizing: border-box;
+  padding-bottom: 90px;
+  font-family: sans-serif;
+}
+
+/* ------------------------------- 헤더 -------------------------------  */
+.shop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.shop-header h2 {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+/*------------------------------------------- 재화 -------------------------------------------*/
+.user-coin {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFF2DF;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #555;
+}
+
+.user-coin img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* ------------------------------- 탭 ------------------------------- */
+.shop-tabs {
+  display: flex;
+  border-bottom: 1px solid #F0EAE1;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.shop-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.shop-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 14px 0;
+  font-size: 15px;
+  font-weight: bold;
+  color: #999;
+  cursor: pointer;
+  position: relative;
+  text-align: center;
+}
+
+.shop-tab.active {
+  color: #333;
+}
+
+.shop-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  width: 60%;
+  height: 4px;
+  background-color: #FEE4CE;
+  border-radius: 4px 4px 0 0;
+}
+
+/* ------------------------------- 그리드 ------------------------------- */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  padding: 16px;
+}
+
+/* ------------------------------- 카드 ------------------------------- */
+.shop-item-card {
+  background: #FFFFFF;
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid #F7F3EC;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.shop-item-card:hover {
+  transform: translateY(-2px);
+}
+
+.shop-item-card.owned {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.shop-item-img-wrapper {
+  width: 100%;
+  height: 100px;
+  background: #FAF8F4;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.shop-item-img-wrapper img {
+  max-width: 75%;
+  max-height: 75%;
+  object-fit: contain;
+}
+
+.owned-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #ff9f43;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.shop-item-name {
+  font-size: 13px;
+  color: #666;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.shop-item-price {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #FFF9F0;
+  padding: 5px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #333;
+}
+
+.shop-item-price img {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+}
+/*---------------------- Modal ----------------------*/
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-box {
+  background: #FFFDF9;
+  border-radius: 24px;
+  padding: 28px 24px;
+  width: 80%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-box img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.modal-box p {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.modal-price {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #555;
+}
+
+.modal-price img {
+  width: 16px;
+  height: 16px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.modal-buttons button {
+  flex: 1;
+  padding: 12px 0;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.modal-buttons button:first-child {
+  background: #F0EAE1;
+  color: #666;
+}
+
+.modal-buttons button:last-child {
+  background: #ff9f43;
+  color: white;
+}
+
+.modal-buttons button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* 스피너 */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+/*------------------------------------ 토스트 ----------------------------------- */
+.toast {
+  position: fixed;
+  top: 350px;
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 1000;
+  white-space: nowrap;
+}
+
+.toast-success {
+  background: #ff9f43;
+  color: white;
+}
+
+.toast-error {
+  background: #ff6b6b;
+  color: white;
+}

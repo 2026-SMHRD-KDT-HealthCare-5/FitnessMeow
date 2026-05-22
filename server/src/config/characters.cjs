@@ -10,7 +10,7 @@ const CHARACTER_CONFIG = {
         character_name: '러시안블루',
         max_exp: { lv1: 80, lv2: 130, lv3: 180 },
         unlock_condition: {
-            prev_character: 'korean_shorthair',
+            prev_character: 'cheese_korean_shorthair',
             badge: null
         }
     },
