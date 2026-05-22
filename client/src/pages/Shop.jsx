@@ -8,10 +8,22 @@ import PurchaseModal from '../components/PurchaseModal.jsx';
 import ToastMessage from '../components/ToastMessage.jsx';
 import axios from 'axios';
 
-import cattowerImg from '../assets/cattower.png';
-import ball1Img from '../assets/ball1.png';
-import ball2Img from '../assets/ball2.png';
-import ball3Img from '../assets/ball3.png';
+import catTowerImg from '../assets/Cattower/cattower.png';
+import ball1Img from '../assets/Toy/ball1.png';
+import ball2Img from '../assets/Toy/ball2.png';
+import ball3Img from '../assets/Toy/ball3.png';
+import catcondoImg from '../assets/Cattower/catcondo.png';
+import catfoodcontainerImg from '../assets/Toy/catfoodcontainer.png';
+import catnippileImg from '../assets/Toy/catnippile.png';
+import catpoleImg from '../assets/Cattower/catpole.png';
+import cattower2Img from '../assets/Cattower/cattower2.png';
+import catwheelImg from '../assets/Cattower/catwheel.png';
+import cushionImg from '../assets/Bed/cushion.png';
+import mouseImg from '../assets/Toy/mouse.png';
+import scratcherImg from '../assets/Toy/scratcher.png';
+import sofaImg from '../assets/Bed/sofa.png';
+import toiletImg from '../assets/Toy/toilet.png';
+import waterdispenserImg from '../assets/Toy/waterdispenser.png';
 
 
 const Shop = () => {

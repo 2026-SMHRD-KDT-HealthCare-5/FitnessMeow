@@ -10,10 +10,10 @@ import coinImg from "../assets/coin.png";
 import Navbar from "./Navbar.jsx";
 
 // 🌟 가구 이미지 임포트
-import catTowerImg from '../assets/cattower.png';
-import ball1Img from '../assets/ball1.png';
-import ball2Img from '../assets/ball2.png';
-import ball3Img from '../assets/ball3.png';
+import catTowerImg from '../assets/Cattower/cattower.png';
+import ball1Img from '../assets/Toy/ball1.png';
+import ball2Img from '../assets/Toy/ball2.png';
+import ball3Img from '../assets/Toy/ball3.png';
 
 const MyRoom = ({ initialTab = "home" }) => {
 
