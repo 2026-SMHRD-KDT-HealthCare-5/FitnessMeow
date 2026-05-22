@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom' 
+
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import MainLobby from './pages/MainLobby.jsx'
 import ExerciseSelect from './pages/ExerciseSelect.jsx'
 import Result from './pages/Result.jsx'
 import ExerciseSetting from './pages/ExerciseSetting.jsx'
+import Profile from './pages/Profile.jsx'
+import Collection from './pages/Collection.jsx'
+import Shop from "./pages/Shop.jsx";
 
 function App() {
   return (
@@ -26,6 +30,9 @@ function App() {
       <Route path="/exercisesetting" element={<ExerciseSetting page="setting" />} />
       <Route path="/exercise" element={<ExerciseSetting page="exercise" />} />
       <Route path="/result" element={<Result />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/collection" element={<Collection />} />
+      <Route path="/shop" element={<Shop />} />
       </Routes>
 
   )

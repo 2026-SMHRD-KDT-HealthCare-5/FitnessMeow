@@ -1,0 +1,141 @@
+.inventory-fixed-container {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 70px; /* 네비바 높이만큼 */
+  width: 140px;
+  background: rgba(255, 251, 244, 0.98);
+  border-radius: 24px 0 0 24px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  padding: 14px 0;
+  box-sizing: border-box;
+  z-index: 9998;
+  animation: slideIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+}
+
+@keyframes slideIn {
+  from { transform: translateX(140px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* 카테고리 탭 - 세로로 */
+.inventory-categories {
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 4px;
+  border-radius: 14px;
+  margin: 0 8px 10px 8px;
+}
+
+.inventory-categories button {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #777777;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.inventory-categories button.active {
+  background: #ffffff;
+  color: var(--main-orange);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 아이템 세로 스크롤 */
+.inventory-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  flex: 1;
+}
+
+.inventory-item-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* 아이템 카드 */
+.inventory-item-card {
+  width: 100%;
+  height: 110px;
+  background: #ffffff;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.inventory-item-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 130, 58, 0.4);
+}
+
+.inventory-item-card.equipped {
+  border-color: var(--point-purple);
+  background: #faf5ff;
+}
+
+.item-icon {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+
+.item-name {
+  font-size: 10px;
+  color: #222222;
+  margin: 0 0 4px 0;
+  font-weight: bold;
+  text-align: center;
+}
+
+.item-price {
+  font-size: 10px;
+  color: var(--main-orange);
+  font-weight: 800;
+  background: rgba(255, 130, 58, 0.08);
+  padding: 2px 6px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.item-price .currency-img {
+  width: 12px !important;
+  height: 12px !important;
+  object-fit: contain;
+}
+
+.inventory-item-card.equipped .item-price,
+.item-price.unlocked-badge {
+  color: var(--point-purple);
+  background: rgba(188, 132, 238, 0.08);
+}
+
+.item-icon .inventory-item-png {
+  width: 32px !important;
+  height: 32px !important;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
