@@ -79,7 +79,7 @@ router.post('/register', async (req, res) => {
 
     //DB table: characters에 기본 캐릭터 생성
     await db.query(
-      `INSERT INTO characters (user_idx, character_name, level, arm_exp, chest_exp, core_exp, lower_exp)
+      `INSERT INTO characters (user_idx, character_key, level, arm_exp, chest_exp, core_exp, lower_exp)
       VALUES (?, '치즈코리안숏헤어', '1', 0, 0, 0, 0)`,
       [user_idx]
     );
