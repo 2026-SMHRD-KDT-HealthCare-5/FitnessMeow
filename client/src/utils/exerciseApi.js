@@ -17,7 +17,7 @@ export async function postWorkoutWithRetry(workoutData, maxAttempts = 3) {
         body: JSON.stringify(workoutData),
       });
 
-      if (response.ok) return;
+      if (response.ok) return response.json();
     } catch {}
 
     if (attempt < maxAttempts) await wait(250);

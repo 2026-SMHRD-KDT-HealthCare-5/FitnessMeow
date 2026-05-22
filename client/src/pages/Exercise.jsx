@@ -116,14 +116,16 @@ const finishExercise = useCallback(() => {
       exercise_key  : selectedType,
       sets          : totalSets,
       reps          : targetCount,
-      total_score   : Math.min(999, 800 + finalReps * 10 + gradeCountsRef.current.perfect * 8),
+      total_score: finalReps === 0
+        ? 0
+        : Math.round((gradeCountsRef.current.perfect / finalReps) * 100),
       calories      : calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, finalReps),
       perfect_count : gradeCountsRef.current.perfect,
       normal_count  : gradeCountsRef.current.normal,
     };
 
     postWorkoutWithRetry(workoutData)
-      .then(() => navigate('/result'))
+      .then((data) => navigate('/result', { state: data }))
       .catch(() => console.error('운동 기록 저장 실패'));
 
   }, [stopCamera, selectedType, totalSets, targetCount, bodyInfo, navigate]); // ← resultStats 제거

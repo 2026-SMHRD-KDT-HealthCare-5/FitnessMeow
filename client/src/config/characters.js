@@ -1,17 +1,9 @@
 // config/characters.js
 export const CHARACTER_CONFIG = {
-    cheese: {
-        character_name: '치즈',
-        max_exp: { lv1: 50, lv2: 100, lv3: 150 },
-        unlock_condition: null  // 기본 제공
-    },
     korean_shorthair: {
         character_name: '코리안숏헤어',
         max_exp: { lv1: 50, lv2: 100, lv3: 150 },
-        unlock_condition: {
-        prev_character: 'cheese',
-        badge: null
-        }
+        unlock_condition: null  // 기본 제공
     },
     russian_blue: {
         character_name: '러시안블루',
