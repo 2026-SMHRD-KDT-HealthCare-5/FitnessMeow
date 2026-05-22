@@ -13,6 +13,14 @@ const MainLobby = () => {
   return (
     <div className="app-layout">
       <div className="main-content">
+        
+        {/* ⭐️ 홈("home")이거나 꾸미기("inventory") 일 때 마이룸을 보여줍니다. */}
+        {(currentTab === "home" || currentTab === "inventory") && (
+          <MyRoom currentTab={currentTab} />
+        )}
+        
+
+      {/* 📱 2. 하단 고정 네비게이션 바 */}
         {currentTab === "mainlobby"       && <MyRoom />}
         {currentTab === "exercise"   && <ExerciseSelect />}
         {/*currentTab === "shop"       && <Shop />*/}
