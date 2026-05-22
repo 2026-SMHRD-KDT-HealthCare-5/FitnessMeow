@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import "../css/Result.css";
 import { CHARACTER_CONFIG } from '../config/characters.js';
 
@@ -77,6 +77,7 @@ function parseLevelSafe(level, fallback = 1) {
 ════════════════════════════════════════════ */
 const Result = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Exercise.jsx에서 navigate state로 넘겨받은 이벤트 데이터
   const {
