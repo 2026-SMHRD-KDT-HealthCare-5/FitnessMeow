@@ -34,8 +34,9 @@ const EXERCISES = [
     theme:   'pushup-theme',
     cat:     icon('p-cat.png'),
     parts:   [
-      { img: icon('arm.png'),  label: '상체 강화' },
-      { img: icon('core.png'), label: '코어 강화' },
+      { img: icon('chest.png'),  label: '상체 강화' },
+      { img: icon('arm.png'),    label: '팔 강화'   },
+      { img: icon('core.png'),   label: '코어 강화' },
     ],
   },
   {
