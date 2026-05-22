@@ -170,12 +170,6 @@ const Result = () => {
     return { ...meta, current, isMaxed, barWidth, gained };
   });
 
-  const animalType = character?.animal_type ?? 'cat';
-  const currentLevel = character?.level ?? '1';
-  const animalMap = ANIMAL_IMAGES[animalType] ?? ANIMAL_IMAGES['cat'];
-  const currentImg = animalMap[currentLevel] ?? catLv1;
-  const prevImg = animalMap[prevLevel ?? currentLevel] ?? catLv1;
-
   // ── 메인 렌더 ──
   return (
     <div className="container">

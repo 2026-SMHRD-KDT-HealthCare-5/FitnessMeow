@@ -1,8 +1,8 @@
 import React from 'react';
 import "../css/ExerciseSelect.css";
 import Navbar from "../components/Navbar.jsx";
-import { useNavigate } from 'react-router-dom';
 
+//유지 보수 편하게 운동카드 데이터를 객체로 바꾸고 map으로 화면 구성
 /* ════════════════════════════════════════════
    아이콘 폴더 전체 import
 ════════════════════════════════════════════ */
@@ -91,7 +91,7 @@ const ExerciseSelect = ({ onSelect = () => {} }) => {
           ))}
         </div>
       </div>
-      <Navbar currentTab="exercise" onSelect={handleSelect} />
+      <Navbar />
     </div>
   );
 };
