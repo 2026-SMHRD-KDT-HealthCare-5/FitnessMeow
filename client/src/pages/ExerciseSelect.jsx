@@ -1,100 +1,93 @@
 import React from 'react';
 import "../css/ExerciseSelect.css";
-import Navbar from "../components/Navbar.jsx"; // 네비게이션 바 컴포넌트 불러오기
+import Navbar from "../components/Navbar.jsx";
 import { useNavigate } from 'react-router-dom';
 
-import squatCat from "../assets/s-cat.png"; // 스쿼트 고양이 이미지
-import pushupCat from "../assets/p-cat.png"; // 푸시업 고양이 이미지
-import lungeCat from "../assets/l-cat.png"; // 런지 고양이 이미지
-import coreIcon from "../assets/core-icon.png"; // 코어 강화 아이콘
-import lowerIcon from "../assets/leg-icon.png"; // 하체 강화 아이콘
-import upperIcon from "../assets/8icon.png"; // 상체 강화 아이콘
+/* ════════════════════════════════════════════
+   아이콘 폴더 전체 import
+════════════════════════════════════════════ */
+const ICONS = import.meta.glob('../assets/icons/*.png', { eager: true });
 
+function icon(filename) {
+  return ICONS[`../assets/icons/${filename}`]?.default;
+}
+
+/* ════════════════════════════════════════════
+   운동 카드 데이터
+════════════════════════════════════════════ */
+const EXERCISES = [
+  {
+    key:     'squat',
+    label:   '스쿼트',
+    desc:    '하체를 집중적으로 강화해요!',
+    theme:   'squat-theme',
+    cat:     icon('s-cat.png'),
+    parts:   [
+      { img: icon('leg.png'),  label: '하체 강화' },
+      { img: icon('core.png'), label: '코어 강화' },
+    ],
+  },
+  {
+    key:     'pushup',
+    label:   '푸시업',
+    desc:    '상체를 탄탄하게 만들어보세요!',
+    theme:   'pushup-theme',
+    cat:     icon('p-cat.png'),
+    parts:   [
+      { img: icon('arm.png'),  label: '상체 강화' },
+      { img: icon('core.png'), label: '코어 강화' },
+    ],
+  },
+  {
+    key:     'lunge',
+    label:   '런지',
+    desc:    '균형감 있는 하체를 만들어보세요!',
+    theme:   'lunge-theme',
+    cat:     icon('l-cat.png'),
+    parts:   [
+      { img: icon('leg.png'),  label: '하체 강화' },
+      { img: icon('core.png'), label: '코어 강화' },
+    ],
+  },
+];
+
+/* ════════════════════════════════════════════
+   ExerciseSelect 컴포넌트
+════════════════════════════════════════════ */
 const ExerciseSelect = ({ onSelect = () => {} }) => {
   return (
     <div className="container">
-      <div className="overlay"></div>
-      
+      <div className="overlay" />
+
       <div className="login-card">
-        {/* 로고 대신 "운동 선택" 대형 타이틀 배치로 꽉 찬 시각적 효과 */}
         <h1 className="select-title">운동 선택</h1>
         <p className="sub-text">오늘 수행할 운동 루틴을 결정해보세요! 🐾</p>
 
-        {/* 메인 운동 카드 리스트 */}
         <div className="exercise-list">
-          
-          {/* 스쿼트 카드 (하체 + 코어) */}
-          <div className="exercise-card squat-theme" onClick={() => onSelect('squat')}>
-            <div className="cat-section">
-              <img src={squatCat} className="cat-main-img" alt="스쿼트 고양이" />
-            </div>
-            <div className="info-section">
-              <h3>스쿼트</h3>
-              <p className="sub-desc">하체를 집중적으로 강화해요!</p>
-              <div className="icon-group">
-                <div className="icon-item">
-
-                  <img src={lowerIcon} alt="하체 강화" />
-                  <span>하체 강화</span>
-                </div>
-                <div className="icon-item">
-                  <img src={coreIcon} alt="코어 강화" />
-                  <span>코어 강화</span>
+          {EXERCISES.map(({ key, label, desc, theme, cat, parts }) => (
+            <div
+              key={key}
+              className={`exercise-card ${theme}`}
+              onClick={() => onSelect(key)}
+            >
+              <div className="cat-section">
+                <img src={cat} className="cat-main-img" alt={`${label} 고양이`} />
+              </div>
+              <div className="info-section">
+                <h3>{label}</h3>
+                <p className="sub-desc">{desc}</p>
+                <div className="icon-group">
+                  {parts.map(({ img, label: partLabel }) => (
+                    <div className="icon-item" key={partLabel}>
+                      <img src={img} alt={partLabel} />
+                      <span>{partLabel}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
+              <button className="arrow-button" type="button">〉</button>
             </div>
-            <button className="arrow-button" type="button">
-              〉
-            </button>
-          </div>
-
-          {/* 푸시업 카드 (상체 + 코어) */}
-          <div className="exercise-card pushup-theme" onClick={() => onSelect('pushup')}>
-            <div className="cat-section">
-              <img src={pushupCat} className="cat-main-img" alt="푸시업 고양이" />
-            </div>
-            <div className="info-section">
-              <h3>푸시업</h3>
-              <p className="sub-desc">상체를 탄탄하게 만들어보세요!</p>
-              <div className="icon-group">
-                <div className="icon-item">
-                  <img src={upperIcon} alt="상체 강화" />
-                  <span>상체 강화</span>
-                </div>
-                <div className="icon-item">
-                  <img src={coreIcon} alt="코어 강화" />
-                  <span>코어 강화</span>
-                </div>
-              </div>
-            </div>
-            <button className="arrow-button" type="button">
-              〉
-            </button>
-          </div>
-
-          {/* 런지 카드 (하체 + 코어) */}
-          <div className="exercise-card lunge-theme" onClick={() => onSelect('lunge')}>
-            <div className="cat-section">
-              <img src={lungeCat} className="cat-main-img" alt="런지 고양이" />
-            </div>
-            <div className="info-section">
-              <h3>런지</h3>
-              <p className="sub-desc">균형감 있는 하체를 만들어보세요!</p>
-              <div className="icon-group">
-                <div className="icon-item">
-                  <img src={lowerIcon} alt="하체 강화" />
-                  <span>하체 강화</span>
-                </div>
-                <div className="icon-item">
-                  <img src={coreIcon} alt="코어 강화" />
-                  <span>코어 강화</span>
-                </div>
-              </div>
-            </div>
-            <button className="arrow-button" type="button">
-              〉
-            </button>
-          </div>
+          ))}
         </div>
       </div>
     </div>

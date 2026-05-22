@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import Quest from "./Quest.jsx"; // 같은 폴더 안
 import "../css/MyRoom.css"; 
 import catImg from "../assets/eximage.png"; 
-import profileCatImg from "../assets/eximage.png"; 
+import profileCatImg from "../assets/profile.png"; 
 import roomBg from "../assets/room-bg.png"; 
 
 const MyRoom = () => {
