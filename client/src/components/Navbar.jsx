@@ -6,7 +6,7 @@ import '../css/Navbar.css';
 
 const navItems = [
   { key: "mainlobby",  path: "/mainlobby",   icon: "🏠",  label: "홈" },
-  { key: "shop",       path: "/shop",        icon: "🛍️", label: "꾸미기" },
+  { key: "shop",       path: "/shop",        icon: "🛍️", label: "상점" },
   { key: "exercise",   path: "/exerciseselect",    icon: "🏋️‍♂️", label: "운동" },
   { key: "collection", path: "/collection",  icon: "📖", label: "도감" },
   { key: "info",       path: "/info",        icon: "👤", label: "내 정보" },

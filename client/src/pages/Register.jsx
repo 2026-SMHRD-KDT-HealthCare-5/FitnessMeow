@@ -76,7 +76,8 @@ const [error,setError]= useState('');
         <input type="email" name="email" placeholder="이메일 주소 입력" value={form.email} onChange={handleChange} />
         <input type="number" name="weight" placeholder="체중 입력 (kg)" value={form.weight} onChange={handleChange} />
         <input type="number" name="height" placeholder="키 입력 (cm)" value={form.height} onChange={handleChange} />
-
+        
+        {error && <p style={{ color: 'red' }}>{error}</p>}
         <button className="login-btn" onClick={handleRegister}>가입 완료</button>
 
         {/* 하단 메뉴 */}

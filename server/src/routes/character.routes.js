@@ -1,15 +1,9 @@
 // routes/character.routes.js
 const express = require('express');
 const router = express.Router();
-const mysql = require('mysql2/promise');
+const db = require('../db');
 
-const db = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
+//캐릭터 테이블 반환
 
 router.get('/', async (req, res) => {
   const user_idx = req.session.user?.user_idx;
@@ -17,7 +11,7 @@ router.get('/', async (req, res) => {
 
   try {
     const [rows] = await db.query(
-      `SELECT character_name, level, arm_exp, chest_exp, core_exp, lower_exp
+      `SELECT character_key, level, arm_exp, chest_exp, core_exp, lower_exp
        FROM characters 
        WHERE user_idx = ? 
        ORDER BY created_at DESC LIMIT 1`,
