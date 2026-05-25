@@ -1,0 +1,148 @@
+.collection-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fffbf4;
+  overflow: hidden;
+}
+
+.collection-header {
+  padding: 28px 40px 12px;
+  flex-shrink: 0;
+}
+
+.collection-header h2 {
+  font-size: 28px;
+  font-weight: 900;
+  color: #2b2b2b;
+  margin: 0 0 4px;
+}
+
+.collection-header p {
+  font-size: 14px;
+  color: #aaa;
+  margin: 0;
+}
+
+/* 그리드 */
+.collection-grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+  padding: 20px 40px 32px;
+  align-content: start;
+}
+
+/* 카드 */
+.collection-card {
+  background: #fff;
+  border: 2px solid #f0ece4;
+  border-radius: 24px;
+  padding: 28px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+
+.collection-card.unlocked:hover {
+  transform: translateY(-6px);
+}
+
+.collection-card.locked {
+  background: #f7f7f5;
+  border-color: #e5e5e5;
+  opacity: 0.7;
+}
+
+/* 이미지 영역 */
+.collection-img-wrap {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.collection-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.lock-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+}
+
+.lock-icon {
+  font-size: 44px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+}
+
+/* 텍스트 */
+.collection-name {
+  font-size: 20px;
+  font-weight: 900;
+  color: #2b2b2b;
+  margin: 0;
+}
+
+.collection-card.locked .collection-name {
+  color: #bbb;
+}
+
+.collection-unlock-desc {
+  font-size: 13px;
+  color: #999;
+  margin: 0;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* 레벨별 미니 썸네일 */
+.collection-levels {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.collection-lv-thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.collection-lv-thumb img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  background: rgba(255,255,255,0.7);
+  border-radius: 10px;
+  padding: 4px;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.collection-lv-thumb span {
+  font-size: 10px;
+  font-weight: 700;
+  color: #888;
+}

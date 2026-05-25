@@ -10,6 +10,7 @@ import ExerciseSetting from './pages/ExerciseSetting.jsx'
 import Profile from './pages/Profile.jsx'
 import Collection from './pages/Collection.jsx'
 import Shop from "./pages/Shop.jsx";
+import Info from "./pages/Info.jsx";
 
 function App() {
   return (
@@ -40,6 +41,9 @@ function App() {
         
         {/* 7. 상점 */}
         <Route path="/shop" element={<Shop />} />
+
+        {/* 8. 내 정보 */}
+        <Route path="/info" element={<Info />} />
       </Routes>
 
   )

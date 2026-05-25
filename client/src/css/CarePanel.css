@@ -1,0 +1,250 @@
+/* ══════════════════════════════════════════════════════════════════
+   CarePanel.css — 오늘의 할일 (돌봄 행동) 섹션 스타일
+
+   구조:
+     .care-section             — 섹션 전체 래퍼 (배경 흰색, 상단 구분선)
+       .care-section-header    — "오늘의 할일" 제목 + "매일 00시 초기화" 안내
+       .care-cards             — 카드 그리드 (돌봄 행동 3개 + 포인트 카드 1개)
+         .care-card            — 개별 돌봄 행동 카드
+         .care-point-card      — 돌봄포인트 표시 카드 (우측 고정)
+       .care-toast-global      — 완료/오류 토스트 메시지
+══════════════════════════════════════════════════════════════════ */
+
+/* ────────────────────────────────────────
+   섹션 전체 래퍼
+   - flex-shrink: 0 → 방 캔버스가 커져도 이 섹션은 절대 줄어들지 않음
+   - position: relative → 토스트 메시지의 절대 위치 기준점
+──────────────────────────────────────── */
+.care-section {
+  background: #ffffff;
+  border-top: 2px solid #f0ece4; /* 방 영역과의 구분선 */
+  padding: 10px 12px 10px;
+  position: relative;
+  flex-shrink: 0; /* ★ 이 속성이 없으면 방 캔버스에 의해 돌봄 섹션이 잘릴 수 있음 */
+}
+
+/* ────────────────────────────────────────
+   섹션 헤더: 제목 + 초기화 안내
+──────────────────────────────────────── */
+.care-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.care-section-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #2b2b2b;
+}
+
+.care-section-note {
+  font-size: 10px;
+  color: #bbb;
+}
+
+/* ────────────────────────────────────────
+   카드 그리드
+   - repeat(3, 1fr) 110px → 행동 카드 3개가 동일한 너비, 포인트 카드는 110px 고정
+   ★ 포인트 카드 너비 변경: 110px 부분을 조절
+──────────────────────────────────────── */
+.care-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) 110px;
+  gap: 8px;
+}
+
+/* ══════════════════════════════════════
+   돌봄 행동 카드 (밥주기·빗질·화장실)
+══════════════════════════════════════ */
+.care-card {
+  background: #fafaf8;
+  border: 1.5px solid #f0ece4;
+  border-radius: 14px;
+  padding: 10px 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+/* 오늘 완료된 카드 — 초록 테두리·배경으로 구분 */
+.care-card--done {
+  background: #f6fff8;
+  border-color: #a8e6cf;
+}
+
+/* 돌봄 행동 이미지 (픽셀 아트) */
+.care-card-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  margin-bottom: 2px;
+}
+
+/* 행동 이름 ("밥 주기" 등) */
+.care-card-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #2b2b2b;
+  margin: 0;
+  text-align: center;
+}
+
+/* "돌봄포인트 1 소모" — 주황색 */
+.care-card-cost {
+  font-size: 10px;
+  color: #ff823a;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* "코인 +50" — 초록색 */
+.care-card-reward {
+  font-size: 10px;
+  color: #34c759;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ── 하기 버튼 ── */
+.care-card-btn {
+  margin-top: 4px;
+  width: 100%;
+  padding: 6px 0;
+  border-radius: 20px;
+  border: none;
+  background: #34c759; /* 기본: 초록 */
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.care-card-btn:hover:not(:disabled) {
+  background: #28b34c;
+  transform: translateY(-1px);
+}
+
+/* 완료 상태 버튼 — 연한 초록 */
+.care-card-btn.done {
+  background: #a8e6cf;
+  color: #2d9e6a;
+  cursor: default;
+}
+
+/* 비활성화 상태 버튼 (포인트 부족 등) — 회색 */
+.care-card-btn.disabled {
+  background: #e0e0e0;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════
+   돌봄포인트 표시 카드 (우측 고정)
+   - 현재 돌봄포인트를 크게 표시
+   - + 버튼 없음 (운동으로만 획득)
+══════════════════════════════════════ */
+.care-point-card {
+  background: #fff8ee;
+  border: 1.5px solid #ffe0b2;
+  border-radius: 14px;
+  padding: 10px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.care-point-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.care-point-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  margin: 2px 0 0;
+}
+
+/* 포인트 숫자 — 크고 굵게 */
+.care-point-value {
+  font-size: 32px;
+  font-weight: 900;
+  color: #ff823a;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.care-point-note {
+  font-size: 9px;
+  color: #bbb;
+  margin: 0;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* ══════════════════════════════════════
+   토스트 메시지 (성공/오류 알림)
+   - 섹션 상단 중앙에 절대 위치로 잠깐 표시
+   - .care-section 의 position: relative 를 기준으로 함
+══════════════════════════════════════ */
+.care-toast-global {
+  position: absolute;
+  top: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #34c759; /* 성공: 초록 */
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 16px;
+  border-radius: 20px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+  animation: toast-in 0.2s ease;
+  z-index: 200;
+}
+
+/* 오류 토스트 — 빨간색 */
+.care-toast-global.err {
+  background: #ff3b30;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ══════════════════════════════════════
+   반응형 — 화면 너비 500px 이하 (작은 모바일)
+   - 포인트 카드를 3개 카드 아래로 내려 전체 너비로 표시
+   - 가로 한 줄로 내용 배치
+══════════════════════════════════════ */
+@media (max-width: 500px) {
+  /* 3열 + 포인트 카드 별도 행 */
+  .care-cards {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto;
+  }
+
+  /* 포인트 카드: 가로 전체 + 수평 레이아웃 */
+  .care-point-card {
+    grid-column: 1 / -1; /* 전체 열 차지 */
+    flex-direction: row;
+    justify-content: center;
+    gap: 10px;
+    padding: 8px 14px;
+  }
+
+  .care-point-value {
+    font-size: 22px; /* 수평 배치 시 크기 축소 */
+  }
+}

@@ -1,19 +1,242 @@
-.app-layout { /* 또는 프로젝트에 따라 .lobby-container */
-  width: 100%;
-  max-width: 430px;
-  height: 100vh;
-  max-height: 920px;
-  
-  /* ⭐️ 메인 뼈대에 배경색과 패턴을 한 번에 주입! */
-  background-color: #fffbf4; 
-  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 2px, transparent 2px), 
-                    radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px, 15px 15px;
-  
+/* ══════════════════════════════════════════════════════════════════
+   MainLobby.css — 메인 로비 전체 레이아웃
+
+   화면을 위에서 아래로 4구역으로 나눔:
+     ① .lobby-header     — 상단 헤더 (고정 높이, 절대 줄어들지 않음)
+     ② .lobby-room-area  — PixiJS 방 캔버스 (남은 공간을 채움, max-height 제한)
+     ③ .care-section     — 돌봄 행동 카드 (CarePanel 컴포넌트, 절대 줄어들지 않음)
+     ④ .footer-nav       — 하단 탭 바 (Navbar 컴포넌트, 고정 60px)
+
+   핵심 원칙:
+     - 전체 높이: 100dvh (동적 뷰포트 높이 — 모바일 주소창 고려)
+     - overflow: hidden → 바깥으로 삐져나오는 요소 잘라냄
+     - 방 캔버스에 max-height 를 설정해야 돌봄 섹션이 잘리지 않음
+══════════════════════════════════════════════════════════════════ */
+
+/* ────────────────────────────────────────
+   전체 페이지 컨테이너
+   - flex column 으로 4구역을 수직 배치
+   - height: 100dvh  → 화면 전체 높이 사용
+   - overflow: hidden → 스크롤 없이 한 화면에 고정
+──────────────────────────────────────── */
+.lobby-page {
   display: flex;
   flex-direction: column;
+  height: 100dvh;
   overflow: hidden;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-  position: relative; 
-  margin: 0 auto; 
+  background: #fffbf4; /* 연한 크림색 배경 */
+}
+
+
+/* ══════════════════════════════════════
+   ① 상단 헤더
+   - flex-shrink: 0 → 화면이 작아져도 헤더는 절대 줄어들지 않음
+   - flex-wrap: nowrap → 항목들이 줄 바꿈 없이 한 줄에 표시됨
+══════════════════════════════════════ */
+.lobby-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #ffffff;
+  border-bottom: 1.5px solid #f0ece4;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  flex-shrink: 0;   /* 헤더 높이 절대 감소 금지 */
+  flex-wrap: nowrap; /* 항목 줄 바꿈 금지 */
+}
+
+/* ── 프로필 블록 (아바타 + 이름 + 레벨·EXP) ── */
+.lh-profile {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0; /* 프로필 블록도 줄어들지 않게 */
+}
+
+/* 프로필 아바타 이미지 */
+.lh-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;    /* 원형 */
+  object-fit: cover;
+  border: 2px solid #f0ece4;
+  flex-shrink: 0;
+}
+
+/* 이름 + 레벨·EXP 를 세로로 묶는 컨테이너 */
+.lh-lv-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* 고양이 이름 텍스트 */
+.lh-cat-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: #2b2b2b;
+  line-height: 1;
+}
+
+/* 레벨 뱃지 + EXP 바 + EXP 숫자를 가로로 묶는 행 */
+.lh-lv-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* "Lv. N" 뱃지 — 주황색 굵은 텍스트 */
+.lh-lv-badge {
+  font-size: 11px;
+  font-weight: 900;
+  color: #ff823a;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* EXP 바 전체 트랙 (회색 배경) */
+.lh-exp-track {
+  width: 90px;   /* 트랙 너비 — 줄이려면 이 값을 내림 */
+  height: 7px;
+  background: #f0ece4;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* EXP 바 채워진 부분 (주황→노란 그라데이션) */
+.lh-exp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff823a, #ffd166);
+  border-radius: 6px;
+  transition: width 0.6s ease; /* EXP 증가 시 부드럽게 늘어남 */
+}
+
+/* "현재EXP/최대EXP" 숫자 텍스트 */
+.lh-exp-text {
+  font-size: 10px;
+  font-weight: 700;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+/* ── 공용 pill (코인·돌봄포인트 표시 캡슐) ── */
+.lh-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #fffbf4;
+  border: 1.5px solid #f0ece4;
+  border-radius: 20px;
+  padding: 5px 12px;
+  flex-shrink: 0;
+}
+
+/* 코인 이미지 크기 */
+.lh-coin .lh-coin-img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+/* 코인 숫자 / 돌봄포인트 숫자 — 주황색 굵은 텍스트 */
+.lh-coin span,
+.lh-care span:last-child {
+  font-size: 13px;
+  font-weight: 900;
+  color: #ff823a;
+}
+
+/* 돌봄포인트 발바닥 이모지 */
+.lh-care-paw {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ── 우측 아이콘 버튼 그룹 (출석·설정) ── */
+.lh-icons {
+  display: flex;
+  gap: 5px;
+  margin-left: auto; /* 나머지 항목을 왼쪽으로 밀고 아이콘 그룹은 오른쪽 끝에 붙음 */
+  flex-shrink: 0;
+}
+
+/* 개별 아이콘 버튼 */
+.lh-icon-btn {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid #f0ece4;
+  border-radius: 10px;
+  background: #fffbf4;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.lh-icon-btn:hover {
+  background: #fff3e8;
+}
+
+
+/* ══════════════════════════════════════
+   ② 방 영역 (PixiJS 캔버스 + 오버레이)
+
+   - flex: 1 1 0   → 남은 공간을 모두 차지하되 필요 시 줄어들 수 있음
+   - max-height     → 이 값보다 커지지 않아서 아래 돌봄 섹션이 항상 보임
+                      값 조절 방법: 크게 → 방이 커짐 / 작게 → 방이 작아짐
+   - overflow: hidden → 캔버스가 영역 밖으로 삐져나오지 않게 잘라냄
+   - position: relative → 내부 오버레이(절대 위치)의 기준점
+══════════════════════════════════════ */
+.lobby-room-area {
+  flex: 1 1 0;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  max-height: 71vh; /* ★ 방 최대 높이 — 숫자 조절로 크기 변경 가능 */
+}
+
+/* MyRoom 컴포넌트의 최상위 div(.my-room-wrapper)가 방 영역을 꽉 채우도록 */
+.lobby-room-area > .my-room-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+/* PixiJS 캔버스 컨테이너도 방 영역 전체를 채움 */
+.lobby-room-area .pixi-canvas-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* 실제 <canvas> 태그 — JS에서 설정한 width/height를 CSS로 강제 덮어씀 */
+.lobby-room-area .pixi-canvas-container canvas {
+  width: 100%  !important;
+  height: 100% !important;
+  display: block; /* 캔버스 아래 여백(inline 기본값) 제거 */
+}
+
+/* ── 오버레이: 부위별 경험치 패널 (방 우측 상단 절대 위치) ── */
+.room-overlay-right {
+  position: absolute;
+  top: 10px;
+  right: 20px; /* ★ 값 키우면 왼쪽으로 이동, 줄이면 오른쪽 벽에 가까워짐 */
+  z-index: 20; /* PixiJS 캔버스(z-index 없음)보다 위에 표시 */
+  width: 210px; /* ★ 값 키우면 패널 넓어짐 — 글자 삐져나오면 늘릴 것 */
+  max-height: calc(100% - 20px); /* 방 높이를 넘어서 잘리지 않도록 제한 */
+  overflow-y: auto;   /* 패널 내용이 길면 스크롤 */
+  overflow-x: hidden;
+}
+
+
+/* ══════════════════════════════════════
+   반응형 — 화면 너비 500px 이하 (작은 모바일)
+   - EXP 트랙 축소
+   - 오버레이 패널 숨김 (화면이 좁아서 공간 부족)
+══════════════════════════════════════ */
+@media (max-width: 500px) {
+  .lh-exp-track { width: 60px; }  /* EXP 바 축소 */
+  .lh-exp-text  { display: none; } /* EXP 숫자 숨김 */
+  .room-overlay-right { display: none; } /* 부위별 경험치 패널 숨김 */
 }

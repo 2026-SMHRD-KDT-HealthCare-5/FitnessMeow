@@ -1,252 +1,202 @@
-/* ==================== 📱 1. 마이룸 베이스 컨테이너 ==================== */
-.my-room-container {
-  width: 100%;
-  min-height: 100vh;
-  
-  /* ⭐️ 전역 흰색 변수를 완전히 누르고, 운동선택화면의 주황빛(#fffbf4) 강제 적용 */
-  background-color: #fffbf4 !important; 
-  
-  /* ⭐️ 팀원분의 흰색 땡땡이 도트 패턴도 마이룸에 그대로 복사 */
-  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 2px, transparent 2px), 
-                    radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px) !important;
-  background-size: 20px 20px, 15px 15px !important;
-  
-  padding: 20px 20px 100px 20px; /* 상단 여백 및 하단 탭 공간 확보 */
-  box-sizing: border-box;
+/* ══════════════════════════════════════════════════════════════════
+   MyRoom.css — PixiJS 방 캔버스 래퍼 스타일
+
+   구조:
+     .my-room-wrapper          — 최상위 래퍼 (position: relative → 내부 절대 위치 기준)
+       .pixi-canvas-container  — PixiJS가 <canvas>를 삽입하는 컨테이너
+       .inv-toggle-btn         — 🎒 인벤토리 토글 버튼 (우측 하단 고정)
+       .inv-panel              — 인벤토리 패널 (하단에서 슬라이드 업)
+         .inv-panel-header     — 패널 헤더 (제목 + ✕ 닫기 버튼)
+         .inv-item-grid        — 가구 아이템 그리드
+           .inv-item           — 개별 가구 카드
+══════════════════════════════════════════════════════════════════ */
+
+/* ────────────────────────────────────────
+   최상위 래퍼
+   - position: relative → 내부의 절대 위치 요소(버튼, 패널)의 기준점
+   - width/height: 100% → 부모(.lobby-room-area)를 꽉 채움
+   - overflow: hidden   → 캔버스·패널이 래퍼 밖으로 나가지 않게 잘라냄
+──────────────────────────────────────── */
+.my-room-wrapper {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;           /* 내부 요소들을 무조건 중앙으로 정렬 */
-}
-
-/* ==================== ⚡️ 2. 핵심 반응형 알맹이 박스 ==================== */
-.responsive-content {
-  width: 100%;               /* 큰 화면(PC)에서는 전체적으로 시원하게 늘어남 */
-  max-width: 1200px;         /* 너무 과하게 찢어지는 것만 방지 */
-  margin: 0 auto;            /* 중앙 정렬 보장 */
-}
-
-/* ==================== 👑 3. 상단 헤더 영역 (프로필 & 재화 - 전면 확대) ==================== */
-.room-top-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px; /* 헤더가 커진 만큼 아래 영역과의 간격도 넓힘 */
-  width: 100%;
-}
-
-/* 👈 고양이 프로필 영역 */
-.profile-section {
-  display: flex;
-  align-items: center;
-  gap: 10px; 
-  background: #ffffff;
-  /* 🌟 이미지 확대에 맞춰 패딩 최적화 (상하 여백 조정으로 답답함 해소) */
-  padding: 6px 16px 6px 6px; 
-  border-radius: 30px; 
-  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-  border: 1px solid rgba(0, 0, 0, 0.02);
-}
-
-.profile-avatar {
-  /* 🌟 코인 이미지와 대칭을 맞추기 위해 32px -> 36px로 확대 */
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #FFEAD7; 
-  border: 1px solid rgba(0,0,0,0.05);
-}
-
-.profile-name {
-  font-size: 15px; /* 이미지가 커진 만큼 텍스트도 14px -> 15px로 미세 확대 */
-  font-weight: 800;
-  color: #2b2b2b;
-}
-
-/* 👉 우측 재화 영역 (코인 이미지 프로필 급으로 확대) */
-.header-right {
-  display: flex;
-  align-items: center;
-  z-index: 20; 
-}
-
-/*화폐*/
-.currency-box {
-  display: flex;
-  align-items: center;
-  background: #ffffff;
-  /* 🌟 좌측 프로필과 대칭감을 주기 위해 패딩 통일 */
-  padding: 6px 16px 6px 6px; 
-  border-radius: 30px; 
-  border: 1px solid rgba(0, 0, 0, 0.02);
-}
-
-/* 🌟 [핵심 수정] 코인 이미지를 시원하게 36px로 추가 확대! */
-.currency-box .currency-img {
-  width: 32px !important;   /* 32px -> 36px로 확대 */
-  height: 32px !important;  /* 정사각 비율 유지 */
-  object-fit: contain;
-  margin-right: 8px;        
-  display: inline-block;
-  vertical-align: middle;
-}
-
-/* 🌟 이미지가 커진 만큼 라벨 텍스트 밸런스 조정 */
-.currency-box .currency-label {
-  font-size: 14px; /* 13px -> 14px 확대 */
-  font-weight: bold;
-  color: #666666;
-  margin-right: 6px;
-}
-
-/* 🌟 코인 숫자 텍스트도 더 돋보이도록 확대 */
-.currency-box .currency-amount {
-  font-size: 16px; /* 15px -> 16px 확대 */
-  font-weight: 900; 
-  color: #ff823a; 
-}
-/* ==================== 🏠 4. 마이룸 액자 상자 ==================== */
-.room-aspect-box {
-  flex: 1;
-  position: relative; /* 내부 퀘스트창과 고양이 absolute의 기준점 */
-  width: 100%;
-  border-radius: 24px;   /* 운동선택 카드와 일치하는 부드러운 라운딩 */
-  overflow: hidden;   
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
-  background: #ffffff;
-  border: 2px solid #f2ede4;
-  max-height: calc(100vh - 65px - 120px); 
-  
-}
-
-.room-background-img {
-  width: 100%;
-  height: auto;
-  display: block; 
-}
-
-.room-main-cat {
-  position: absolute;   
-  bottom: 15%;            
-  left: 50%;            
-  transform: translateX(-50%); 
-  width: 22%;            
-  height: auto;
-  z-index: 5;           
-}
-
-/* ==================== 🎯 5. 퀘스트 텍스트 HUD 스타일 ==================== */
-.transparent-quest-overlay {
-  position: absolute;
-  top: 16px;         
-  left: 18px;        
-  z-index: 15;       
-  width: auto;
-  max-width: 200px;  
-  background: none;
-  padding: 0;
-  text-align: left;
-  pointer-events: none; 
-  text-rendering: optimizeLegibility;
-}
-
-.quest-title {
-  font-size: 16px;       
-  font-weight: 800;      
-  color: #000000;        
-  margin: 0 0 8px 0;
-  letter-spacing: -0.5px; 
-  -webkit-text-stroke: 0.2px #000000; 
-  text-shadow: none; 
-}
-
-.text-quest-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;             
-}
-
-.text-quest-item {
-  font-size: 13px;     
-  font-weight: 700;      
-  color: #111111;        
-  line-height: 1.4;
-  letter-spacing: -0.3px;
-  word-wrap: break-word;
-  word-break: keep-all;
-  text-shadow: none; 
-  -webkit-text-stroke: 0.1px #111111;
-}
-
-.text-quest-item.completed {
-  text-decoration: line-through; 
-  text-decoration-color: #000000; 
-  color: #888888;                
-  -webkit-text-stroke: none;     
-  opacity: 0.6;                  
-}
-
-/* ==================== 🛠️ 6. 개발자용 임시 테스트 버튼 ==================== */
-.test-btn-box {
-  margin-top: 12px;
-  pointer-events: auto; 
-}
-.test-btn-box button {
-  font-size: 11px;
-  padding: 4px 8px;
-  cursor: pointer;
-  background: #ffffff;
-  border: 1px solid rgba(0,0,0,0.1);
-  border-radius: 6px;
-  font-weight: bold;
-  color: #666;
-}
-
-.my-room-container {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  background: #ffe8cc; /* 캔버스 로딩 전 보이는 배경색 */
+}
+
+/* ────────────────────────────────────────
+   PixiJS 캔버스 컨테이너
+   - line-height: 0 → <canvas> 아래에 생기는 기본 여백(inline 요소 특성) 제거
+   - width/height: 100% → 래퍼를 꽉 채워 캔버스가 방 전체에 렌더링되게 함
+──────────────────────────────────────── */
+.pixi-canvas-container {
+  width: 100%;
+  height: 100%;
+  line-height: 0;
+}
+/* 실제 <canvas> 크기는 MainLobby.css 에서 !important 로 100%로 강제함 */
+
+
+/* ══════════════════════════════════════
+   🎒 인벤토리 토글 버튼
+   - position: absolute + bottom/right → 캔버스 우측 하단에 고정
+   - z-index: 40 → 방 오버레이(z-index 20)보다 위에 표시되어 항상 클릭 가능
+   ★ 위치 변경: bottom/right 값을 조절하면 버튼 위치가 바뀜
+══════════════════════════════════════ */
+.inv-toggle-btn {
+  position: absolute;
+  bottom: 10px; /* ★ 하단에서의 거리 */
+  right: 10px;  /* ★ 우측에서의 거리 */
+  z-index: 40;
+  background: rgba(255, 251, 244, 0.95);
+  border: none;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease;
+}
+
+.inv-toggle-btn:hover {
+  transform: scale(1.1); /* 호버 시 살짝 확대 */
+}
+
+
+/* ══════════════════════════════════════
+   인벤토리 패널
+   - position: absolute + bottom: 0 → 캔버스 하단에 붙어서 나타남
+   - left/right: 0 → 가로 전체 너비
+   - max-height: 55% → 캔버스의 절반 이상 가리지 않게 제한
+   - animation: slide-up → 아래에서 위로 슬라이드 인 효과
+══════════════════════════════════════ */
+.inv-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 30; /* 토글 버튼(40)보다는 아래, 배경(0)보다는 위 */
+  background: rgba(255, 251, 244, 0.97);
+  backdrop-filter: blur(8px); /* 배경 흐림 효과 */
+  border-top: 2px solid #f0ece4;
+  padding: 12px 14px 14px;
+  animation: slide-up 0.2s ease;
+  max-height: 55%;
+  overflow-y: auto;  /* 가구가 많으면 스크롤 */
+}
+
+/* 패널 슬라이드 업 애니메이션 */
+@keyframes slide-up {
+  from { transform: translateY(100%); } /* 완전히 숨겨진 상태 */
+  to   { transform: translateY(0); }    /* 원래 위치 */
+}
+
+/* 패널 헤더: "🎒 인벤토리" 제목 + ✕ 닫기 버튼 */
+.inv-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.inv-panel-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #3d3d3d;
+}
+
+.inv-close-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #aaa;
+  padding: 2px 6px;
+}
+
+/* 소유 가구 없을 때 안내 문구 */
+.inv-empty {
+  text-align: center;
+  color: #bbb;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 12px 0;
+}
+
+
+/* ══════════════════════════════════════
+   인벤토리 아이템 그리드
+   - auto-fill + minmax(72px, 1fr) → 화면 너비에 따라 열 수 자동 조정
+══════════════════════════════════════ */
+.inv-item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+}
+
+/* 개별 가구 카드 */
+.inv-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #fffbf4 !important;
-  background-image: radial-gradient(rgba(255,255,255,0.15) 2px, transparent 2px),
-                    radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px) !important;
-  background-size: 20px 20px, 15px 15px !important;
-  box-sizing: border-box;       /* ✅ padding이 height 안에 포함되어 삐져나오지 않음 */
+  gap: 4px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  border: 2px solid #f0ece4;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-/* @media는 미세조정만 */
-@media (max-width: 500px) {
-  .my-room-container {
-    padding: 16px;
-  }
-  
-  /* 모바일에서는 조금 과할 수 있으니 살짝만 축소 */
-  .profile-avatar,
-  .currency-box .currency-img {
-    width: 32px !important;
-    height: 32px !important;
-  }
+.inv-item:hover {
+  border-color: #ffb07a;
+  background: #fff8f2;
+  transform: translateY(-2px); /* 호버 시 위로 살짝 뜨는 효과 */
 }
-/* ------------------------------------------------------------------------------------------------- */
-/* 방 안에 배치되는 가구 이미지 자유도 업그레이드 스타일 */
-.room-aspect-box .placed-item {
-  position: absolute;
+
+/* 방에 배치 중인 가구 — 초록 테두리로 구분 */
+.inv-item--placed {
+  border-color: #a8e6cf;
+  background: #f0fff6;
+}
+
+/* 가구 이미지 — 픽셀 아트 계단 현상 방지 */
+.inv-item-img {
+  width: 44px;
+  height: 44px;
   object-fit: contain;
-  z-index: 5; /* 고양이와 배경보다 무조건 위에 오도록 높임 */
-  transform: translate(-50%, -50%); /* 마우스 커서가 가구 중심에 오도록 정렬 */
-  transition: transform 0.1s ease; /* 움직일 때 부드러운 맛 추가 */
+  image-rendering: pixelated;
 }
 
-.room-aspect-box .placed-item:active {
-  cursor: grabbing; /* 잡고 흔들 때는 꽉 쥔 손모양 커서 */
-  transform: translate(-50%, -50%) scale(1.1); /* 드래그할 때 살짝 커지는 효과 */
+/* 이미지 없을 때 대체 이모지 */
+.inv-item-placeholder {
+  font-size: 28px;
+  line-height: 1;
 }
 
-/* 🪜 가구 종류별 크기만 딱 정해주기 (기존의 bottom/left는 지워주세요!) */
-.room-aspect-box .item-id-101 { width: 180px; }  /* 캣타워 */
-.room-aspect-box .item-id-102 { width: 60px; }  /* 공 1 */
-.room-aspect-box .item-id-103 { width: 60px; }  /* 공 2 */
-.room-aspect-box .item-id-104 { width: 60px; }  /* 공 3 */
+/* 가구 이름 */
+.inv-item-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: #555;
+  text-align: center;
+  margin: 0;
+  word-break: keep-all;
+  line-height: 1.2;
+}
+
+/* 배치 상태 뱃지 ("배치하기" 회색 / "배치 중" 초록) */
+.inv-item-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: #f0ece4;
+  color: #888;
+  font-weight: 600;
+}
+
+.inv-item--placed .inv-item-badge {
+  background: #c8f5e0;
+  color: #2d9e6a;
+}

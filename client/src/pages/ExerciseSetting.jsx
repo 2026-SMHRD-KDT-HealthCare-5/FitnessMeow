@@ -187,7 +187,7 @@ export default function ExerciseSetting({ page = 'select' }) {
         <ExerciseSettingForm
           selectedType={selectedType}
           initialSettings={exerciseSettings}
-          onBack={() => navigate('/exerciseselect')}
+          onBack={() => navigate(-1)}   // 히스토리에서 이전 페이지(운동선택)로 이동
           onSettingsChange={(nextSettings) => setExerciseSettings(nextSettings)}
           onStart={(type, nextSettings) => {
             setSelectedType(type);
@@ -204,9 +204,7 @@ export default function ExerciseSetting({ page = 'select' }) {
           type={selectedType}
           settings={exerciseSettings}
           onFinish={(resultState) => navigate('/result', { state: resultState })}
-          onBack={() => navigate('/exercisesetting', {
-            state: { selectedType, exerciseSettings },
-          })}
+          onBack={() => navigate(-1)}   // 히스토리에서 이전 페이지(운동설정)로 이동
         />
       )}
     </>

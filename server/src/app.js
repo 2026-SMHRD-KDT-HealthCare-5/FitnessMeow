@@ -3,10 +3,15 @@ const cors = require('cors');
 const session = require('express-session');
 
 
-const authRoutes = require('./routes/auth.routes');
-const workoutRoutes= require('./routes/workout.routes');
-const characterRoutes=require('./routes/character.routes');
-const resultRoutes = require('./routes/result.routes');
+const authRoutes       = require('./routes/auth.routes');
+const workoutRoutes    = require('./routes/workout.routes');
+const characterRoutes  = require('./routes/character.routes');
+const resultRoutes     = require('./routes/result.routes');
+const careRoutes       = require('./routes/care.routes');
+const coordinatesRoutes = require('./routes/coordinates.routes');
+const inventoryRoutes  = require('./routes/inventory.routes');
+const shopRoutes       = require('./routes/shop.routes');
+const testRoutes       = require('./routes/test.routes'); // ⚠️ 개발용 — 배포 시 제거
 
 
 
@@ -32,10 +37,15 @@ app.use(session({
   },
 }));
 
-app.use('/api/auth', authRoutes); //라우터 연결
-app.use('/api/workouts', workoutRoutes);
-app.use('/api/character', characterRoutes);
-app.use('/api/result', resultRoutes);
+app.use('/api/auth',        authRoutes);
+app.use('/api/workouts',   workoutRoutes);
+app.use('/api/character',  characterRoutes);
+app.use('/api/result',     resultRoutes);
+app.use('/api/care',       careRoutes);
+app.use('/api/coordinates', coordinatesRoutes);
+app.use('/api/inventory',  inventoryRoutes);
+app.use('/api/shop',       shopRoutes);
+app.use('/api/test',       testRoutes);  // ⚠️ 개발용 — 배포 시 제거
 
 
 app.get('/', (req, res) => {
