@@ -357,3 +357,56 @@
   z-index: 1;
 }
 .status-text.error { color: #e05a5a; }
+
+/* ══════════════════════════════════════════
+   3. 정확도 평가
+══════════════════════════════════════════ */
+.section-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #999999;
+  margin-bottom: 14px;
+}
+
+.accuracy-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.acc-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.acc-tag {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 99px;
+}
+
+.tag-perfect {
+  background: #FFF5EC;
+  color: #ff8c42;
+}
+
+.tag-normal {
+  background: #f0f0f0;
+  color: #888888;
+}
+
+.acc-count {
+  font-size: 36px;
+  font-weight: 900;
+  color: #2b2b2b;
+  letter-spacing: -1px;
+}
+
+.acc-divider {
+  width: 1px;
+  height: 60px;
+  background: #f0f0f0;
+}
