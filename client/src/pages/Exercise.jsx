@@ -8,8 +8,9 @@ import { calcCalories }                                 from '../utils/calcCalor
 import { postWorkoutWithRetry }                         from '../utils/exerciseApi';
 import { loadScript, loadExerciseLogicFiles }           from '../utils/scriptLoader';
 import { useBodyInfo }                                  from '../hooks/useBodyInfo';
+import cheeringCat                                      from '../assets/cheering-cat/KakaoTalk_20260526_142532096_transparent.gif';
 
-function Exercise({ type = 'squat', settings, onBack }) {
+function Exercise({ type = 'squat', settings }) {
   const navigate = useNavigate();
   const bodyInfo = useBodyInfo();
 
@@ -37,13 +38,12 @@ function Exercise({ type = 'squat', settings, onBack }) {
   const [count,          setCount]          = useState(0);       // 현재 세트 내 횟수
   const [elapsedTime,    setElapsedTime]    = useState(0);       // 경과 시간(초)
   const [feedback,       setFeedback]       = useState('준비');  // 자세 피드백 텍스트
-  const [gradeText,      setGradeText]      = useState('완벽 0 보통 0'); // 등급 텍스트
+  const [,                setGradeText]      = useState('완벽 0 보통 0'); // 등급 렌더 갱신 트리거
   const [isCameraOn,     setIsCameraOn]     = useState(false);   // 카메라 ON/OFF
   const [isResting,      setIsResting]      = useState(false);   // 휴식 중 여부
   const [completedSets,  setCompletedSets]  = useState(0);       // 완료 세트 수 (UI용)
   const [totalReps,      setTotalReps]      = useState(0);       // 누적 총 횟수
   const [restRemaining,  setRestRemaining]  = useState(0);       // 남은 휴식 시간(초)
-  const [isTypeMenuOpen, setIsTypeMenuOpen] = useState(false);   // 종목 선택 드롭다운
   const [message,        setMessage]        = useState('시작을 눌러 카메라를 켜세요.');
   const [rewardTick,     setRewardTick]     = useState(0);       // EXP 팝업 트리거
 
@@ -325,29 +325,6 @@ const finishExercise = useCallback(() => {
   };
 
   /* ─────────────────────────────────────────
-     13. 운동 종목 변경
-     - 카메라/상태 전부 초기화 후 종목 변경
-  ───────────────────────────────────────── */
-  const changeExerciseType = (nextType) => {
-    setIsTypeMenuOpen(false);
-    if (nextType === selectedType) return;
-    stopCamera();
-    stateRef.current         = { count: 0, dir: 0 };
-    gradeCountsRef.current   = { perfect: 0, normal: 0 };
-    completedSetsRef.current = 0;
-    previousTypeRef.current  = nextType;
-    setSelectedType(nextType);
-    setCount(0); setCompletedSets(0); setTotalReps(0);
-    setRestRemaining(0); setElapsedTime(0);
-    isRestingRef.current = false;
-    setIsResting(false);
-    setFeedback('준비');
-    setGradeText('완벽 0 보통 0');
-    setRewardTick(0);
-    setMessage('운동이 변경되었습니다. 시작을 눌러 카메라를 켜세요.');
-  };
-
-  /* ─────────────────────────────────────────
      14. Effects
   ───────────────────────────────────────── */
 
@@ -399,7 +376,7 @@ const finishExercise = useCallback(() => {
   ───────────────────────────────────────── */
   return (
     <main className="exercise-page">
-      <section className="exercise-phone">
+      <section className={`exercise-phone ${isCameraOn ? 'exercise-phone--active' : ''}`}>
 
         {/* 15-1. 카메라 카드 */}
         <section className="exercise-camera-card">
@@ -412,49 +389,44 @@ const finishExercise = useCallback(() => {
             </div>
           )}
 
-          <button type="button" className="exercise-back-button" onClick={onBack}>Back</button>
-
-          {/* 15-2. 운동 종목 선택 드롭다운 */}
-          <div className="exercise-type-picker">
-            <span>운동</span>
-            <button
-              type="button"
-              className="exercise-type-trigger"
-              onClick={() => setIsTypeMenuOpen((o) => !o)}
-              aria-expanded={isTypeMenuOpen}
-            >
-              {exercise.name}<span aria-hidden="true">⌄</span>
-            </button>
-            {isTypeMenuOpen && (
-              <div className="exercise-type-menu">
-                {Object.entries(EXERCISES).map(([value, item]) => (
-                  <button
-                    type="button"
-                    key={value}
-                    className={value === selectedType ? 'is-active' : ''}
-                    onClick={() => changeExerciseType(value)}
-                  >
-                    {item.name}
-                  </button>
-                ))}
+          {/* 15-3. 운동 현황 패널 */}
+          <div className="exercise-status-panel">
+            <div className="exercise-counter-stat">
+              <span className="exercise-stat-icon exercise-stat-icon--set" aria-hidden="true">▦</span>
+              <div>
+                <em>세트</em>
+                <strong>{completedSets}<small>/ {totalSets}</small></strong>
               </div>
-            )}
-          </div>
-
-          {/* 15-3. 횟수/세트 배지 */}
-          <div className="exercise-counter-badge">
-            <small>{completedSets}/{totalSets} Set</small>
-            <strong>{count}</strong>
-            <span>/ {targetCount}</span>
-            <em>횟수</em>
+            </div>
+            <div className="exercise-counter-stat">
+              <span className="exercise-stat-icon exercise-stat-icon--rep" aria-hidden="true">●</span>
+              <div>
+                <em>횟수</em>
+                <strong>{count}<small>/ {targetCount}</small></strong>
+              </div>
+            </div>
+            <div className="exercise-grade-stat">
+              <span className="exercise-stat-icon exercise-stat-icon--grade" aria-hidden="true">★</span>
+              <div>
+                <em>완벽</em>
+                <strong>{gradeCountsRef.current.perfect}</strong>
+              </div>
+            </div>
+            <div className="exercise-grade-stat exercise-grade-stat--normal">
+              <span className="exercise-stat-icon exercise-stat-icon--normal" aria-hidden="true">★</span>
+              <div>
+                <em>보통</em>
+                <strong>{gradeCountsRef.current.normal}</strong>
+              </div>
+            </div>
           </div>
 
           {/* 15-4. 피드백 / 등급 배지 */}
           <div key={feedback} className="exercise-feedback-badge">{feedback}</div>
-          <div className="exercise-grade-badge">{gradeText}</div>
 
           {/* 15-5. EXP 리워드 */}
           <div className="exercise-reward-slot">
+            <img className="exercise-reward-cat" src={cheeringCat} alt="" />
             <strong>{totalReps} EXP</strong>
             {rewardTick > 0 && <span key={rewardTick} className="exercise-reward-pop">+1 EXP</span>}
           </div>
@@ -498,7 +470,7 @@ const finishExercise = useCallback(() => {
               </button>
               <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={finishExercise}>
                 <span className="exercise-control-icon exercise-control-icon--stop" aria-hidden="true" />
-                <span>정지</span>
+                <span>포기하기</span>
               </button>
               <button type="button" className="exercise-control-button exercise-control-button--screen" onClick={startScreenCapture}>
                 <span className="exercise-control-icon" aria-hidden="true">▣</span>
@@ -519,7 +491,7 @@ const finishExercise = useCallback(() => {
           {isCameraOn && (
             <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={finishExercise}>
               <span className="exercise-control-icon exercise-control-icon--stop" aria-hidden="true" />
-              <span>정지</span>
+              <span>포기하기</span>
             </button>
           )}
         </section>

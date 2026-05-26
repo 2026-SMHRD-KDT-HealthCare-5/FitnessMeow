@@ -165,8 +165,4 @@ const Collection = () => {
   );
 };
 
-<<<<<<< dev
 export default Collection;
-=======
-export default Collection;
->>>>>>> main

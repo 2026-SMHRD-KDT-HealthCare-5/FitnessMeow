@@ -1,0 +1,488 @@
+diff --git a/client/src/css/Exercise.css b/client/src/css/Exercise.css
+index feddd7b..f63bc75 100644
+--- a/client/src/css/Exercise.css
++++ b/client/src/css/Exercise.css
+@@ -25,6 +25,10 @@
+   flex-direction: column;
+ }
+ 
++.exercise-phone--active {
++  width: min(100%, 760px);
++}
++
+ .exercise-camera-card {
+   position: relative;
+   flex: 1 1 auto;
+@@ -82,142 +86,118 @@
+   line-height: 1;
+ }
+ 
+-.exercise-back-button {
++.exercise-status-panel {
+   position: absolute;
+   top: 12px;
+   left: 12px;
++  right: 12px;
+   z-index: 3;
+-  min-width: 58px;
+-  height: 34px;
+-  padding: 0 12px;
+-  border: 1px solid rgba(255, 255, 255, 0.28);
+-  border-radius: 8px;
+-  background: rgba(0, 0, 0, 0.46);
+-  color: #ffffff;
+-  font-size: 13px;
+-  font-weight: 900;
+-  line-height: 1;
+-  cursor: pointer;
++  display: grid;
++  grid-template-columns: 1.08fr 1.08fr 0.92fr 0.92fr;
++  min-height: 74px;
++  padding: 9px 8px;
++  box-sizing: border-box;
++  border: 1px solid #efdbc4;
++  border-radius: 16px;
++  background: rgba(255, 248, 238, 0.96);
++  box-shadow: 0 3px 9px rgba(88, 51, 26, 0.12);
++  color: #2f2721;
+ }
+ 
+-.exercise-type-picker {
+-  position: absolute;
+-  top: 12px;
+-  left: 82px;
+-  z-index: 3;
+-  display: inline-flex;
++.exercise-counter-stat {
++  display: flex;
+   align-items: center;
+-  gap: 6px;
+-  min-height: 34px;
+-  padding: 0 9px;
+-  border-radius: 999px;
+-  background: rgba(0, 0, 0, 0.34);
+-  color: #ffffff;
+-  font-size: 12px;
+-  font-weight: 900;
++  gap: 7px;
++  padding: 0 7px;
++  border-right: 1px solid #ead9c5;
+ }
+ 
+-.exercise-type-trigger {
+-  display: inline-flex;
+-  align-items: center;
+-  gap: 5px;
+-  min-width: 72px;
+-  border: 0;
+-  background: transparent;
+-  color: #ffffff;
+-  font: inherit;
+-  cursor: pointer;
++.exercise-counter-stat div,
++.exercise-grade-stat div {
++  display: flex;
++  flex-direction: column;
++  gap: 3px;
+ }
+ 
+-.exercise-type-trigger span {
+-  color: #ffffff;
+-  font-size: 14px;
++.exercise-counter-stat em,
++.exercise-grade-stat em {
++  color: #52473d;
++  font-size: 11px;
+   line-height: 1;
++  font-style: normal;
++  font-weight: 900;
+ }
+ 
+-.exercise-type-menu {
+-  position: absolute;
+-  top: 42px;
+-  left: 0;
+-  display: grid;
++.exercise-counter-stat strong {
++  display: flex;
++  align-items: baseline;
+   gap: 4px;
+-  min-width: 132px;
+-  padding: 7px;
+-  border: 1px solid rgba(255, 255, 255, 0.12);
+-  border-radius: 10px;
+-  background: rgba(18, 18, 18, 0.96);
+-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+-  backdrop-filter: blur(8px);
++  color: #2c241f;
++  font-size: 28px;
++  line-height: 1;
++  font-weight: 900;
+ }
+ 
+-.exercise-type-menu button {
+-  min-height: 34px;
+-  border: 0;
+-  border-radius: 7px;
+-  background: transparent;
+-  color: #ffffff;
+-  font-size: 13px;
+-  font-weight: 950;
+-  text-align: left;
+-  cursor: pointer;
++.exercise-counter-stat small {
++  color: #7d6551;
++  font-size: 17px;
+ }
+ 
+-.exercise-type-menu button:hover,
+-.exercise-type-menu button.is-active {
+-  background: linear-gradient(180deg, #ffd979 0%, #ffc954 100%);
+-  color: #ffffff;
++.exercise-grade-stat {
++  display: flex;
++  align-items: center;
++  gap: 6px;
++  padding: 0 7px;
++  border-right: 1px solid #ead9c5;
+ }
+ 
+-.exercise-counter-badge {
+-  position: absolute;
+-  top: 12px;
+-  right: 14px;
+-  z-index: 3;
+-  display: grid;
+-  grid-template-columns: auto auto;
+-  align-items: end;
+-  column-gap: 5px;
+-  color: #ffffff;
+-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.38);
++.exercise-grade-stat strong {
++  color: #2c241f;
++  font-size: 28px;
++  line-height: 1;
+ }
+ 
+-.exercise-counter-badge small {
+-  grid-column: 1 / 3;
+-  justify-self: end;
+-  margin-bottom: 2px;
+-  font-size: 10px;
+-  font-weight: 900;
+-  color: rgba(255, 255, 255, 0.76);
++.exercise-stat-icon {
++  display: inline-grid;
++  place-items: center;
++  flex: none;
++  width: 26px;
++  height: 26px;
++  font-size: 22px;
++  line-height: 1;
+ }
+ 
+-.exercise-counter-badge strong {
+-  font-size: 42px;
+-  line-height: 0.9;
++.exercise-stat-icon--rep {
++  color: #ed6f7d;
+ }
+ 
+-.exercise-counter-badge span {
+-  color: rgba(255, 255, 255, 0.82);
+-  font-size: 21px;
+-  font-weight: 900;
++.exercise-stat-icon--set {
++  color: #397bc8;
+ }
+ 
+-.exercise-counter-badge em {
+-  grid-column: 1 / 3;
+-  justify-self: end;
+-  margin-top: 2px;
+-  color: rgba(255, 255, 255, 0.75);
+-  font-size: 11px;
+-  font-style: normal;
+-  font-weight: 900;
++.exercise-stat-icon--grade {
++  color: #efa842;
++  text-shadow: 0 1px #b46b22;
++}
++
++.exercise-grade-stat--normal {
++  border-right: 0;
++}
++
++.exercise-stat-icon--normal {
++  color: #b7b1aa;
++  text-shadow: 0 1px #776e65;
+ }
+ 
+ .exercise-feedback-badge {
+   position: absolute;
+-  right: 20px;
+-  bottom: 122px;
++  right: 18px;
++  bottom: 162px;
+   z-index: 3;
++  width: 124px;
++  text-align: center;
+   color: #74ff9c;
+-  font-size: 16px;
++  font-size: 24px;
+   font-weight: 1000;
+   text-shadow:
+     -1px -1px 0 #1b6a38,
+@@ -241,22 +221,6 @@
+   }
+ }
+ 
+-.exercise-grade-badge {
+-  position: absolute;
+-  top: 90px;
+-  right: 50px;
+-  z-index: 3;
+-  max-width: 168px;
+-  padding: 8px 10px;
+-  border-radius: 8px;
+-  background: rgba(0, 0, 0, 0.56);
+-  color: rgba(255, 255, 255, 0.9);
+-  font-size: 11px;
+-  font-weight: 900;
+-  line-height: 1.25;
+-  text-align: right;
+-}
+-
+ .exercise-reward-slot {
+   position: absolute;
+   right: 18px;
+@@ -265,23 +229,39 @@
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+-  gap: 4px;
+-  width: 74px;
+-  height: 74px;
++  justify-content: center;
++  width: 120px;
++  height: 124px;
+   border: 2px dashed rgba(116, 255, 156, 0.45);
+   border-radius: 12px;
+   background: rgba(0, 0, 0, 0.18);
+ }
+ 
+ .exercise-reward-slot strong {
++  position: absolute;
++  right: 0;
++  bottom: 8px;
++  left: 0;
++  text-align: center;
+   color: #74ff9c;
+-  font-size: 13px;
++  font-size: 16px;
+   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.55);
+ }
+ 
++.exercise-reward-cat {
++  width: 142px;
++  height: 112px;
++  object-fit: contain;
++  clip-path: inset(0 9% 0 0);
++  transform: translateY(-10px);
++}
++
+ .exercise-reward-pop {
+   position: absolute;
+-  top: -22px;
++  top: -28px;
++  left: 50%;
++  transform: translateX(-50%);
++  white-space: nowrap;
+   color: #74ff9c;
+   font-size: 13px;
+   font-weight: 1000;
+@@ -292,7 +272,7 @@
+ @keyframes reward-pop {
+   from {
+     opacity: 0;
+-    transform: translateY(8px) scale(0.9);
++    transform: translate(-50%, 8px) scale(0.9);
+   }
+ 
+   35% {
+@@ -301,7 +281,7 @@
+ 
+   to {
+     opacity: 0;
+-    transform: translateY(-12px) scale(1.05);
++    transform: translate(-50%, -12px) scale(1.05);
+   }
+ }
+ 
+diff --git a/client/src/pages/Exercise.jsx b/client/src/pages/Exercise.jsx
+index ab2baca..7ac6bbb 100644
+--- a/client/src/pages/Exercise.jsx
++++ b/client/src/pages/Exercise.jsx
+@@ -8,8 +8,9 @@ import { calcCalories }                                 from '../utils/calcCalor
+ import { postWorkoutWithRetry }                         from '../utils/exerciseApi';
+ import { loadScript, loadExerciseLogicFiles }           from '../utils/scriptLoader';
+ import { useBodyInfo }                                  from '../hooks/useBodyInfo';
++import cheeringCat                                      from '../assets/cheering-cat/KakaoTalk_20260526_142532096_transparent.gif';
+ 
+-function Exercise({ type = 'squat', settings, onBack }) {
++function Exercise({ type = 'squat', settings }) {
+   const navigate = useNavigate();
+   const bodyInfo = useBodyInfo();
+ 
+@@ -37,13 +38,12 @@ function Exercise({ type = 'squat', settings, onBack }) {
+   const [count,          setCount]          = useState(0);       // 현재 세트 내 횟수
+   const [elapsedTime,    setElapsedTime]    = useState(0);       // 경과 시간(초)
+   const [feedback,       setFeedback]       = useState('준비');  // 자세 피드백 텍스트
+-  const [gradeText,      setGradeText]      = useState('완벽 0 보통 0'); // 등급 텍스트
++  const [,                setGradeText]      = useState('완벽 0 보통 0'); // 등급 렌더 갱신 트리거
+   const [isCameraOn,     setIsCameraOn]     = useState(false);   // 카메라 ON/OFF
+   const [isResting,      setIsResting]      = useState(false);   // 휴식 중 여부
+   const [completedSets,  setCompletedSets]  = useState(0);       // 완료 세트 수 (UI용)
+   const [totalReps,      setTotalReps]      = useState(0);       // 누적 총 횟수
+   const [restRemaining,  setRestRemaining]  = useState(0);       // 남은 휴식 시간(초)
+-  const [isTypeMenuOpen, setIsTypeMenuOpen] = useState(false);   // 종목 선택 드롭다운
+   const [message,        setMessage]        = useState('시작을 눌러 카메라를 켜세요.');
+   const [rewardTick,     setRewardTick]     = useState(0);       // EXP 팝업 트리거
+ 
+@@ -324,29 +324,6 @@ const finishExercise = useCallback(() => {
+     setFeedback('준비');
+   };
+ 
+-  /* ─────────────────────────────────────────
+-     13. 운동 종목 변경
+-     - 카메라/상태 전부 초기화 후 종목 변경
+-  ───────────────────────────────────────── */
+-  const changeExerciseType = (nextType) => {
+-    setIsTypeMenuOpen(false);
+-    if (nextType === selectedType) return;
+-    stopCamera();
+-    stateRef.current         = { count: 0, dir: 0 };
+-    gradeCountsRef.current   = { perfect: 0, normal: 0 };
+-    completedSetsRef.current = 0;
+-    previousTypeRef.current  = nextType;
+-    setSelectedType(nextType);
+-    setCount(0); setCompletedSets(0); setTotalReps(0);
+-    setRestRemaining(0); setElapsedTime(0);
+-    isRestingRef.current = false;
+-    setIsResting(false);
+-    setFeedback('준비');
+-    setGradeText('완벽 0 보통 0');
+-    setRewardTick(0);
+-    setMessage('운동이 변경되었습니다. 시작을 눌러 카메라를 켜세요.');
+-  };
+-
+   /* ─────────────────────────────────────────
+      14. Effects
+   ───────────────────────────────────────── */
+@@ -399,7 +376,7 @@ const finishExercise = useCallback(() => {
+   ───────────────────────────────────────── */
+   return (
+     <main className="exercise-page">
+-      <section className="exercise-phone">
++      <section className={`exercise-phone ${isCameraOn ? 'exercise-phone--active' : ''}`}>
+ 
+         {/* 15-1. 카메라 카드 */}
+         <section className="exercise-camera-card">
+@@ -412,49 +389,44 @@ const finishExercise = useCallback(() => {
+             </div>
+           )}
+ 
+-          <button type="button" className="exercise-back-button" onClick={onBack}>Back</button>
+-
+-          {/* 15-2. 운동 종목 선택 드롭다운 */}
+-          <div className="exercise-type-picker">
+-            <span>운동</span>
+-            <button
+-              type="button"
+-              className="exercise-type-trigger"
+-              onClick={() => setIsTypeMenuOpen((o) => !o)}
+-              aria-expanded={isTypeMenuOpen}
+-            >
+-              {exercise.name}<span aria-hidden="true">⌄</span>
+-            </button>
+-            {isTypeMenuOpen && (
+-              <div className="exercise-type-menu">
+-                {Object.entries(EXERCISES).map(([value, item]) => (
+-                  <button
+-                    type="button"
+-                    key={value}
+-                    className={value === selectedType ? 'is-active' : ''}
+-                    onClick={() => changeExerciseType(value)}
+-                  >
+-                    {item.name}
+-                  </button>
+-                ))}
++          {/* 15-3. 운동 현황 패널 */}
++          <div className="exercise-status-panel">
++            <div className="exercise-counter-stat">
++              <span className="exercise-stat-icon exercise-stat-icon--set" aria-hidden="true">▦</span>
++              <div>
++                <em>세트</em>
++                <strong>{completedSets}<small>/ {totalSets}</small></strong>
+               </div>
+-            )}
+-          </div>
+-
+-          {/* 15-3. 횟수/세트 배지 */}
+-          <div className="exercise-counter-badge">
+-            <small>{completedSets}/{totalSets} Set</small>
+-            <strong>{count}</strong>
+-            <span>/ {targetCount}</span>
+-            <em>횟수</em>
++            </div>
++            <div className="exercise-counter-stat">
++              <span className="exercise-stat-icon exercise-stat-icon--rep" aria-hidden="true">●</span>
++              <div>
++                <em>횟수</em>
++                <strong>{count}<small>/ {targetCount}</small></strong>
++              </div>
++            </div>
++            <div className="exercise-grade-stat">
++              <span className="exercise-stat-icon exercise-stat-icon--grade" aria-hidden="true">★</span>
++              <div>
++                <em>완벽</em>
++                <strong>{gradeCountsRef.current.perfect}</strong>
++              </div>
++            </div>
++            <div className="exercise-grade-stat exercise-grade-stat--normal">
++              <span className="exercise-stat-icon exercise-stat-icon--normal" aria-hidden="true">★</span>
++              <div>
++                <em>보통</em>
++                <strong>{gradeCountsRef.current.normal}</strong>
++              </div>
++            </div>
+           </div>
+ 
+           {/* 15-4. 피드백 / 등급 배지 */}
+           <div key={feedback} className="exercise-feedback-badge">{feedback}</div>
+-          <div className="exercise-grade-badge">{gradeText}</div>
+ 
+           {/* 15-5. EXP 리워드 */}
+           <div className="exercise-reward-slot">
++            <img className="exercise-reward-cat" src={cheeringCat} alt="" />
+             <strong>{totalReps} EXP</strong>
+             {rewardTick > 0 && <span key={rewardTick} className="exercise-reward-pop">+1 EXP</span>}
+           </div>
+@@ -498,7 +470,7 @@ const finishExercise = useCallback(() => {
+               </button>
+               <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={finishExercise}>
+                 <span className="exercise-control-icon exercise-control-icon--stop" aria-hidden="true" />
+-                <span>정지</span>
++                <span>포기하기</span>
+               </button>
+               <button type="button" className="exercise-control-button exercise-control-button--screen" onClick={startScreenCapture}>
+                 <span className="exercise-control-icon" aria-hidden="true">▣</span>
+@@ -519,7 +491,7 @@ const finishExercise = useCallback(() => {
+           {isCameraOn && (
+             <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={finishExercise}>
+               <span className="exercise-control-icon exercise-control-icon--stop" aria-hidden="true" />
+-              <span>정지</span>
++              <span>포기하기</span>
+             </button>
+           )}
+         </section>
