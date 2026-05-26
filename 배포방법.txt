@@ -1,0 +1,108 @@
+================================================================
+  FitnessMeow 배포 가이드
+================================================================
+
+구성
+  클라이언트 (React + Vite)  →  Vercel
+  서버       (Express)       →  Render
+  데이터베이스 (MySQL)        →  Railway 또는 PlanetScale
+
+----------------------------------------------------------------
+  STEP 1. 데이터베이스 배포 (Railway)
+----------------------------------------------------------------
+
+1. https://railway.app 접속 → GitHub 로그인
+2. New Project → MySQL 선택
+3. 생성 완료 후 Variables 탭에서 아래 정보 복사
+   - MYSQL_HOST
+   - MYSQL_PORT
+   - MYSQL_DATABASE
+   - MYSQL_USER
+   - MYSQL_PASSWORD
+4. 로컬에서 TablePlus 또는 MySQL Workbench로 Railway DB에 접속
+5. FitnessMeow.sql 파일 실행해서 테이블 생성
+
+----------------------------------------------------------------
+  STEP 2. 서버 배포 (Render)
+----------------------------------------------------------------
+
+1. https://render.com 접속 → GitHub 로그인
+2. New → Web Service → FitnessMeow 레포 선택
+3. 설정
+   - Root Directory : server
+   - Build Command  : npm install
+   - Start Command  : node src/index.js
+4. Environment Variables 추가 (환경변수)
+   - DB_HOST        : Railway MYSQL_HOST 값
+   - DB_PORT        : Railway MYSQL_PORT 값
+   - DB_NAME        : Railway MYSQL_DATABASE 값
+   - DB_USER        : Railway MYSQL_USER 값
+   - DB_PASSWORD    : Railway MYSQL_PASSWORD 값
+   - SESSION_SECRET : 아무 랜덤 문자열 (예: fitnessmeow_secret_2025)
+   - CLIENT_URL     : 나중에 Vercel 배포 후 나오는 주소로 설정
+5. Deploy 클릭
+6. 배포 완료 후 서버 주소 복사 (예: https://fitnessmeow-api.onrender.com)
+
+⚠️  배포 전 반드시 확인
+   - server/src/app.js 에서 testRoutes 관련 코드 2줄 삭제 또는 주석 처리
+     (개발용 코인/경험치 버튼은 배포 서버에 있으면 안 됨)
+   - app.js의 cookie.secure 를 false → true 로 변경
+
+----------------------------------------------------------------
+  STEP 3. 클라이언트 배포 (Vercel)
+----------------------------------------------------------------
+
+1. https://vercel.com 접속 → GitHub 로그인
+2. New Project → FitnessMeow 레포 선택
+3. 설정
+   - Root Directory : client
+   - Framework      : Vite (자동 감지됨)
+4. Environment Variables 추가
+   - VITE_API_URL : Render 서버 주소 (예: https://fitnessmeow-api.onrender.com)
+5. Deploy 클릭
+6. 배포 완료 후 Vercel 주소 복사 (예: https://fitnessmeow.vercel.app)
+
+----------------------------------------------------------------
+  STEP 4. CORS 주소 업데이트
+----------------------------------------------------------------
+
+Render 대시보드 → 서버 서비스 → Environment Variables
+  CLIENT_URL 값을 Vercel 주소로 업데이트
+  (예: https://fitnessmeow.vercel.app)
+
+서버가 자동으로 재배포됨
+
+----------------------------------------------------------------
+  STEP 5. 동작 확인
+----------------------------------------------------------------
+
+□ Vercel 주소로 접속 → 로그인 페이지 뜨는지 확인
+□ 회원가입 → 로그인 → 메인 로비 정상 진입 확인
+□ 상점 구매 / 돌봄 버튼 동작 확인
+□ 운동 완료 후 경험치 반영 확인
+
+----------------------------------------------------------------
+  환경변수 정리 (체크리스트)
+----------------------------------------------------------------
+
+서버 (Render)
+  □ DB_HOST
+  □ DB_PORT
+  □ DB_NAME
+  □ DB_USER
+  □ DB_PASSWORD
+  □ SESSION_SECRET
+  □ CLIENT_URL
+
+클라이언트 (Vercel)
+  □ VITE_API_URL
+
+----------------------------------------------------------------
+  배포 후 주소 메모
+----------------------------------------------------------------
+
+  Vercel (클라이언트) : https://
+  Render  (서버)      : https://
+  Railway (DB)        : 내부 전용 (외부 노출 X)
+
+================================================================

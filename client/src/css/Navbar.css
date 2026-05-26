@@ -1,6 +1,113 @@
+/* ══════════════════════════════════════════════════════════════════
+   Navbar.css — 하단 탭 바 스타일
+
+   구조:
+     .footer-nav  — 탭 바 전체 컨테이너 (네이비 배경, 고정 60px)
+       .nav-item  — 개별 탭 버튼 (아이콘 + 라벨 세로 배치)
+         span     — 아이콘 이모지
+         p        — 탭 이름 텍스트
+
+   active 상태:
+     현재 URL 과 탭 path 가 일치할 때 .active 클래스 추가됨
+     → 배경 밝아짐 + 상단에 노란 인디케이터 바(::after) 표시
+
+   ★ 탭 개수 변경 시 스타일 자동 조정:
+     각 탭이 flex: 1 이라 탭 수가 늘거나 줄어도 자동으로 균등 분배됨
+══════════════════════════════════════════════════════════════════ */
+
+/* ────────────────────────────────────────
+   탭 바 전체 컨테이너
+   - height: 60px 고정 → 방 캔버스·돌봄 섹션에 영향 없음
+   - flex-shrink: 0   → 화면이 작아져도 탭 바 높이 유지
+──────────────────────────────────────── */
+.footer-nav {
+  display: flex;
+  align-items: stretch;   /* 모든 탭이 60px 높이를 가득 채움 */
+  background: #2b3a55;    /* 네이비 배경 */
+  height: 60px;
+  flex-shrink: 0;         /* ★ 이 속성이 없으면 탭 바가 줄어들 수 있음 */
+}
+
+/* ────────────────────────────────────────
+   개별 탭 버튼
+   - flex: 1 → 탭 수에 관계없이 균등하게 너비 분배
+   - flex-direction: column → 아이콘(위) + 텍스트(아래) 수직 배치
+──────────────────────────────────────── */
 .nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   border: none;
-  background: none;
+  background: transparent;
   cursor: pointer;
   font-family: inherit;
+  padding: 6px 2px;
+  transition: background 0.15s ease;
+  position: relative; /* ::after 인디케이터의 기준점 */
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 호버 시 약간 밝아짐 */
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* 현재 탭 (active) — 더 밝은 배경 */
+.nav-item.active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* 현재 탭 상단 인디케이터 바 (노란색 작은 바) */
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  top: 0;             /* 탭 버튼 상단에 붙음 */
+  left: 50%;
+  transform: translateX(-50%); /* 수평 중앙 정렬 */
+  width: 24px;
+  height: 3px;
+  background: #ffd166;          /* 노란색 */
+  border-radius: 0 0 4px 4px;  /* 하단만 둥글게 */
+}
+
+/* ── 아이콘 (span) ── */
+.nav-item span {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* ── 탭 이름 텍스트 (p) ── */
+.nav-item p {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75); /* 기본: 반투명 흰색 */
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+/* 현재 탭 텍스트 — 노란색으로 강조 */
+.nav-item.active p {
+  color: #ffd166;
+}
+
+/* ── 기존 클래스명 호환 (다른 컴포넌트에서 .nav-icon / .nav-label 사용 시) ── */
+.nav-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.nav-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.nav-item.active .nav-label {
+  color: #ffd166;
 }

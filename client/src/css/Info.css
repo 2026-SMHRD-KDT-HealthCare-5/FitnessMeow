@@ -1,0 +1,236 @@
+.info-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fffbf4;
+  overflow: hidden;
+}
+
+.info-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 32px 40px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* ── 프로필 카드 ── */
+.info-profile-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 32px 36px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+  border: 1.5px solid #f0ece4;
+}
+
+.info-cat-wrap {
+  width: 130px;
+  height: 130px;
+  flex-shrink: 0;
+  background: #faf7f2;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.info-cat-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.info-cat-emoji {
+  font-size: 64px;
+}
+
+.info-user-detail {
+  flex: 1;
+}
+
+.info-username {
+  font-size: 28px;
+  font-weight: 900;
+  color: #2b2b2b;
+  margin: 0 0 2px;
+}
+
+.info-userid {
+  font-size: 14px;
+  color: #bbb;
+  margin: 0 0 14px;
+}
+
+.info-level-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.info-level-badge {
+  background: #ff823a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 14px;
+  border-radius: 20px;
+}
+
+.info-char-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #555;
+}
+
+.info-exp-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.info-exp-track {
+  flex: 1;
+  max-width: 320px;
+  height: 10px;
+  background: #f0ece4;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.info-exp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff823a, #ffb347);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.info-exp-text {
+  font-size: 12px;
+  color: #aaa;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── 섹션 타이틀 ── */
+.info-section-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #555;
+  padding-left: 4px;
+  margin-bottom: -8px;
+}
+
+/* ── 스탯 그리드 ── */
+.info-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+}
+
+.info-stat-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 22px 12px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+  border: 1.5px solid #f0ece4;
+}
+
+.info-stat-icon {
+  font-size: 30px;
+  margin-bottom: 4px;
+}
+
+.info-stat-value {
+  font-size: 24px;
+  font-weight: 900;
+  color: #2b2b2b;
+  margin: 0;
+  line-height: 1;
+}
+
+.info-stat-value small {
+  font-size: 13px;
+  font-weight: 600;
+  color: #bbb;
+  margin-left: 2px;
+}
+
+.info-stat-label {
+  font-size: 12px;
+  color: #aaa;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ── 계정 정보 카드 ── */
+.info-account-card {
+  background: #fff;
+  border-radius: 18px;
+  border: 1.5px solid #f0ece4;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+}
+
+.info-account-row {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f5f3ee;
+}
+
+.info-account-row:last-child {
+  border-bottom: none;
+}
+
+.info-account-key {
+  width: 80px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #aaa;
+  flex-shrink: 0;
+}
+
+.info-account-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* ── 로그아웃 버튼 ── */
+.info-logout-btn {
+  align-self: flex-start;
+  padding: 14px 40px;
+  border: 2px solid #f0ece4;
+  border-radius: 30px;
+  background: #fff;
+  color: #999;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+.info-logout-btn:hover {
+  background: #ff3b30;
+  border-color: #ff3b30;
+  color: #fff;
+}

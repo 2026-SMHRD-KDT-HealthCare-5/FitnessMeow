@@ -87,7 +87,7 @@ const ExerciseSelect = ({ onSelect = () => {} }) => {
                   ))}
                 </div>
               </div>
-              
+
               <button className="arrow-button" type="button">〉</button>
             </div>
           ))}

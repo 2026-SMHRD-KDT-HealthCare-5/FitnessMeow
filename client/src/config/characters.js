@@ -1,24 +1,24 @@
-// config/characters.js
+// config/characters.js  ← 서버 characters.cjs와 반드시 동기화 유지
 export const CHARACTER_CONFIG = {
-    korean_shorthair: {
-        character_name: '코리안숏헤어',
-        max_exp: { lv1: 50, lv2: 100, lv3: 150 },
-        unlock_condition: null  // 기본 제공
+    cheese_korean_shorthair: {
+        character_name: '치즈코리안숏헤어',
+        max_exp: { lv1: 30, lv2: 45, lv3: 60 },
+        unlock_condition: null,
     },
     russian_blue: {
         character_name: '러시안블루',
-        max_exp: { lv1: 80, lv2: 130, lv3: 180 },
+        max_exp: { lv1: 45, lv2: 60, lv3: 75 },
         unlock_condition: {
-            prev_character: 'korean_shorthair',
-            badge: null
-        }
+            prev_character: 'cheese_korean_shorthair',
+            badge: null,
+        },
     },
     munchkin: {
         character_name: '먼치킨',
-        max_exp: { lv1: 110, lv2: 160, lv3: 210 },
+        max_exp: { lv1: 60, lv2: 75, lv3: 90 },
         unlock_condition: {
             prev_character: 'russian_blue',
-            badge: null //업적 기능 구현시 +'streak_30'
-        }
-    }
-}
+            badge: null,
+        },
+    },
+};

@@ -1,37 +1,29 @@
 /* src/css/ExerciseSelect.css */
 
 .container {
-  min-height: 100vh;
+  flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: radial-gradient(circle at top, #fff5e7 0%, #f6f2ee 100%);
-  position: relative;
-  padding: 20px;
+  padding: 24px;
+  overflow-y: auto;
 }
 
 .overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  pointer-events: none;
+  display: none;
 }
 
 .login-card {
   box-sizing: border-box;
-  width: min(100%, 520px);
+  width: min(96%, 1200px);
   background: #ffffff;
   border-radius: 32px;
-  padding: 26px;
+  padding: 36px 40px;
   box-shadow: 0 22px 45px rgba(33, 32, 40, 0.12);
   display: flex;
   flex-direction: column;
-  gap: 0;
-  position: relative;
-  z-index: 10;
 }
 
 /* 로그인 h1의 스타일을 계승받아 부드럽고 매끄러운 주황색 외곽선 타이틀 적용 */
@@ -53,27 +45,25 @@
   line-height: 1.5;
 }
 
-/* 폼 안에서 세로로 정렬되는 카드 리스트 박스 */
+/* 운동 카드 리스트 */
 .exercise-list {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 16px; /* 카드간 여백 최적화 */
-  margin-top: 15px;
-  margin-bottom: 20px;
+  gap: 18px;
+  margin-top: 16px;
+  margin-bottom: 8px;
 }
 
-/* 💡 화면이 텅 비어 보이지 않도록 높이를 110px -> 135px로 키우고 볼륨감 부여 */
 .exercise-card {
   box-sizing: border-box;
   width: 100%;
-  height: 135px; 
-  border-radius: 22px;
-  padding: 14px;
+  height: 240px;
+  border-radius: 24px;
+  padding: 28px 36px;
   display: flex;
   align-items: center;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-  background: white;
   transition: 0.2s;
   cursor: pointer;
 }
@@ -87,10 +77,11 @@
 .pushup-theme { background: #EDF7EE; border: 2px solid #BCE3BF; }
 .lunge-theme  { background: #F1EAFA; border: 2px solid #D2BDF2; }
 
-/* 💡 왼쪽 고양이 방을 좀 더 크게 키워 밀도를 채움 */
+/* 고양이 이미지 */
 .cat-section {
-  width: 95px;
-  height: 95px;
+  width: 170px;
+  height: 170px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -104,41 +95,46 @@
   object-fit: contain;
 }
 
-/* 가운데 운동 설명 영역 */
+/* 운동 설명 영역 */
 .info-section {
   flex: 1;
-  padding-left: 18px;
+  padding-left: 24px;
 }
 
 .info-section h3 {
-  font-size: 19px;
+  font-size: 26px;
   color: #2b2b2b;
   font-weight: 800;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 .sub-desc {
-  font-size: 12px;
+  font-size: 15px;
   color: #555;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
-/* 동글동글한 원형 아이콘 정렬 */
+/* 카드 하단: 아이콘 + 화살표 — card-footer는 info-section 안에 없고 카드 레벨 */
+.card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .icon-group {
   display: flex;
-  gap: 12px;
+  gap: 14px;
 }
 
 .icon-item {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
-/* 💡 미니 원형 아이콘 크기도 대폭 키워서 컴팩트한 빈 공간을 없앰 */
 .icon-item img {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: white;
   padding: 3px;
@@ -146,54 +142,23 @@
 }
 
 .icon-item span {
-  font-size: 11px;
+  font-size: 12px;
   color: #444;
   font-weight: 600;
 }
 
-/* 우측 화살표 꺾쇠 버튼 크기 밸런스 조정 */
 .arrow-button {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  width: 30px;
-  height: 30px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  font-size: 12px;
+  font-size: 13px;
   color: #555;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  flex-shrink: 0;
 }
 
-/* 하단 네비게이션 메뉴바 스타일 정렬 */
-.footer-nav {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-  padding: 12px 5px 0 5px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.nav-item {
-  text-align: center;
-  color: #aaaaaa;
-  cursor: pointer;
-  flex: 1;
-}
-
-.nav-item span {
-  font-size: 18px;
-}
-
-.nav-item p {
-  font-size: 11px;
-  margin-top: 1px;
-  font-weight: bold;
-}
-
-.nav-item.active {
-  color: #ff8c42; /* 활성화 메뉴 주황색 불 켜기 */
-}

@@ -207,7 +207,7 @@ const Result = () => {
                   <img src={currentImg} className="cat-img glow" alt={`${displayName} LV.${currentLevel}`} />
                 </div>
               </div>
-              <div className="levelup-banner">✨ 레벨업! 새로운 외형이 해금되었습니다!</div>
+              <div className="levelup-banner">✨ 레벨업! 고양이가 성장했습니다!</div>
             </>
           ) : (
             <div className="cat-single">

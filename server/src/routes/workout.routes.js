@@ -121,10 +121,17 @@ router.post('/', async (req, res) => {
       level_up = true;
     }
 
+<<<<<<< dev
+    // 9. 포인트(츄르) 적립 + 돌봄포인트 +1/세트
+    await conn.query(
+      `UPDATE users SET point = point + ?, care_point = care_point + ? WHERE user_idx = ?`,
+      [gained_exp, sets, user_idx],
+=======
     // 9. 포인트(츄르) 적립
     await conn.query(
       `UPDATE users SET point = point + ? WHERE user_idx = ?`,
       [gained_exp, user_idx],
+>>>>>>> main
     );
 
     // 10. 새 캐릭터 종 해금 체크 (LV 3 달성 시)
@@ -167,6 +174,8 @@ router.post('/', async (req, res) => {
    GET /api/workouts/latest
    //가장 최근 운동 기록 반환 -> 경험치량으로 계산
 ════════════════════════════════════════════ */
+<<<<<<< dev
+=======
 router.get('/latest', async (req, res) => {
   const user_idx = req.session.user?.user_idx;
   if (!user_idx) return res.status(401).json({ message: '로그인 필요' });
@@ -191,5 +200,6 @@ router.get('/latest', async (req, res) => {
     res.status(500).json({ message: '서버 오류' });
   }
 });
+>>>>>>> main
 
 module.exports = router;
