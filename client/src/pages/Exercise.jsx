@@ -54,17 +54,17 @@ function Exercise({ type = 'squat', settings }) {
   const [restRemaining,  setRestRemaining]  = useState(0);       // 남은 휴식 시간(초)
   const [message,        setMessage]        = useState('시작을 눌러 카메라를 켜세요.');
   const [rewardTick,     setRewardTick]     = useState(0);       // EXP 팝업 트리거
-  const [showGiveUpConfirm, setShowGiveUpConfirm] = useState(false);
+  const [showGiveUpConfirm, setShowGiveUpConfirm] = useState(false);// 포기 확인 다이얼로그 표시 여부
 
   /* ─────────────────────────────────────────
      3. Derived Values
      - state/settings에서 파생된 계산값들
   ───────────────────────────────────────── */
   const exercise        = useMemo(() => EXERCISES[selectedType] ?? EXERCISES.squat, [selectedType]);
-  const targetCount     = settings?.reps || 1;  // 목표 횟수
-  const totalSets       = settings?.sets || 1;  // 목표 세트
+  const targetreps     = settings?.reps || 1;  // 목표 횟수
+  const targetSets       = settings?.sets || 1;  // 목표 세트
   const restTime        = settings?.rest || 60; // 휴식 시간(초)
-  const progress        = Math.min(100, (count / targetCount) * 100); // 진행 바 %
+  const progress        = Math.min(100, (count / targetreps) * 100); // 진행 바 %
   const caloriesBurned  = calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalReps); // 실시간 칼로리
   const restDisplayTime = isResting ? restRemaining : restTime;
   const restTimeText    = `${String(Math.floor(restDisplayTime / 60)).padStart(2, '0')}:${String(restDisplayTime % 60).padStart(2, '0')}`;
@@ -72,14 +72,14 @@ function Exercise({ type = 'squat', settings }) {
   /* ─────────────────────────────────────────
      4. Result Stats
      - 운동 완료 시 DB에 저장할 최종 결과값
-     - totalSets * targetCount 로 직접 계산 (totalReps 클로저 문제 방지)
+     - targetSets * targetreps 로 직접 계산 (totalReps 클로저 문제 방지)
   ───────────────────────────────────────── */
   const resultStats = useMemo(() => ({
     score:    Math.min(999, 800 + totalReps * 10 + gradeCountsRef.current.perfect * 8),
-    calories: calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalSets * targetCount),
+    calories: calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, targetSets * targetreps),
     perfect:  gradeCountsRef.current.perfect,
     normal:   gradeCountsRef.current.normal,
-  }), [bodyInfo.heightCm, bodyInfo.weightKg, selectedType, totalReps, totalSets, targetCount]);
+  }), [bodyInfo.heightCm, bodyInfo.weightKg, selectedType, totalReps, targetSets, targetreps]);
 
   /* ─────────────────────────────────────────
      5. 카메라 정지
@@ -116,28 +116,29 @@ function Exercise({ type = 'squat', settings }) {
      - 카메라 정지 → DB 저장 → result 페이지 이동
      - updateExerciseState 보다 먼저 선언 필요
   ───────────────────────────────────────── */
-const finishExercise = useCallback(() => {
-    stopCamera();
+const finishExercise = useCallback((isGiveUp = false) => {
+  stopCamera();
 
-    const finalReps = totalSets * targetCount; // ← totalReps 대신 직접 계산
+  const currentReps = Math.floor(stateRef.current.count + 1e-6);
+  const finalReps   = currentReps + completedSetsRef.current * targetreps; // 실제 완료 횟수
 
-    const workoutData = {
-      exercise_key  : selectedType,
-      sets          : totalSets,
-      reps          : targetCount,
-      total_score: finalReps === 0
-        ? 0
-        : Math.round((gradeCountsRef.current.perfect / finalReps) * 100),
-      calories      : calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, finalReps),
-      perfect_count : gradeCountsRef.current.perfect,
-      normal_count  : gradeCountsRef.current.normal,
-    };
+  const workoutData = {
+    exercise_key  : selectedType,
+    sets          : completedSetsRef.current,
+    reps          : currentReps,
+    total_score   : finalReps === 0
+      ? 0
+      : Math.round((gradeCountsRef.current.perfect / finalReps) * 100),
+    calories      : calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, finalReps),
+    perfect_count : gradeCountsRef.current.perfect,
+    normal_count  : gradeCountsRef.current.normal,
+  };
 
-    postWorkoutWithRetry(workoutData)
-      .then((data) => navigate('/result', { state: data }))
-      .catch(() => console.error('운동 기록 저장 실패'));
+  postWorkoutWithRetry(workoutData)
+    .then((data) => navigate('/result', { state: data }))
+    .catch(() => console.error('운동 기록 저장 실패'));
 
-  }, [stopCamera, selectedType, totalSets, targetCount, bodyInfo, navigate]); // ← resultStats 제거
+}, [stopCamera, selectedType, targetreps, bodyInfo, navigate]);
   /* ─────────────────────────────────────────
      7. 운동 상태 업데이트
      - 포즈 감지 결과를 받아 횟수/세트/휴식 처리
@@ -149,7 +150,7 @@ const finishExercise = useCallback(() => {
     const previousCount  = Math.floor(stateRef.current.count + 1e-6);
     const nextCount      = Math.floor(nextState.count + 1e-6);
     const didCompleteRep = nextCount > previousCount;          // 1회 완료 여부
-    const didCompleteSet = didCompleteRep && nextCount >= targetCount; // 세트 완료 여부
+    const didCompleteSet = didCompleteRep && nextCount >= targetreps; // 세트 완료 여부
 
     stateRef.current = { count: nextState.count, dir: nextState.dir };
 
@@ -167,14 +168,14 @@ const finishExercise = useCallback(() => {
 
     // 7-3. 세트 완료 처리
     if (didCompleteSet) {
-      const nextCompletedSets = Math.min(totalSets, completedSetsRef.current + 1);
+      const nextCompletedSets = Math.min(targetSets, completedSetsRef.current + 1);
       completedSetsRef.current = nextCompletedSets;
 
       setCount(nextCount);         // 목표 횟수 잠깐 표시
       isRestingRef.current = true; // 다음 프레임 포즈 감지 차단
 
       // 마지막 세트 완료 → 0.5초 후 운동 완료 처리
-      if (nextCompletedSets >= totalSets) {
+      if (nextCompletedSets >= targetSets) {
         setTimeout(() => {
           isRestingRef.current = false;
           finishExercise();
@@ -200,7 +201,7 @@ const finishExercise = useCallback(() => {
     }
 
     setGradeText(`완벽 ${gradeCountsRef.current.perfect} 보통 ${gradeCountsRef.current.normal}`);
-  }, [finishExercise, restTime, targetCount, totalSets]);
+  }, [finishExercise, restTime, targetreps, targetSets]);
 
   /* ─────────────────────────────────────────
      8. 포즈 감지 결과 처리
@@ -404,14 +405,14 @@ const finishExercise = useCallback(() => {
               <img className="exercise-stat-icon exercise-stat-icon--set" src={setIcon} alt="" />
               <div>
                 <em>세트</em>
-                <strong>{completedSets}<small>/ {totalSets}</small></strong>
+                <strong>{completedSets}<small>/ {targetSets}</small></strong>
               </div>
             </div>
             <div className="exercise-counter-stat">
               <img className="exercise-stat-icon exercise-stat-icon--rep" src={repIcon} alt="" />
               <div>
                 <em>횟수</em>
-                <strong>{count}<small>/ {targetCount}</small></strong>
+                <strong>{count}<small>/ {targetreps}</small></strong>
               </div>
             </div>
             <div className="exercise-grade-stat">
@@ -512,7 +513,7 @@ const finishExercise = useCallback(() => {
               <p>정말 포기할꺼냥?</p>
               <div className="exercise-confirm-actions">
                 <button type="button" onClick={() => setShowGiveUpConfirm(false)}>계속하기</button>
-                <button type="button" className="exercise-confirm-give-up" onClick={finishExercise}>포기하기</button>
+                <button type="button" className="exercise-confirm-give-up" onClick={() => finishExercise(true)}>포기하기</button>
               </div>
             </section>
           </div>
