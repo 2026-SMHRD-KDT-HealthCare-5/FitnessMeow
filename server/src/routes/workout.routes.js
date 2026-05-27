@@ -73,10 +73,10 @@ router.post('/', async (req, res) => {
     const { level_up, character_unlocked, next_character_name, updated_character } =
       await applyExpAndLevelUp(conn, character, gained_exp, user_idx, exp_columns);
 
-    // 9. 포인트(츄르) 적립
+    // 9. 포인트(츄르) 적립 + 돌봄포인트 +1/세트
     await conn.query(
-      `UPDATE users SET point = point + ? WHERE user_idx = ?`,
-      [gained_exp, user_idx],
+      `UPDATE users SET point = point + ?, care_point = care_point + ? WHERE user_idx = ?`,
+      [gained_exp, sets, user_idx],
     );
 
     // 9-1. 일일 퀘스트 자동 달성
@@ -136,6 +136,5 @@ router.post('/', async (req, res) => {
     conn.release();
   }
 });
-
 
 module.exports = router;
