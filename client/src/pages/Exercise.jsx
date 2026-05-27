@@ -132,6 +132,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
     calories      : calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalReps),
     perfect_count : gradeCountsRef.current.perfect,
     normal_count  : gradeCountsRef.current.normal,
+    total_reps    : totalReps
   };
 
   postWorkoutWithRetry(workoutData)
