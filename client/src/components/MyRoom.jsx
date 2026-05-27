@@ -49,7 +49,9 @@ const CAT_IMAGES = import.meta.glob(
   { eager: true, import: 'default' },
 );
 
+
 // 가구 스프라이트: assets/furniture·cat_items 폴더 하위 모든 PNG
+
 const FURNITURE_IMGS = import.meta.glob(
   '../assets/{furniture,cat_items}/**/*.png',
   { eager: true, import: 'default' },

@@ -17,7 +17,7 @@
 
 .login-card {
   box-sizing: border-box;
-  width: min(96%, 1200px);
+  width: min(96%, 1000px);
   background: #ffffff;
   border-radius: 32px;
   padding: 36px 40px;
