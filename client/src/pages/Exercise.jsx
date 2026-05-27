@@ -9,6 +9,14 @@ import { postWorkoutWithRetry }                         from '../utils/exerciseA
 import { loadScript, loadExerciseLogicFiles }           from '../utils/scriptLoader';
 import { useBodyInfo }                                  from '../hooks/useBodyInfo';
 import cheeringCat                                      from '../assets/cheering-cat/KakaoTalk_20260526_142532096_transparent.gif';
+import calorieIcon                                      from '../assets/exercise-page-icons/calorie_fire.png';
+import perfectIcon                                      from '../assets/exercise-page-icons/gold_star.png';
+import normalIcon                                       from '../assets/exercise-page-icons/gray_star.png';
+import repIcon                                          from '../assets/exercise-page-icons/pink_dumbbell.png';
+import restIcon                                         from '../assets/exercise-page-icons/rest_cup.png';
+import setIcon                                          from '../assets/exercise-page-icons/set_calendar.png';
+import timerIcon                                        from '../assets/exercise-page-icons/timer_stopwatch.png';
+import quitCatPopup                                     from '../assets/exercise-page-icons/quit_cat_popup_transparent.png';
 
 function Exercise({ type = 'squat', settings }) {
   const navigate = useNavigate();
@@ -46,6 +54,7 @@ function Exercise({ type = 'squat', settings }) {
   const [restRemaining,  setRestRemaining]  = useState(0);       // 남은 휴식 시간(초)
   const [message,        setMessage]        = useState('시작을 눌러 카메라를 켜세요.');
   const [rewardTick,     setRewardTick]     = useState(0);       // EXP 팝업 트리거
+  const [showGiveUpConfirm, setShowGiveUpConfirm] = useState(false);
 
   /* ─────────────────────────────────────────
      3. Derived Values
@@ -392,28 +401,28 @@ const finishExercise = useCallback(() => {
           {/* 15-3. 운동 현황 패널 */}
           <div className="exercise-status-panel">
             <div className="exercise-counter-stat">
-              <span className="exercise-stat-icon exercise-stat-icon--set" aria-hidden="true">▦</span>
+              <img className="exercise-stat-icon exercise-stat-icon--set" src={setIcon} alt="" />
               <div>
                 <em>세트</em>
                 <strong>{completedSets}<small>/ {totalSets}</small></strong>
               </div>
             </div>
             <div className="exercise-counter-stat">
-              <span className="exercise-stat-icon exercise-stat-icon--rep" aria-hidden="true">●</span>
+              <img className="exercise-stat-icon exercise-stat-icon--rep" src={repIcon} alt="" />
               <div>
                 <em>횟수</em>
                 <strong>{count}<small>/ {targetCount}</small></strong>
               </div>
             </div>
             <div className="exercise-grade-stat">
-              <span className="exercise-stat-icon exercise-stat-icon--grade" aria-hidden="true">★</span>
+              <img className="exercise-stat-icon exercise-stat-icon--grade" src={perfectIcon} alt="" />
               <div>
                 <em>완벽</em>
                 <strong>{gradeCountsRef.current.perfect}</strong>
               </div>
             </div>
             <div className="exercise-grade-stat exercise-grade-stat--normal">
-              <span className="exercise-stat-icon exercise-stat-icon--normal" aria-hidden="true">★</span>
+              <img className="exercise-stat-icon exercise-stat-icon--normal" src={normalIcon} alt="" />
               <div>
                 <em>보통</em>
                 <strong>{gradeCountsRef.current.normal}</strong>
@@ -435,19 +444,19 @@ const finishExercise = useCallback(() => {
         {/* 15-6. 칼로리 / 시간 / 휴식 정보 바 */}
         <section className="exercise-info-bar">
           <div className="exercise-metric">
-            <span className="metric-icon">K</span>
+            <img className="metric-icon" src={calorieIcon} alt="" />
             <strong>{caloriesBurned}</strong>
             <em>kcal</em>
           </div>
           <div className="exercise-metric exercise-metric--center">
-            <span className="metric-icon">T</span>
+            <img className="metric-icon" src={timerIcon} alt="" />
             <strong>
               {String(Math.floor(elapsedTime / 60)).padStart(2, '0')}:
               {String(elapsedTime % 60).padStart(2, '0')}
             </strong>
           </div>
           <button type="button" className="exercise-rest" onClick={skipRest} disabled={!isResting} aria-label="휴식">
-            <span>휴식</span>
+            <span><img className="metric-icon" src={restIcon} alt="" />휴식</span>
             <strong>{restTimeText}</strong>
           </button>
         </section>
@@ -468,7 +477,7 @@ const finishExercise = useCallback(() => {
                 <span className="exercise-control-icon" aria-hidden="true">▶</span>
                 <span>시작</span>
               </button>
-              <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={finishExercise}>
+              <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={() => setShowGiveUpConfirm(true)}>
                 <span className="exercise-control-icon exercise-control-icon--stop" aria-hidden="true" />
                 <span>포기하기</span>
               </button>
@@ -489,12 +498,25 @@ const finishExercise = useCallback(() => {
             </button>
           )}
           {isCameraOn && (
-            <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={finishExercise}>
+            <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={() => setShowGiveUpConfirm(true)}>
               <span className="exercise-control-icon exercise-control-icon--stop" aria-hidden="true" />
               <span>포기하기</span>
             </button>
           )}
         </section>
+
+        {showGiveUpConfirm && (
+          <div className="exercise-confirm-overlay" role="presentation">
+            <section className="exercise-confirm-dialog" role="dialog" aria-modal="true" aria-label="운동 포기 확인">
+              <img className="exercise-confirm-cat" src={quitCatPopup} alt="" />
+              <p>정말 포기할꺼냥?</p>
+              <div className="exercise-confirm-actions">
+                <button type="button" onClick={() => setShowGiveUpConfirm(false)}>계속하기</button>
+                <button type="button" className="exercise-confirm-give-up" onClick={finishExercise}>포기하기</button>
+              </div>
+            </section>
+          </div>
+        )}
 
       </section>
     </main>
