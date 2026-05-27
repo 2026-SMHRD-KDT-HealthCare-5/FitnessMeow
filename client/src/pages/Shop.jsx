@@ -51,7 +51,7 @@ const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
    런타임에 파일명(icon_name) 으로 즉시 URL 조회 가능.
 ─────────────────────────────────────────────────────────────────────────── */
 const ALL_IMGS = import.meta.glob(
-  '../assets/{Cattower,Toy,Bed}/**/*.png',
+  '../assets/{furniture,cat_items}/**/*.png',
   { eager: true, import: 'default' },
 );
 
@@ -67,24 +67,21 @@ Object.entries(ALL_IMGS).forEach(([path, url]) => {
    - 벽지: 현재 아이템 있으면 포함 (현재는 빈 배열)
    - 타일: 준비 중 (빈 배열)
 ─────────────────────────────────────────────────────────────────────────── */
-const FURNITURE_CATS = new Set(['침대', '캣타워', '장난감']);
+const toCard = i => ({
+  ...i,
+  id:   i.item_keyword,
+  name: i.item_name,
+  img:  IMG_BY_NAME[i.icon_name] ?? null,
+});
 
 const GROUPED = {
-  '가구': SHOP_ITEMS
-    .filter(i => FURNITURE_CATS.has(i.category))
-    .map(i => ({
-      ...i,
-      id:   i.item_keyword,            // React key 용
-      name: i.item_name,               // 카드 표시 이름
-      img:  IMG_BY_NAME[i.icon_name] ?? null, // 이미지 URL (없으면 이모지 대체)
-    })),
-  '벽지': SHOP_ITEMS
-    .filter(i => i.category === '벽지')
-    .map(i => ({ ...i, id: i.item_keyword, name: i.item_name, img: null })),
-  '타일': [], // 추후 추가 예정
+  '가구':        SHOP_ITEMS.filter(i => i.category === '가구').map(toCard),
+  '고양이 용품': SHOP_ITEMS.filter(i => i.category === '고양이 용품').map(toCard),
+  '벽지':        SHOP_ITEMS.filter(i => i.category === '벽지').map(toCard),
+  '타일':        [],
 };
 
-const TABS = ['가구', '벽지', '타일'];
+const TABS = ['가구', '고양이 용품', '벽지', '타일'];
 
 /* ══════════════════════════════════════════════════════════════
    Shop 컴포넌트

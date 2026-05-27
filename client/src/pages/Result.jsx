@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import "../css/Result.css";
 import { CHARACTER_CONFIG } from '../config/characters.js';
+import coinImg from "../assets/coin.png";
 
 /* ════════════════════════════════════════════
    캐릭터 이미지
@@ -80,10 +81,12 @@ const Result = () => {
   const location = useLocation();
 
   // Exercise.jsx에서 navigate state로 넘겨받은 이벤트 데이터
+  // character: 운동한 캐릭터의 최종 상태 (해금 직후엔 API가 새 캐릭터를 반환하므로 state 우선 사용)
   const {
-    level_up            = false,
-    character_unlocked  = false,
-    next_character_name = null,
+    level_up              = false,
+    character_unlocked    = false,
+    next_character_name   = null,
+    character: charFromState = null,
   } = location.state ?? {};
 
   const [workout,    setWorkout]   = useState(null);
@@ -149,9 +152,12 @@ const Result = () => {
   }
 
   // ── 파생값 계산 (실제 렌더할 때만 실행) ──
-  const configKey       = character?.character_key ?? DEFAULT_CONFIG_KEY;
+  // charFromState: 운동한 캐릭터(러시안블루 등) 최종 상태 — 해금 직후에도 올바른 캐릭터 보장
+  // character (API): charFromState 없을 때 폴백용
+  const displayChar     = charFromState ?? character;
+  const configKey       = displayChar?.character_key ?? DEFAULT_CONFIG_KEY;
   const displayName     = CHARACTER_CONFIG[configKey]?.character_name ?? '';
-  const currentLevel    = String(character?.level ?? '1');
+  const currentLevel    = String(displayChar?.level ?? '1');
   const currentLevelNum = parseLevelSafe(currentLevel, 1);
   const maxExp          = getMaxExp(configKey, currentLevel);
   const prevLevel       = level_up ? String(Math.max(1, currentLevelNum - 1)) : currentLevel; // 레벨업 시 이전 레벨 이미지 표시용
@@ -163,7 +169,7 @@ const Result = () => {
 
   // 모든 부위 EXP 바 데이터 생성 (획득 여부 포함)
   const expBarData = Object.entries(EXP_PART_META).map(([part, meta]) => {
-    const current  = character[meta.dbKey] ?? 0;
+    const current  = displayChar?.[meta.dbKey] ?? 0;
     const barWidth = `${Math.min((current / maxExp) * 100, 100)}%`;
     const isMaxed  = current >= maxExp;
     const gained   = gainedParts.has(part);
@@ -249,11 +255,11 @@ const Result = () => {
 
           <div className="divider" />
 
-          {/* 츄르 포인트 획득량 */}
-          <div className="churu-row">
-            <span className="churu-icon">🍣</span>
-            <span className="churu-label">츄르</span>
-            <span className="churu-gain">+{gained_exp}</span>
+          {/* 코인 획득량 */}
+          <div className="coin-row">
+            <img src={coinImg} alt="coin" />
+            <span className="coin">코인</span>
+            <span className="coin-gain">+{gained_exp}</span>
           </div>
         </div>
 

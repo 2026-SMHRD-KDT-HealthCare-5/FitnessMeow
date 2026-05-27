@@ -3,39 +3,25 @@
 // item_keyword → DB user_items.item_keyword 와 연결
 
 const SHOP_ITEMS = [
-  // ── 침대 ──────────────────────────────────
-  { item_keyword: 'bed_cushion',       item_name: '쿠션',          category: '침대',   price: 200  },
-  { item_keyword: 'bed_sofa',          item_name: '소파',          category: '침대',   price: 500  },
+  // ── 가구 (침대·소파·캣타워) ─────────────────────
+  { item_keyword: 'bed_cushion',          item_name: '쿠션',        category: '가구',       price: 200 },
+  { item_keyword: 'bed_sofa',             item_name: '소파',        category: '가구',       price: 500 },
+  { item_keyword: 'cat_tower_wood',       item_name: '원목 캣타워', category: '가구',       price: 350 },
+  { item_keyword: 'cat_tower_2',          item_name: '캣타워 2',    category: '가구',       price: 450 },
+  { item_keyword: 'cat_tower_condo',      item_name: '캣콘도',      category: '가구',       price: 500 },
+  { item_keyword: 'cat_tower_pole',       item_name: '캣폴',        category: '가구',       price: 400 },
+  { item_keyword: 'cat_tower_wheel',      item_name: '캣휠',        category: '가구',       price: 600 },
 
-  // ── 캣타워 ────────────────────────────────
-  { item_keyword: 'cat_tower_wood',    item_name: '원목 캣타워',   category: '캣타워', price: 350  },
-  { item_keyword: 'cat_tower_2',       item_name: '캣타워 2',      category: '캣타워', price: 450  },
-  { item_keyword: 'cat_tower_condo',   item_name: '캣콘도',        category: '캣타워', price: 500  },
-  { item_keyword: 'cat_tower_pole',    item_name: '캣폴',          category: '캣타워', price: 400  },
-  { item_keyword: 'cat_tower_wheel',   item_name: '캣휠',          category: '캣타워', price: 600  },
-  { item_keyword: 'cat_tower_mini',    item_name: '미니 캣타워',   category: '캣타워', price: 150  },
-  { item_keyword: 'cat_tower_medium',  item_name: '중형 캣타워',   category: '캣타워', price: 350  },
-  { item_keyword: 'cat_tower_deluxe',  item_name: '디럭스 캣타워', category: '캣타워', price: 700  },
-
-  // ── 장난감 ────────────────────────────────
-  { item_keyword: 'toy_ball1',              item_name: '털뭉치 1',    category: '장난감', price: 50   },
-  { item_keyword: 'toy_ball2',              item_name: '털뭉치 2',    category: '장난감', price: 80   },
-  { item_keyword: 'toy_ball3',              item_name: '털뭉치 3',    category: '장난감', price: 120  },
-  { item_keyword: 'toy_mouse',              item_name: '쥐 인형',     category: '장난감', price: 80   },
-  { item_keyword: 'toy_scratcher',          item_name: '스크래쳐',    category: '장난감', price: 250  },
-  { item_keyword: 'toy_catnippile',         item_name: '캣닢 더미',   category: '장난감', price: 150  },
-  { item_keyword: 'toy_catfoodcontainer',   item_name: '사료 용기',   category: '장난감', price: 100  },
-  { item_keyword: 'toy_toilet',             item_name: '화장실',      category: '장난감', price: 300  },
-  { item_keyword: 'toy_waterdispenser',     item_name: '정수기',      category: '장난감', price: 200  },
-  { item_keyword: 'toy_yarn',               item_name: '실뭉치',      category: '장난감', price: 50   },
-  { item_keyword: 'toy_feather',            item_name: '깃털 막대',   category: '장난감', price: 120  },
-  { item_keyword: 'toy_fish',               item_name: '물고기 인형', category: '장난감', price: 200  },
-
-  // ── 벽지 ──────────────────────────────────
-  { item_keyword: 'wallpaper_basic',   item_name: '기본 벽지',     category: '벽지',   price: 100  },
-  { item_keyword: 'wallpaper_stripe',  item_name: '줄무늬 벽지',   category: '벽지',   price: 200  },
-  { item_keyword: 'wallpaper_floral',  item_name: '꽃무늬 벽지',   category: '벽지',   price: 300  },
-  { item_keyword: 'wallpaper_space',   item_name: '우주 벽지',     category: '벽지',   price: 500  },
+  // ── 고양이 용품 ────────────────────────────────
+  { item_keyword: 'toy_ball1',            item_name: '털뭉치 1',    category: '고양이 용품', price: 50  },
+  { item_keyword: 'toy_ball2',            item_name: '털뭉치 2',    category: '고양이 용품', price: 80  },
+  { item_keyword: 'toy_ball3',            item_name: '털뭉치 3',    category: '고양이 용품', price: 120 },
+  { item_keyword: 'toy_mouse',            item_name: '쥐 인형',     category: '고양이 용품', price: 80  },
+  { item_keyword: 'toy_scratcher',        item_name: '스크래쳐',    category: '고양이 용품', price: 250 },
+  { item_keyword: 'toy_catnippile',       item_name: '캣닢 더미',   category: '고양이 용품', price: 150 },
+  { item_keyword: 'toy_catfoodcontainer', item_name: '사료 용기',   category: '고양이 용품', price: 100 },
+  { item_keyword: 'toy_toilet',           item_name: '화장실',      category: '고양이 용품', price: 300 },
+  { item_keyword: 'toy_waterdispenser',   item_name: '정수기',      category: '고양이 용품', price: 200 },
 ];
 
 // item_keyword → price 빠른 조회용

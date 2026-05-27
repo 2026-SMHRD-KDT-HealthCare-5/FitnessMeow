@@ -3,6 +3,7 @@ const express = require('express');
 const router  = express.Router();
 const db      = require('../db');
 const { CHARACTER_CONFIG, EXERCISE_PART_MAP } = require('../config/characters.cjs');
+const { applyExpAndLevelUp } = require('../utils/levelup.cjs');
 
 /* ════════════════════════════════════════════
    POST /api/workouts
@@ -68,58 +69,9 @@ router.post('/', async (req, res) => {
       return res.status(500).json({ message: `캐릭터 설정을 찾을 수 없습니다: ${character_key}` });
     }
 
-    const current_level = Number(character.level);
-    const max_exp       = CHARACTER_CONFIG[character_key].max_exp[`lv${current_level}`];
-
-    // 5. 부위별 EXP 누적 (단일 UPDATE로 통합)
-    const setClauses = exp_columns.map(col => {
-      const summed_exp = character[col] + gained_exp;
-      const new_exp    = current_level === 3
-        ? Math.min(summed_exp, max_exp)
-        : summed_exp;
-      return { col, new_exp };
-    });
-
-    const setSQL    = setClauses.map(({ col }) => `${col} = ?`).join(', ');
-    const setValues = setClauses.map(({ new_exp }) => new_exp);
-
-    await conn.query(
-      `UPDATE characters SET ${setSQL} WHERE character_idx = ?`,
-      [...setValues, character.character_idx],
-    );
-
-    // 6. 업데이트된 캐릭터 재조회
-    const [updatedRows] = await conn.query(
-      `SELECT * FROM characters WHERE character_idx = ?`,
-      [character.character_idx],
-    );
-    const updated_character = updatedRows[0];
-
-    // 7. 모든 부위 max 달성 여부 체크
-    const all_max =
-      updated_character.arm_exp   >= max_exp &&
-      updated_character.chest_exp >= max_exp &&
-      updated_character.core_exp  >= max_exp &&
-      updated_character.lower_exp >= max_exp;
-
-    // 8. 레벨업 + EXP 이월
-    let level_up = false;
-
-    if (all_max && current_level < 3) {
-      await conn.query(
-        `UPDATE characters SET
-           level     = ?,
-           arm_exp   = GREATEST(arm_exp   - ?, 0),
-           chest_exp = GREATEST(chest_exp - ?, 0),
-           core_exp  = GREATEST(core_exp  - ?, 0),
-           lower_exp = GREATEST(lower_exp - ?, 0)
-         WHERE character_idx = ?`,
-        [String(current_level + 1),
-         max_exp, max_exp, max_exp, max_exp,
-         character.character_idx],
-      );
-      level_up = true;
-    }
+    // 5~10. EXP 누적·레벨업·해금 (공통 유틸)
+    const { level_up, character_unlocked, next_character_name, updated_character } =
+      await applyExpAndLevelUp(conn, character, gained_exp, user_idx, exp_columns);
 
     // 9. 포인트(츄르) 적립 + 돌봄포인트 +1/세트
     await conn.query(
@@ -127,32 +79,54 @@ router.post('/', async (req, res) => {
       [gained_exp, sets, user_idx],
     );
 
-    // 10. 새 캐릭터 종 해금 체크 (LV 3 달성 시)
-    let character_unlocked  = false;
-    let next_character_name = null;
+    // 9-1. 일일 퀘스트 자동 달성
+    const today     = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
-    if (level_up && current_level + 1 === 3) {
-      const next_key = Object.keys(CHARACTER_CONFIG).find(key => {
-        const condition = CHARACTER_CONFIG[key].unlock_condition;
-        return condition?.prev_character === character_key && condition?.badge == null;
-      });
-
-      if (next_key) {
-        character_unlocked  = true;
-        next_character_name = CHARACTER_CONFIG[next_key].character_name; // 한국어 표시명 (프론트 출력용)
-
+    const CARE_QUEST_MAP = {
+      squat:  { care_type: 'feed',  required_reps: 15 },
+      pushup: { care_type: 'groom', required_reps: 10 },
+      lunge:  { care_type: 'clean', required_reps: 15 },
+    };
+    const quest = CARE_QUEST_MAP[exercise_key];
+    if (quest && reps >= quest.required_reps) {
+      const [[existingCare]] = await conn.query(
+        'SELECT care_idx FROM care_logs WHERE user_idx = ? AND care_type = ? AND care_date = ?',
+        [user_idx, quest.care_type, today],
+      );
+      if (!existingCare) {
         await conn.query(
-          `INSERT INTO characters
-             (user_idx, character_key, level, arm_exp, chest_exp, core_exp, lower_exp)
-           VALUES (?, ?, '1', 0, 0, 0, 0)`,
-          [user_idx, next_key], // config key 저장
+          'INSERT INTO care_logs (user_idx, care_type, care_date, reward_point) VALUES (?, ?, ?, ?)',
+          [user_idx, quest.care_type, today, 50],
+        );
+        await conn.query(
+          'UPDATE users SET point = point + 50 WHERE user_idx = ?',
+          [user_idx],
         );
       }
     }
 
+    // 9-2. 출석 기록 자동 등록 (오늘 첫 운동 시)
+    const [[existingAtt]] = await conn.query(
+      'SELECT attendance_idx FROM attendances WHERE user_idx = ? AND addtend_date = ?',
+      [user_idx, today],
+    );
+    if (!existingAtt) {
+      const [[yesterdayAtt]] = await conn.query(
+        'SELECT streak_count FROM attendances WHERE user_idx = ? AND addtend_date = ?',
+        [user_idx, yesterday],
+      );
+      const newStreak = yesterdayAtt ? yesterdayAtt.streak_count + 1 : 1;
+      await conn.query(
+        `INSERT INTO attendances (user_idx, addtend_date, streak_count, reward_given)
+         VALUES (?, ?, ?, 0)`,
+        [user_idx, today, newStreak],
+      );
+    }
+
     await conn.commit();
 
-    res.json({ level_up, character_unlocked, next_character_name });
+    res.json({ level_up, character_unlocked, next_character_name, character: updated_character });
 
   } catch (err) {
     await conn.rollback();
@@ -162,10 +136,5 @@ router.post('/', async (req, res) => {
     conn.release();
   }
 });
-
-/* ════════════════════════════════════════════
-   GET /api/workouts/latest
-   //가장 최근 운동 기록 반환 -> 경험치량으로 계산
-════════════════════════════════════════════ */
 
 module.exports = router;

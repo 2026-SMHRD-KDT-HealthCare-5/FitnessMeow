@@ -177,4 +177,32 @@ router.get('/me', async (req, res) => {
 });
 
 
+// 키·몸무게 수정
+router.patch('/me', async (req, res) => {
+  const user_idx = req.session.user?.user_idx;
+  if (!user_idx) return res.status(401).json({ message: '로그인 필요' });
+
+  const { height, weight } = req.body;
+  if (!height || !weight) return res.status(400).json({ message: '키와 몸무게를 입력해주세요.' });
+
+  const h = parseFloat(height);
+  const w = parseFloat(weight);
+  if (isNaN(h) || isNaN(w) || h <= 0 || w <= 0) {
+    return res.status(400).json({ message: '올바른 값을 입력해주세요.' });
+  }
+
+  const bmi = parseFloat((w / ((h / 100) ** 2)).toFixed(2));
+
+  try {
+    await db.query(
+      'UPDATE users SET height = ?, weight = ?, bmi = ? WHERE user_idx = ?',
+      [h, w, bmi, user_idx],
+    );
+    res.json({ success: true, height: h, weight: w, bmi });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
 module.exports = router;

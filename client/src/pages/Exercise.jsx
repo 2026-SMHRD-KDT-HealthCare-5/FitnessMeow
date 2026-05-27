@@ -120,16 +120,16 @@ const finishExercise = useCallback((isGiveUp = false) => {
   stopCamera();
 
   const currentReps = Math.floor(stateRef.current.count + 1e-6);
-  const finalReps   = currentReps + completedSetsRef.current * targetreps; // 실제 완료 횟수
+  const totalReps = currentReps + completedSetsRef.current * targetreps; // 실제 완료 횟수
 
   const workoutData = {
     exercise_key  : selectedType,
     sets          : completedSetsRef.current,
     reps          : currentReps,
-    total_score   : finalReps === 0
+    total_score   : totalReps === 0
       ? 0
-      : Math.round((gradeCountsRef.current.perfect / finalReps) * 100),
-    calories      : calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, finalReps),
+      : Math.round((gradeCountsRef.current.perfect / (targetreps * targetSets)) * 100),
+    calories      : calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalReps),
     perfect_count : gradeCountsRef.current.perfect,
     normal_count  : gradeCountsRef.current.normal,
   };

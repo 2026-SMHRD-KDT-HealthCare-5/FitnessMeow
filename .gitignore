@@ -2,3 +2,9 @@ server/node_modules
 server/.env
 client/node_modules
 client/.env
+
+# 개발 도구
+.claude
+
+# DB 스키마 (보안)
+*.sql

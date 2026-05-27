@@ -1,24 +1,21 @@
 .info-page {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
   background: #fffbf4;
-  overflow: hidden;
+  min-height: 100svh;
 }
 
 .info-content {
-  flex: 1;
-  min-height: 0;
+  height: calc(100svh - 65px);
   overflow-y: auto;
-  padding: 32px 40px 32px;
+  padding: 32px 40px 80px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 1000px;
   width: 100%;
-  margin: 0 auto;
   box-sizing: border-box;
+}
+
+.info-content > * {
+  flex-shrink: 0;
 }
 
 /* ── 프로필 카드 ── */
@@ -131,6 +128,101 @@
   color: #555;
   padding-left: 4px;
   margin-bottom: -8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.info-edit-btn {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ff823a;
+  background: none;
+  border: 1.5px solid #ff823a;
+  border-radius: 20px;
+  padding: 2px 10px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ── 키·몸무게 편집 폼 ── */
+.info-edit-form {
+  background: #fff;
+  border-radius: 16px;
+  border: 1.5px solid #f0ece4;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
+
+.info-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.info-edit-row label {
+  width: 55px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #888;
+}
+
+.info-edit-row input {
+  flex: 1;
+  border: 1.5px solid #e8e4dc;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+}
+
+.info-edit-row input:focus {
+  border-color: #ff823a;
+}
+
+.info-edit-row span {
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 600;
+}
+
+.info-edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.info-edit-cancel {
+  padding: 8px 18px;
+  border: 1.5px solid #e0dbd2;
+  border-radius: 20px;
+  background: #fff;
+  color: #aaa;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.info-edit-save {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 20px;
+  background: #ff823a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.info-edit-save:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 /* ── 스탯 그리드 ── */
@@ -177,6 +269,183 @@
   color: #aaa;
   margin: 0;
   font-weight: 600;
+}
+
+/* ── 캘린더 + 스트릭 행 ── */
+.info-calendar-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+/* ── 연속 출석 스트릭 카드 ── */
+.info-streak-card {
+  flex-shrink: 0;
+  width: 110px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1.5px solid #f0ece4;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.streak-fire {
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.streak-current {
+  font-size: 32px;
+  font-weight: 900;
+  color: #ff823a;
+  line-height: 1;
+}
+.streak-current span {
+  font-size: 14px;
+  font-weight: 700;
+  margin-left: 1px;
+}
+
+.streak-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #bbb;
+  margin-bottom: 4px;
+}
+
+.streak-divider {
+  width: 40px;
+  height: 1px;
+  background: #f0ece4;
+  margin: 4px 0;
+}
+
+.streak-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.streak-stat-val {
+  font-size: 18px;
+  font-weight: 900;
+  color: #333;
+}
+.streak-stat-label {
+  font-size: 10px;
+  color: #bbb;
+  font-weight: 600;
+}
+
+/* ── 출석 캘린더 카드 ── */
+.info-calendar-card {
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+  border-radius: 16px;
+  border: 1.5px solid #f0ece4;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+  padding: 12px 14px 10px;
+}
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.cal-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #333;
+}
+
+.cal-nav-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #bbb;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.15s;
+  font-family: inherit;
+}
+.cal-nav-btn:hover:not(:disabled) { color: #ff823a; }
+.cal-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cal-weekday {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #ccc;
+  padding-bottom: 4px;
+}
+.cal-weekday:first-child { color: #ff6b6b; }
+.cal-weekday:last-child  { color: #74a9f5; }
+
+.cal-day {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 2px 3px 0 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: #555;
+  border-radius: 6px;
+  transition: background 0.1s;
+  z-index: 0;
+}
+
+.cal-day.active {
+  background: #fff3eb;
+  color: #ff823a;
+  font-weight: 800;
+}
+
+.cal-day.today {
+  background: transparent;
+  border: 2px solid #ff823a;
+  color: #ff823a;
+  font-weight: 900;
+  border-radius: 6px;
+}
+
+.cal-stamp {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0.82;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.cal-summary {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 11px;
+  color: #aaa;
+  font-weight: 600;
+}
+.cal-summary strong {
+  color: #ff823a;
+  font-weight: 900;
 }
 
 /* ── 계정 정보 카드 ── */

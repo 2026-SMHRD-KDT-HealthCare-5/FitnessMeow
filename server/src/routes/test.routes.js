@@ -19,6 +19,7 @@ const express = require('express');
 const router  = express.Router();
 const db      = require('../db');
 const { CHARACTER_CONFIG } = require('../config/characters.cjs');
+const { applyExpAndLevelUp } = require('../utils/levelup.cjs');
 
 /* ════════════════════════════════════════════════════════════════
    POST /api/test/add-coins
@@ -122,68 +123,62 @@ router.post('/add-exp', async (req, res) => {
       return res.status(404).json({ message: '캐릭터 없음' });
     }
 
-    const currentLevel = parseInt(char.level); // ENUM '1'→1, '2'→2, '3'→3
-
-    // ── Step 2: 경험치 추가 ──────────────────────────────────────────────
-    const newArm   = char.arm_exp   + amount;
-    const newChest = char.chest_exp + amount;
-    const newCore  = char.core_exp  + amount;
-    const newLower = char.lower_exp + amount;
-
-    // ── Step 3: 평균 계산 + 레벨업 조건 확인 ────────────────────────────
-    const avgExp = (newArm + newChest + newCore + newLower) / 4;
-
-    // CHARACTER_CONFIG 에서 현재 레벨의 max_exp 조회
-    const config  = CHARACTER_CONFIG[char.character_key];
-    const maxExp  = config?.max_exp?.[`lv${currentLevel}`] ?? 30;
-
-    // 레벨업 조건: 평균 >= max_exp 이고 최대 레벨(3)이 아닐 때
-    const canLevelUp = avgExp >= maxExp && currentLevel < 3;
-    let leveled_up   = false;
-
-    let finalArm   = newArm;
-    let finalChest = newChest;
-    let finalCore  = newCore;
-    let finalLower = newLower;
-    let finalLevel = currentLevel;
-
-    if (canLevelUp) {
-      finalLevel = currentLevel + 1;
-      // 레벨업 시 모든 부위 경험치 초기화 (초과분은 버림 — 단순화)
-      finalArm = finalChest = finalCore = finalLower = 0;
-      leveled_up = true;
-    }
-
-    // ── Step 4: DB 업데이트 ──────────────────────────────────────────────
-    await db.query(
-      `UPDATE characters
-       SET arm_exp = ?, chest_exp = ?, core_exp = ?, lower_exp = ?, level = ?
-       WHERE character_idx = ?`,
-      [finalArm, finalChest, finalCore, finalLower, String(finalLevel), char.character_idx],
-    );
-
-    // ── Step 5: 업데이트된 캐릭터 데이터 구성 후 반환 ────────────────────
-    const newLevelKey = `lv${finalLevel}`;
-    const newMaxExp   = config?.max_exp?.[newLevelKey] ?? 30;
+    // ── Step 2~4: EXP 누적·레벨업·해금 (공통 유틸) ─────────────────────
+    const { level_up, character_unlocked, next_character_name, updated_character } =
+      await applyExpAndLevelUp(db, char, amount, user_idx);
 
     res.json({
-      success:   true,
-      added:     amount,
-      leveled_up,              // true 면 프론트에서 레벨업 연출 가능
-      character: {
-        character_key:  char.character_key,
-        level:          String(finalLevel),
-        arm_exp:        finalArm,
-        chest_exp:      finalChest,
-        core_exp:       finalCore,
-        lower_exp:      finalLower,
-        max_exp:        newMaxExp,
-        character_name: config?.character_name ?? char.character_key,
-      },
+      success:            true,
+      added:              amount,
+      leveled_up:         level_up,
+      character_unlocked,
+      next_character_name,
+      character:          updated_character,
     });
 
   } catch (err) {
     console.error('POST /api/test/add-exp 오류:', err);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
+/* ════════════════════════════════════════════════════════════════
+   POST /api/test/fix-unlock
+   현재 캐릭터가 Lv.3인데 다음 캐릭터가 해금 안 된 경우 수동 복구
+════════════════════════════════════════════════════════════════ */
+router.post('/fix-unlock', async (req, res) => {
+  const user_idx = req.session.user?.user_idx;
+  if (!user_idx) return res.status(401).json({ message: '로그인 필요' });
+
+  try {
+    const [[char]] = await db.query(
+      `SELECT character_key, level FROM characters
+       WHERE user_idx = ? ORDER BY created_at DESC LIMIT 1`,
+      [user_idx],
+    );
+    if (!char) return res.status(404).json({ message: '캐릭터 없음' });
+    if (parseInt(char.level) < 3) return res.json({ message: '아직 Lv.3 아님', unlocked: false });
+
+    const next_key = Object.keys(CHARACTER_CONFIG).find(key => {
+      const cond = CHARACTER_CONFIG[key].unlock_condition;
+      return cond?.prev_character === char.character_key && cond?.badge == null;
+    });
+    if (!next_key) return res.json({ message: '해금할 다음 캐릭터 없음', unlocked: false });
+
+    const [[existing]] = await db.query(
+      'SELECT character_idx FROM characters WHERE user_idx = ? AND character_key = ?',
+      [user_idx, next_key],
+    );
+    if (existing) return res.json({ message: '이미 해금됨', unlocked: false });
+
+    await db.query(
+      `INSERT INTO characters (user_idx, character_key, level, arm_exp, chest_exp, core_exp, lower_exp)
+       VALUES (?, ?, '1', 0, 0, 0, 0)`,
+      [user_idx, next_key],
+    );
+    res.json({ unlocked: true, next_character: CHARACTER_CONFIG[next_key].character_name });
+  } catch (err) {
+    console.error('POST /api/test/fix-unlock 오류:', err);
     res.status(500).json({ message: '서버 오류' });
   }
 });

@@ -22,6 +22,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+  isolation: isolate; /* inv-panel의 z-index를 이 요소 안으로 격리 → CarePanel 침범 방지 */
   background: #ffe8cc; /* 캔버스 로딩 전 보이는 배경색 */
 }
 
@@ -34,6 +35,7 @@
   width: 100%;
   height: 100%;
   line-height: 0;
+ 
 }
 /* 실제 <canvas> 크기는 MainLobby.css 에서 !important 로 100%로 강제함 */
 
@@ -72,18 +74,16 @@
    - animation: slide-up → 아래에서 위로 슬라이드 인 효과
 ══════════════════════════════════════ */
 .inv-panel {
-  position: absolute;
-  bottom: 0;
+  position: fixed;
+  bottom: 60px;
   left: 0;
   right: 0;
-  z-index: 30; /* 토글 버튼(40)보다는 아래, 배경(0)보다는 위 */
+  z-index: 100;
   background: rgba(255, 251, 244, 0.97);
-  backdrop-filter: blur(8px); /* 배경 흐림 효과 */
+  backdrop-filter: blur(8px);
   border-top: 2px solid #f0ece4;
-  padding: 12px 14px 14px;
-  animation: slide-up 0.2s ease;
-  max-height: 55%;
-  overflow-y: auto;  /* 가구가 많으면 스크롤 */
+  padding: 6px 12px 6px; /* CarePanel과 동일 */
+  animation: slide-up 0.18s ease 0.13s both; /* 0.13s 딜레이 → CarePanel 사라진 후 등장 */
 }
 
 /* 패널 슬라이드 업 애니메이션 */
@@ -97,22 +97,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 6px; /* CarePanel 헤더와 동일 */
 }
 
 .inv-panel-title {
-  font-size: 14px;
+  font-size: 13px;    /* CarePanel 제목과 동일 */
   font-weight: 800;
-  color: #3d3d3d;
+  color: #2b2b2b;
 }
 
 .inv-close-btn {
   background: none;
   border: none;
-  font-size: 16px;
+  font-size: 15px;
   cursor: pointer;
   color: #aaa;
-  padding: 2px 6px;
+  padding: 0 4px;
 }
 
 /* 소유 가구 없을 때 안내 문구 */
@@ -130,23 +130,32 @@
    - auto-fill + minmax(72px, 1fr) → 화면 너비에 따라 열 수 자동 조정
 ══════════════════════════════════════ */
 .inv-item-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  display: flex;          /* 가로 한 줄 */
+  flex-direction: row;
   gap: 8px;
+  overflow-x: auto;       /* 아이템 많으면 가로 스크롤 */
+  overflow-y: hidden;
+  padding-bottom: 4px;    /* 스크롤바 공간 */
+  /* 스크롤바 스타일 */
+  scrollbar-width: thin;
+  scrollbar-color: #f0ece4 transparent;
 }
 
-/* 개별 가구 카드 */
+/* 개별 가구 카드 — CarePanel 카드와 동일한 높이감 */
 .inv-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px 4px;
+  gap: 3px;
+  padding: 8px 6px;   /* CarePanel 카드 패딩과 동일 */
   border-radius: 12px;
-  border: 2px solid #f0ece4;
-  background: #fff;
+  border: 1.5px solid #f0ece4;
+  background: #fafaf8;
   cursor: pointer;
   transition: all 0.15s ease;
+  flex-shrink: 0;
+  width: 100px;
+  height: 140px;
 }
 
 .inv-item:hover {
@@ -163,37 +172,37 @@
 
 /* 가구 이미지 — 픽셀 아트 계단 현상 방지 */
 .inv-item-img {
-  width: 44px;
-  height: 44px;
+  width: 60px;        /* CarePanel 이미지와 유사한 크기 */
+  height: 60px;
   object-fit: contain;
   image-rendering: pixelated;
 }
 
 /* 이미지 없을 때 대체 이모지 */
 .inv-item-placeholder {
-  font-size: 28px;
+  font-size: 26px;
   line-height: 1;
 }
 
 /* 가구 이름 */
 .inv-item-name {
-  font-size: 10px;
-  font-weight: 700;
-  color: #555;
+  font-size: 11px;    /* CarePanel 카드 제목과 동일 */
+  font-weight: 800;
+  color: #2b2b2b;
   text-align: center;
   margin: 0;
   word-break: keep-all;
   line-height: 1.2;
 }
 
-/* 배치 상태 뱃지 ("배치하기" 회색 / "배치 중" 초록) */
+/* 배치 상태 뱃지 */
 .inv-item-badge {
-  font-size: 9px;
-  padding: 2px 6px;
-  border-radius: 8px;
-  background: #f0ece4;
+  font-size: 10px;
+  padding: 3px 6px;
+  border-radius: 20px;
+  background: #e0e0e0;
   color: #888;
-  font-weight: 600;
+  font-weight: 800;
 }
 
 .inv-item--placed .inv-item-badge {

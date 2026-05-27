@@ -49,9 +49,11 @@ const CAT_IMAGES = import.meta.glob(
   { eager: true, import: 'default' },
 );
 
-// 가구 스프라이트: assets/Cattower·Toy·Bed 폴더 하위 모든 PNG
+
+// 가구 스프라이트: assets/furniture·cat_items 폴더 하위 모든 PNG
+
 const FURNITURE_IMGS = import.meta.glob(
-  '../assets/{Cattower,Toy,Bed}/**/*.png',
+  '../assets/{furniture,cat_items}/**/*.png',
   { eager: true, import: 'default' },
 );
 
@@ -189,6 +191,8 @@ const MyRoom = ({
   onFurnitureMove,
   ownedItems = [],
   onToggleFurniture,
+  invOpen = false,        // 인벤토리 열림 여부 (MainLobby에서 제어)
+  onInvToggle,            // 인벤토리 토글 콜백
 }) => {
   // PixiJS 캔버스를 마운트할 DOM 노드
   const containerRef = useRef(null);
@@ -206,9 +210,6 @@ const MyRoom = ({
   const placedFurnitureRef  = useRef(placedFurniture);
   useEffect(() => { onFurnitureMoveRef.current = onFurnitureMove; }, [onFurnitureMove]);
   useEffect(() => { placedFurnitureRef.current = placedFurniture; }, [placedFurniture]);
-
-  // 인벤토리 패널 열림/닫힘 상태 (초기값 false — 닫힌 상태에서 시작)
-  const [invOpen, setInvOpen] = useState(false);
 
   // ── 드래그 잠금 ref ────────────────────────────────────────────────────────
   // invOpen 과 동기화되어 PixiJS 이벤트 핸들러 안에서 최신 값을 읽을 수 있게 함
@@ -340,7 +341,7 @@ const MyRoom = ({
           클릭하면 invOpen 토글 → draggingEnabledRef 와 스프라이트 cursor 도 함께 변경됨 */}
       <button
         className="inv-toggle-btn"
-        onClick={() => setInvOpen(o => !o)}
+        onClick={() => onInvToggle?.(!invOpen)}
         title={invOpen ? '인벤토리 닫기' : '인벤토리 열기'}
       >
         🎒
@@ -352,7 +353,7 @@ const MyRoom = ({
         <div className="inv-panel">
           <div className="inv-panel-header">
             <span className="inv-panel-title">🎒 인벤토리</span>
-            <button className="inv-close-btn" onClick={() => setInvOpen(false)}>✕</button>
+            <button className="inv-close-btn" onClick={() => onInvToggle?.(false)}>✕</button>
           </div>
 
           {/* 소유 가구가 없는 경우 안내 메시지 */}

@@ -41,12 +41,12 @@ const MainLobby = () => {
   // ── 상태 선언 ─────────────────────────────────────────────────────────────
   const [character,       setCharacter]       = useState(null);  // 고양이 데이터
   const [coins,           setCoins]           = useState(0);     // 보유 코인
-  const [carePoints,      setCarePoints]      = useState(0);     // 돌봄포인트
   const [todayStatus,     setTodayStatus]     = useState({       // 오늘 돌봄 완료 여부
     feed_done: false, groom_done: false, clean_done: false,
   });
   const [placedFurniture, setPlacedFurniture] = useState([]);    // 방에 배치된 가구
   const [ownedItems,      setOwnedItems]      = useState([]);    // 소유한 가구 전체
+  const [invOpen,         setInvOpen]         = useState(false); // 인벤토리 열림 여부
 
   // ── 초기 데이터 로드 ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -68,7 +68,6 @@ const MainLobby = () => {
     try {
       const res = await axios.get(`${API}/api/care/status`, { withCredentials: true });
       setCoins(res.data.coins ?? 0);
-      setCarePoints(res.data.care_point ?? 0);      // DB 컬럼명: care_point (단수)
       setTodayStatus(res.data.today_status ?? {});
     } catch { }
   };
@@ -172,12 +171,6 @@ const MainLobby = () => {
           <span>{coins.toLocaleString()}</span>
         </div>
 
-        {/* 돌봄포인트 표시 pill — + 버튼 없음 (운동으로만 획득) */}
-        <div className="lh-pill lh-care">
-          <span className="lh-care-paw">🐾</span>
-          <span>{carePoints}</span>
-        </div>
-
         {/* 우측 아이콘 버튼: 출석·설정 */}
         <div className="lh-icons">
           <button className="lh-icon-btn" title="출석">📅</button>
@@ -196,11 +189,13 @@ const MainLobby = () => {
 
         {/* PixiJS 방 캔버스 — 가구 드래그·배치 기능 포함 */}
         <MyRoom
-          character={character}               // 고양이 스프라이트 결정에 사용
-          placedFurniture={placedFurniture}   // 방에 배치할 가구 목록
-          onFurnitureMove={handleFurnitureMove}     // 드래그 완료 시 좌표 저장
-          ownedItems={ownedItems}             // 인벤토리 패널에 표시할 소유 가구
-          onToggleFurniture={handleToggleFurniture} // 인벤토리에서 배치/해제 토글
+          character={character}
+          placedFurniture={placedFurniture}
+          onFurnitureMove={handleFurnitureMove}
+          ownedItems={ownedItems}
+          onToggleFurniture={handleToggleFurniture}
+          invOpen={invOpen}
+          onInvToggle={setInvOpen}
         />
 
         {/* 부위별 경험치 오버레이 — 절대 위치(우측 상단) */}
@@ -215,13 +210,14 @@ const MainLobby = () => {
         돌봄포인트 표시 카드로 구성됨.
         돌봄 행동 1회 = 돌봄포인트 1 소모 + 코인 +50 획득
       */}
-      <CarePanel
-        carePoints={carePoints}         // 현재 돌봄포인트 (버튼 활성화 판단에 사용)
-        setCarePoints={setCarePoints}   // 돌봄 완료 후 포인트 감소 반영
-        onCoinsChange={setCoins}        // 돌봄 완료 후 코인 증가 반영
-        todayStatus={todayStatus}       // 오늘 완료된 행동 표시 (완료 ✓ 처리)
-        setTodayStatus={setTodayStatus} // 돌봄 완료 시 done 플래그 업데이트
-      />
+      {/* 인벤토리 열릴 때 먼저 사라지고, 닫힐 때 다시 나타남 */}
+      <div style={{
+        opacity:    invOpen ? 0 : 1,
+        visibility: invOpen ? 'hidden' : 'visible',
+        transition: 'opacity 0.15s ease',
+      }}>
+        <CarePanel todayStatus={todayStatus} />
+      </div>
 
       {/* ══════════════ ④ 하단 탭 바 ══════════════ */}
       <Navbar />
@@ -229,10 +225,8 @@ const MainLobby = () => {
       {/* ⚠️ 개발용 — 배포 시 제거 */}
       <TestCoinButton
         onCoinsChange={setCoins}
-        onCarePointsChange={setCarePoints}
         onExpChange={setCharacter}
         coinAmount={500}
-        careAmount={5}
         expAmount={5}
       />
     </div>
