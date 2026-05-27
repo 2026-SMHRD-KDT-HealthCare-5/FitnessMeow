@@ -21,11 +21,21 @@
    - flex-shrink: 0   → 화면이 작아져도 탭 바 높이 유지
 ──────────────────────────────────────── */
 .footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: px;
+  right: px;
+  width: 1000px;
+  height: 65px;
+  background: #ffffff;
   display: flex;
-  align-items: stretch;   /* 모든 탭이 60px 높이를 가득 채움 */
-  background: #2b3a55;    /* 네이비 배경 */
-  height: 60px;
-  flex-shrink: 0;         /* ★ 이 속성이 없으면 탭 바가 줄어들 수 있음 */
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 24px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.02);
+  z-index: 100;
+  box-sizing: border-box;
 }
 
 /* ────────────────────────────────────────
@@ -84,7 +94,7 @@
 .nav-item p {
   font-size: 10px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.75); /* 기본: 반투명 흰색 */
+  color: black; /* 기본: 반투명 흰색 */
   margin: 0;
   letter-spacing: -0.3px;
 }

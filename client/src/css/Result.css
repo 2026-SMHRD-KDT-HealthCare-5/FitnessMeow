@@ -1,19 +1,37 @@
 /* src/css/Result.css */
 
 /* ══════════════════════════════════════════
+   페이지 전체 컨테이너
+══════════════════════════════════════════ */
+.container {
+  position: fixed;             /* 부모 overflow: hidden 영향에서 완전히 벗어남 */
+  inset: 0;                    /* top/right/bottom/left: 0 — 뷰포트 전체 커버 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fdf8f3;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 0 32px;
+  -webkit-overflow-scrolling: touch;
+  z-index: 10;
+}
+
+.overlay { display: none; }   /* 배경 오버레이 (Result에선 미사용) */
+
+/* ══════════════════════════════════════════
    전체 카드 레이아웃
 ══════════════════════════════════════════ */
 .result-card {
-  width: 420px;
-  padding: 28px 35px 30px;
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 20px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 1;
-  overflow-y: auto;
-  max-height: 100vh;
 }
-.result-card::-webkit-scrollbar { display: none; }
+.result-card--loading { min-height: 300px; justify-content: center; }
 
 /* 공용 카드 */
 .card {
@@ -233,6 +251,21 @@
   border-radius: 99px;
   letter-spacing: 0.3px;
 }
+
+/* 코인 행 */
+.coin-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.coin-row img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+.coin       { font-size: 13px; font-weight: 700; color: #555555; flex: 1; }
+.coin-gain  { font-size: 14px; font-weight: 800; color: #ff8c42; }
 
 /* 구분선 */
 .divider {

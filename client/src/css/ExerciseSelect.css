@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: center;
   background: radial-gradient(circle at top, #fff5e7 0%, #f6f2ee 100%);
-  padding: 24px;
+  padding: 24px 24px 80px;
   overflow-y: auto;
 }
 

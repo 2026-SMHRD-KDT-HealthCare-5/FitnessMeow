@@ -17,10 +17,11 @@
 ──────────────────────────────────────── */
 .care-section {
   background: #ffffff;
-  border-top: 2px solid #f0ece4; /* 방 영역과의 구분선 */
-  padding: 10px 12px 10px;
+  border-top: 2px solid #f0ece4;
+  padding: 6px 12px 6px;
   position: relative;
-  flex-shrink: 0; /* ★ 이 속성이 없으면 방 캔버스에 의해 돌봄 섹션이 잘릴 수 있음 */
+  z-index: 25; /* inv-panel(my-room-wrapper 내부) 위에 항상 표시 */
+  flex-shrink: 0;
 }
 
 /* ────────────────────────────────────────
@@ -30,29 +31,27 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;  /* 축소 */
 }
 
 .care-section-title {
-  font-size: 13px;
+  font-size: 12px;     /* 축소 */
   font-weight: 800;
   color: #2b2b2b;
 }
 
 .care-section-note {
-  font-size: 10px;
+  font-size: 9px;      /* 축소 */
   color: #bbb;
 }
 
 /* ────────────────────────────────────────
    카드 그리드
-   - repeat(3, 1fr) 110px → 행동 카드 3개가 동일한 너비, 포인트 카드는 110px 고정
-   ★ 포인트 카드 너비 변경: 110px 부분을 조절
 ──────────────────────────────────────── */
 .care-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr) 110px;
-  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;            /* 간격 축소 */
 }
 
 /* ══════════════════════════════════════
@@ -61,12 +60,12 @@
 .care-card {
   background: #fafaf8;
   border: 1.5px solid #f0ece4;
-  border-radius: 14px;
-  padding: 10px 6px 8px;
+  border-radius: 12px;
+  padding: 6px 6px 5px;  /* 패딩 축소 */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 2px;              /* 내부 간격 축소 */
   transition: all 0.15s ease;
 }
 
@@ -78,33 +77,33 @@
 
 /* 돌봄 행동 이미지 (픽셀 아트) */
 .care-card-img {
-  width: 44px;
-  height: 44px;
+  width: 32px;           /* 44px → 32px 축소 */
+  height: 32px;
   object-fit: contain;
   image-rendering: pixelated;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 /* 행동 이름 ("밥 주기" 등) */
 .care-card-title {
-  font-size: 12px;
+  font-size: 11px;       /* 축소 */
   font-weight: 800;
   color: #2b2b2b;
   margin: 0;
   text-align: center;
 }
 
-/* "돌봄포인트 1 소모" — 주황색 */
-.care-card-cost {
-  font-size: 10px;
-  color: #ff823a;
+/* 퀘스트 조건 ("스쿼트 15회" 등) — 진한 텍스트 */
+.care-card-quest {
+  font-size: 11px;
+  font-weight: 800;
+  color: #2b2b2b;
   margin: 0;
-  font-weight: 600;
 }
 
 /* "코인 +50" — 초록색 */
 .care-card-reward {
-  font-size: 10px;
+  font-size: 9px;      /* 축소 */
   color: #34c759;
   margin: 0;
   font-weight: 600;
@@ -112,14 +111,14 @@
 
 /* ── 하기 버튼 ── */
 .care-card-btn {
-  margin-top: 4px;
+  margin-top: 3px;
   width: 100%;
-  padding: 6px 0;
+  padding: 4px 0;      /* 6px → 4px 축소 */
   border-radius: 20px;
   border: none;
-  background: #34c759; /* 기본: 초록 */
+  background: #34c759;
   color: #fff;
-  font-size: 12px;
+  font-size: 10px;     /* 12px → 10px 축소 */
   font-weight: 800;
   cursor: pointer;
   transition: all 0.15s ease;

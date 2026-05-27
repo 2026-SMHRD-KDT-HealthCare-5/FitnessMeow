@@ -25,6 +25,7 @@
   height: 100dvh;
   overflow: hidden;
   background: #fffbf4; /* 연한 크림색 배경 */
+  position: relative;  /* 절대 위치 자식(header·care-section)의 기준점 */
 }
 
 
@@ -34,15 +35,17 @@
    - flex-wrap: nowrap → 항목들이 줄 바꿈 없이 한 줄에 표시됨
 ══════════════════════════════════════ */
 .lobby-header {
+  position: absolute; /* 방 캔버스 위에 떠 있음 — flex 흐름에서 제외 */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;        /* 캔버스·오버레이보다 위 */
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: #ffffff;
-  border-bottom: 1.5px solid #f0ece4;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  flex-shrink: 0;   /* 헤더 높이 절대 감소 금지 */
-  flex-wrap: nowrap; /* 항목 줄 바꿈 금지 */
+  background: transparent; /* 배경 투명 */
+  flex-wrap: nowrap;  /* 항목 줄 바꿈 금지 */
 }
 
 /* ── 프로필 블록 (아바타 + 이름 + 레벨·EXP) ── */
@@ -191,11 +194,11 @@
    - position: relative → 내부 오버레이(절대 위치)의 기준점
 ══════════════════════════════════════ */
 .lobby-room-area {
-  flex: 1 1 0;
+  flex: 1;       
+  min-height: 0;
+   max-height: calc(100dvh - 257px);/* header·care-section이 절대 위치이므로, 남은 공간(= 100dvh - Navbar) 전부 차지 */
   position: relative;
   overflow: hidden;
-  min-height: 0;
-  max-height: 71vh; /* ★ 방 최대 높이 — 숫자 조절로 크기 변경 가능 */
 }
 
 /* MyRoom 컴포넌트의 최상위 div(.my-room-wrapper)가 방 영역을 꽉 채우도록 */
@@ -220,7 +223,7 @@
 /* ── 오버레이: 부위별 경험치 패널 (방 우측 상단 절대 위치) ── */
 .room-overlay-right {
   position: absolute;
-  top: 10px;
+  top: 50px;
   right: 20px; /* ★ 값 키우면 왼쪽으로 이동, 줄이면 오른쪽 벽에 가까워짐 */
   z-index: 20; /* PixiJS 캔버스(z-index 없음)보다 위에 표시 */
   width: 210px; /* ★ 값 키우면 패널 넓어짐 — 글자 삐져나오면 늘릴 것 */
