@@ -11,6 +11,8 @@ const careRoutes       = require('./routes/care.routes');
 const coordinatesRoutes = require('./routes/coordinates.routes');
 const inventoryRoutes  = require('./routes/inventory.routes');
 const shopRoutes       = require('./routes/shop.routes');
+const calendarRoutes    = require('./routes/calendar.routes');
+const attendanceRoutes  = require('./routes/attendance.routes');
 const testRoutes       = require('./routes/test.routes'); // ⚠️ 개발용 — 배포 시 제거
 
 
@@ -45,6 +47,8 @@ app.use('/api/care',       careRoutes);
 app.use('/api/coordinates', coordinatesRoutes);
 app.use('/api/inventory',  inventoryRoutes);
 app.use('/api/shop',       shopRoutes);
+app.use('/api/calendar',    calendarRoutes);
+app.use('/api/attendance',  attendanceRoutes);
 app.use('/api/test',       testRoutes);  // ⚠️ 개발용 — 배포 시 제거
 
 

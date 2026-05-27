@@ -1,37 +1,72 @@
 /* ══════════════════════════════════════════════════════════════════
-   BodyExpPanel.css — 부위별 경험치 패널 스타일
+   BodyExpPanel.css — 부위별 경험치 패널 (토글형)
 
-   이 패널은 방 캔버스 위에 절대 위치 오버레이로 올라감.
-   (.room-overlay-right 에서 width/위치 지정, 여기서는 내부 스타일만 담당)
-
-   구조:
-     .body-exp-panel   — 패널 전체 (반투명 흰색 배경 + 블러)
-       .body-exp-title — "부위별 경험치" 제목
-       .body-exp-row   — 부위 1개 행 (아이콘 + 이름 + 바 + 수치)
-         .body-exp-icon  — 부위 아이콘 이미지
-         .body-exp-label — 부위 이름 텍스트
-         .body-exp-track — 진행 바 전체 (회색 배경)
-         .body-exp-fill  — 진행 바 채워진 부분 (부위별 색상)
-         .body-exp-value — "현재/최대" 또는 "MAX" 수치
+   최소화: 💪 아이콘 버튼만 표시 (.body-exp-panel--mini)
+   펼침  : 버튼 + EXP 바 목록 표시 (.body-exp-panel--open)
 ══════════════════════════════════════════════════════════════════ */
 
-/* ────────────────────────────────────────
-   패널 전체
-   - 반투명 흰색 배경 + backdrop-filter → 캔버스 위에 떠 있는 느낌
-   - 패널 너비는 부모(.room-overlay-right)의 width 로 제어함
-     ★ 패널 너비 변경: MainLobby.css 의 .room-overlay-right { width: N } 을 수정
-──────────────────────────────────────── */
+/* ── 공통 패널 베이스 ── */
 .body-exp-panel {
-  background: rgba(255, 255, 255, 0.92); /* 반투명 흰색 */
-  backdrop-filter: blur(6px);            /* 배경 흐림 효과 */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* 버튼을 오른쪽 정렬 */
+  gap: 0;
+}
+
+/* ── 최소화 상태: 아이콘 버튼만 ── */
+.body-exp-panel--mini .body-exp-toggle {
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+}
+
+/* ── 펼침 상태: 패널 박스 ── */
+.body-exp-panel--open {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
   border-radius: 16px;
-  padding: 12px 12px 10px;
   border: 1.5px solid rgba(255, 255, 255, 0.7);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 8px 12px 12px;
+  align-items: stretch;
+}
+
+/* 펼침 상태일 때 토글 버튼을 중앙 정렬 → "부위별 경험치" 타이틀과 시각적으로 균형 맞춤 */
+.body-exp-panel--open .body-exp-toggle {
+  align-self: center;
+}
+
+/* ── 토글 버튼 (공통) ── */
+.body-exp-toggle {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(6px);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: transform 0.15s ease, background 0.15s;
+  align-self: flex-end; /* 펼침 상태에서 오른쪽 끝 */
+  margin-bottom: 4px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+}
+
+.body-exp-toggle:hover {
+  transform: scale(1.1);
+  background: #fff8f2;
+}
+
+/* ── 펼침 내용 영역 ── */
+.body-exp-content {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-width: 150px; /* 최소 너비 — 이보다 좁아지지 않음 */
+  min-width: 180px;
 }
 
 /* "부위별 경험치" 제목 */
@@ -41,60 +76,57 @@
   color: #3d3d3d;
   margin: 0 0 2px 0;
   text-align: center;
-  border-bottom: 1px solid #f0ece4; /* 제목 아래 구분선 */
+  border-bottom: 1px solid #f0ece4;
   padding-bottom: 6px;
 }
 
-/* ────────────────────────────────────────
-   부위 1개 행 레이아웃
-   - 아이콘 · 이름 · 진행 바 · 수치 를 가로로 배치
-──────────────────────────────────────── */
+/* 부위 1개 행 */
 .body-exp-row {
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
-/* 부위 아이콘 이미지 */
+/* 부위 아이콘 */
 .body-exp-icon {
   width: 20px;
   height: 20px;
   object-fit: contain;
-  flex-shrink: 0; /* 공간이 부족해도 줄어들지 않음 */
+  flex-shrink: 0;
 }
 
-/* 부위 이름 ("팔 EXP" 등) */
+/* 부위 이름 */
 .body-exp-label {
   font-size: 11px;
   font-weight: 700;
   color: #555;
-  min-width: 44px; /* ★ 이름이 잘리면 이 값을 키울 것 */
+  min-width: 44px;
   flex-shrink: 0;
 }
 
-/* 진행 바 전체 (회색 배경) */
+/* 진행 바 트랙 */
 .body-exp-track {
-  flex: 1;           /* 남는 공간을 모두 차지 */
+  flex: 1;
   height: 8px;
   background: #f0ece4;
   border-radius: 6px;
   overflow: hidden;
-  min-width: 50px;   /* 너무 좁아지지 않게 최소 너비 */
+  min-width: 50px;
 }
 
-/* 진행 바 채워진 부분 (색상은 JS에서 style 속성으로 지정) */
+/* 진행 바 채움 */
 .body-exp-fill {
   height: 100%;
   border-radius: 6px;
-  transition: width 0.5s ease; /* 경험치 변화 시 부드럽게 채워짐 */
+  transition: width 0.5s ease;
 }
 
-/* "현재/최대" 또는 "MAX" 수치 */
+/* 수치 (현재/최대 or MAX) */
 .body-exp-value {
   font-size: 10px;
   font-weight: 700;
   color: #888;
-  min-width: 32px;   /* ★ 수치가 잘리면 이 값을 키울 것 */
+  min-width: 32px;
   text-align: right;
   flex-shrink: 0;
 }

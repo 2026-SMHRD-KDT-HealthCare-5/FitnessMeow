@@ -133,31 +133,15 @@ const TestCoinButton = ({
     <>
       {/* 버튼 묶음 — 우하단 고정 (Navbar 위: bottom: 80px) */}
       <div style={{
-        position:      'fixed',
-        bottom:        '80px',
-        right:         '16px',
+        position:     'fixed',
+        bottom:       '270px',
+        left:         '16px',
         zIndex:        9999,
         display:       'flex',
         flexDirection: 'column',
         alignItems:    'center',
         gap:           '10px',
       }}>
-
-        {/* 🐾 돌봄포인트 버튼 */}
-        <button
-          onClick={handleCare}
-          disabled={!!loading}
-          title={`돌봄포인트 +${careAmount} (개발용)`}
-          style={{
-            ...btnBase,
-            background: loading === 'care' ? '#ccc' : 'linear-gradient(135deg,#a78bfa,#7c3aed)',
-            boxShadow:  '0 4px 14px rgba(124,58,237,0.4)',
-          }}
-          onMouseEnter={e => { if (!loading) e.currentTarget.style.transform = 'scale(1.1)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-        >
-          {loading === 'care' ? '⏳' : '🐾'}
-        </button>
 
         {/* ✨ 경험치 버튼 */}
         <button
