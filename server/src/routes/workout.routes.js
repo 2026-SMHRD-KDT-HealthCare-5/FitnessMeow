@@ -4,6 +4,7 @@ const router  = express.Router();
 const db      = require('../db');
 const { CHARACTER_CONFIG, EXERCISE_PART_MAP } = require('../config/characters.cjs');
 const { applyExpAndLevelUp } = require('../utils/levelup.cjs');
+const { applyDailyQuest }   = require('../utils/dailyQuest.cjs');
 
 /* ════════════════════════════════════════════
    POST /api/workouts
@@ -20,6 +21,7 @@ router.post('/', async (req, res) => {
     calories,
     perfect_count,
     normal_count,
+    total_reps
   } = req.body;
 
   // 1. 운동 키 유효성 검사
@@ -37,14 +39,14 @@ router.post('/', async (req, res) => {
     await conn.query(
       `INSERT INTO workout_records
          (user_idx, exercise_key, sets, reps,
-          total_score, calories, perfect_count, normal_count)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          total_score, calories, perfect_count, normal_count, total_reps)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [user_idx, exercise_key, sets, reps,
-       total_score, calories, perfect_count, normal_count],
+       total_score, calories, perfect_count, normal_count, total_reps],
     );
 
-    // 3. gained_exp 계산
-    const gained_exp = reps * sets;
+    // 3. gained_exp: 1회당 1exp 이므로 총 횟수가 얻은 경험치
+    const gained_exp = total_reps;
 
     // 4. 현재 캐릭터 조회 (FOR UPDATE: 동시 요청 충돌 방지)
     const [rows] = await conn.query(
@@ -73,40 +75,19 @@ router.post('/', async (req, res) => {
     const { level_up, character_unlocked, next_character_name, updated_character } =
       await applyExpAndLevelUp(conn, character, gained_exp, user_idx, exp_columns);
 
-    // 9. 포인트(츄르) 적립 + 돌봄포인트 +1/세트
+    // 9. 포인트(츄르) 적립  : 1회당 1코인 이므로 gained_exp랑 같음
     await conn.query(
-      `UPDATE users SET point = point + ?, care_point = care_point + ? WHERE user_idx = ?`,
-      [gained_exp, sets, user_idx],
+      `UPDATE users SET point = point + ? WHERE user_idx = ?`,
+      [gained_exp, user_idx],
     );
 
     // 9-1. 일일 퀘스트 자동 달성
+    await applyDailyQuest(conn, user_idx, exercise_key, total_reps);
+
+    // 9-2. 출석 기록 자동 등록 (오늘 첫 운동 시)
     const today     = new Date().toISOString().split('T')[0];
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
-    const CARE_QUEST_MAP = {
-      squat:  { care_type: 'feed',  required_reps: 15 },
-      pushup: { care_type: 'groom', required_reps: 10 },
-      lunge:  { care_type: 'clean', required_reps: 15 },
-    };
-    const quest = CARE_QUEST_MAP[exercise_key];
-    if (quest && reps >= quest.required_reps) {
-      const [[existingCare]] = await conn.query(
-        'SELECT care_idx FROM care_logs WHERE user_idx = ? AND care_type = ? AND care_date = ?',
-        [user_idx, quest.care_type, today],
-      );
-      if (!existingCare) {
-        await conn.query(
-          'INSERT INTO care_logs (user_idx, care_type, care_date, reward_point) VALUES (?, ?, ?, ?)',
-          [user_idx, quest.care_type, today, 50],
-        );
-        await conn.query(
-          'UPDATE users SET point = point + 50 WHERE user_idx = ?',
-          [user_idx],
-        );
-      }
-    }
-
-    // 9-2. 출석 기록 자동 등록 (오늘 첫 운동 시)
     const [[existingAtt]] = await conn.query(
       'SELECT attendance_idx FROM attendances WHERE user_idx = ? AND addtend_date = ?',
       [user_idx, today],
