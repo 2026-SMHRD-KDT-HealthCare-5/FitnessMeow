@@ -78,7 +78,7 @@ router.post('/', async (req, res) => {
     // 9. 포인트(츄르) 적립  : 1회당 1코인 이므로 gained_exp랑 같음
     await conn.query(
       `UPDATE users SET point = point + ? WHERE user_idx = ?`,
-      [gained_exp,user_idx],
+      [gained_exp, user_idx],
     );
 
     // 9-1. 일일 퀘스트 자동 달성
