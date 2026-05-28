@@ -88,14 +88,13 @@ const Info = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const [meRes, charRes, careRes] = await Promise.all([
-          axios.get(`${API}/api/auth/me`,       { withCredentials: true }),
-          axios.get(`${API}/api/character`,     { withCredentials: true }),
-          axios.get(`${API}/api/care/status`,   { withCredentials: true }),
+        const [meRes, charRes] = await Promise.all([
+          axios.get(`${API}/api/auth/me`,   { withCredentials: true }),
+          axios.get(`${API}/api/character`, { withCredentials: true }),
         ]);
         setUser(meRes.data.data);
         setCharacter(charRes.data);
-        setCoins(careRes.data.coins ?? 0);
+        setCoins(meRes.data.data?.point ?? 0);
 
         // 스트릭 조회
         try {

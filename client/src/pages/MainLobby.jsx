@@ -63,12 +63,12 @@ const MainLobby = () => {
     } catch { /* 로그인 안 된 경우 등 — 무시 */ }
   };
 
-  /** 코인·돌봄포인트·오늘 돌봄 완료 상태 조회 */
+  /** 코인·오늘 돌봄 완료 상태 조회 */
   const fetchUserData = async () => {
     try {
-      const res = await axios.get(`${API}/api/care/status`, { withCredentials: true });
-      setCoins(res.data.coins ?? 0);
-      setTodayStatus(res.data.today_status ?? {});
+      const res = await axios.get(`${API}/api/auth/me`, { withCredentials: true });
+      setCoins(res.data.data?.point ?? 0);
+      setTodayStatus(res.data.data?.today_status ?? {});
     } catch { }
   };
 

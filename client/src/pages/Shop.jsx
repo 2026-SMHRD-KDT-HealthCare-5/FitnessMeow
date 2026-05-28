@@ -100,8 +100,8 @@ const Shop = () => {
     const fetchUserData = async () => {
       // 코인 조회
       try {
-        const careRes = await axios.get(`${API}/api/care/status`, { withCredentials: true });
-        setCoins(careRes.data.coins ?? 0);
+        const meRes = await axios.get(`${API}/api/auth/me`, { withCredentials: true });
+        setCoins(meRes.data.data?.point ?? 0);
       } catch { /* 오류 시 기본값 0 유지 */ }
 
       // 보유 아이템 조회 — ownedItems 로 "이미 구매한 아이템" 판단에 사용

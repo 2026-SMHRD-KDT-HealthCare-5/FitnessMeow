@@ -8,8 +8,17 @@ import { calcCalories }                                 from '../utils/calcCalor
 import { postWorkoutWithRetry }                         from '../utils/exerciseApi';
 import { loadScript, loadExerciseLogicFiles }           from '../utils/scriptLoader';
 import { useBodyInfo }                                  from '../hooks/useBodyInfo';
+import cheeringCat                                      from '../assets/cheering-cat/KakaoTalk_20260526_142532096_transparent.gif';
+import calorieIcon                                      from '../assets/exercise-page-icons/calorie_fire.png';
+import perfectIcon                                      from '../assets/exercise-page-icons/gold_star.png';
+import normalIcon                                       from '../assets/exercise-page-icons/gray_star.png';
+import repIcon                                          from '../assets/exercise-page-icons/pink_dumbbell.png';
+import restIcon                                         from '../assets/exercise-page-icons/rest_cup.png';
+import setIcon                                          from '../assets/exercise-page-icons/set_calendar.png';
+import timerIcon                                        from '../assets/exercise-page-icons/timer_stopwatch.png';
+import quitCatPopup                                     from '../assets/exercise-page-icons/quit_cat_popup_transparent.png';
 
-function Exercise({ type = 'squat', settings, onBack }) {
+function Exercise({ type = 'squat', settings }) {
   const navigate = useNavigate();
   const bodyInfo = useBodyInfo();
 
@@ -37,25 +46,25 @@ function Exercise({ type = 'squat', settings, onBack }) {
   const [count,          setCount]          = useState(0);       // 현재 세트 내 횟수
   const [elapsedTime,    setElapsedTime]    = useState(0);       // 경과 시간(초)
   const [feedback,       setFeedback]       = useState('준비');  // 자세 피드백 텍스트
-  const [gradeText,      setGradeText]      = useState('완벽 0 보통 0'); // 등급 텍스트
+  const [,                setGradeText]      = useState('완벽 0 보통 0'); // 등급 렌더 갱신 트리거
   const [isCameraOn,     setIsCameraOn]     = useState(false);   // 카메라 ON/OFF
   const [isResting,      setIsResting]      = useState(false);   // 휴식 중 여부
   const [completedSets,  setCompletedSets]  = useState(0);       // 완료 세트 수 (UI용)
   const [totalReps,      setTotalReps]      = useState(0);       // 누적 총 횟수
   const [restRemaining,  setRestRemaining]  = useState(0);       // 남은 휴식 시간(초)
-  const [isTypeMenuOpen, setIsTypeMenuOpen] = useState(false);   // 종목 선택 드롭다운
   const [message,        setMessage]        = useState('시작을 눌러 카메라를 켜세요.');
   const [rewardTick,     setRewardTick]     = useState(0);       // EXP 팝업 트리거
+  const [showGiveUpConfirm, setShowGiveUpConfirm] = useState(false);// 포기 확인 다이얼로그 표시 여부
 
   /* ─────────────────────────────────────────
      3. Derived Values
      - state/settings에서 파생된 계산값들
   ───────────────────────────────────────── */
   const exercise        = useMemo(() => EXERCISES[selectedType] ?? EXERCISES.squat, [selectedType]);
-  const targetCount     = settings?.reps || 1;  // 목표 횟수
-  const totalSets       = settings?.sets || 1;  // 목표 세트
+  const targetreps     = settings?.reps || 1;  // 목표 횟수
+  const targetSets       = settings?.sets || 1;  // 목표 세트
   const restTime        = settings?.rest || 60; // 휴식 시간(초)
-  const progress        = Math.min(100, (count / targetCount) * 100); // 진행 바 %
+  const progress        = Math.min(100, (count / targetreps) * 100); // 진행 바 %
   const caloriesBurned  = calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalReps); // 실시간 칼로리
   const restDisplayTime = isResting ? restRemaining : restTime;
   const restTimeText    = `${String(Math.floor(restDisplayTime / 60)).padStart(2, '0')}:${String(restDisplayTime % 60).padStart(2, '0')}`;
@@ -63,14 +72,14 @@ function Exercise({ type = 'squat', settings, onBack }) {
   /* ─────────────────────────────────────────
      4. Result Stats
      - 운동 완료 시 DB에 저장할 최종 결과값
-     - totalSets * targetCount 로 직접 계산 (totalReps 클로저 문제 방지)
+     - targetSets * targetreps 로 직접 계산 (totalReps 클로저 문제 방지)
   ───────────────────────────────────────── */
   const resultStats = useMemo(() => ({
     score:    Math.min(999, 800 + totalReps * 10 + gradeCountsRef.current.perfect * 8),
-    calories: calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalSets * targetCount),
+    calories: calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, targetSets * targetreps),
     perfect:  gradeCountsRef.current.perfect,
     normal:   gradeCountsRef.current.normal,
-  }), [bodyInfo.heightCm, bodyInfo.weightKg, selectedType, totalReps, totalSets, targetCount]);
+  }), [bodyInfo.heightCm, bodyInfo.weightKg, selectedType, totalReps, targetSets, targetreps]);
 
   /* ─────────────────────────────────────────
      5. 카메라 정지
@@ -107,28 +116,30 @@ function Exercise({ type = 'squat', settings, onBack }) {
      - 카메라 정지 → DB 저장 → result 페이지 이동
      - updateExerciseState 보다 먼저 선언 필요
   ───────────────────────────────────────── */
-const finishExercise = useCallback(() => {
-    stopCamera();
+const finishExercise = useCallback((isGiveUp = false) => {
+  stopCamera();
 
-    const finalReps = totalSets * targetCount; // ← totalReps 대신 직접 계산
+  const currentReps = Math.floor(stateRef.current.count + 1e-6);
+  const totalReps = currentReps + completedSetsRef.current * targetreps; // 실제 완료 횟수
 
-    const workoutData = {
-      exercise_key  : selectedType,
-      sets          : totalSets,
-      reps          : targetCount,
-      total_score: finalReps === 0
-        ? 0
-        : Math.round((gradeCountsRef.current.perfect / finalReps) * 100),
-      calories      : calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, finalReps),
-      perfect_count : gradeCountsRef.current.perfect,
-      normal_count  : gradeCountsRef.current.normal,
-    };
+  const workoutData = {
+    exercise_key  : selectedType,
+    sets          : completedSetsRef.current,
+    reps          : currentReps,
+    total_score   : totalReps === 0
+      ? 0
+      : Math.round((gradeCountsRef.current.perfect / (targetreps * targetSets)) * 100),
+    calories      : calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, totalReps),
+    perfect_count : gradeCountsRef.current.perfect,
+    normal_count  : gradeCountsRef.current.normal,
+    total_reps    : totalReps
+  };
 
-    postWorkoutWithRetry(workoutData)
-      .then((data) => navigate('/result', { state: data }))
-      .catch(() => console.error('운동 기록 저장 실패'));
+  postWorkoutWithRetry(workoutData)
+    .then((data) => navigate('/result', { state: data }))
+    .catch(() => console.error('운동 기록 저장 실패'));
 
-  }, [stopCamera, selectedType, totalSets, targetCount, bodyInfo, navigate]); // ← resultStats 제거
+}, [stopCamera, selectedType, targetreps, bodyInfo, navigate]);
   /* ─────────────────────────────────────────
      7. 운동 상태 업데이트
      - 포즈 감지 결과를 받아 횟수/세트/휴식 처리
@@ -140,7 +151,7 @@ const finishExercise = useCallback(() => {
     const previousCount  = Math.floor(stateRef.current.count + 1e-6);
     const nextCount      = Math.floor(nextState.count + 1e-6);
     const didCompleteRep = nextCount > previousCount;          // 1회 완료 여부
-    const didCompleteSet = didCompleteRep && nextCount >= targetCount; // 세트 완료 여부
+    const didCompleteSet = didCompleteRep && nextCount >= targetreps; // 세트 완료 여부
 
     stateRef.current = { count: nextState.count, dir: nextState.dir };
 
@@ -158,14 +169,14 @@ const finishExercise = useCallback(() => {
 
     // 7-3. 세트 완료 처리
     if (didCompleteSet) {
-      const nextCompletedSets = Math.min(totalSets, completedSetsRef.current + 1);
+      const nextCompletedSets = Math.min(targetSets, completedSetsRef.current + 1);
       completedSetsRef.current = nextCompletedSets;
 
       setCount(nextCount);         // 목표 횟수 잠깐 표시
       isRestingRef.current = true; // 다음 프레임 포즈 감지 차단
 
       // 마지막 세트 완료 → 0.5초 후 운동 완료 처리
-      if (nextCompletedSets >= totalSets) {
+      if (nextCompletedSets >= targetSets) {
         setTimeout(() => {
           isRestingRef.current = false;
           finishExercise();
@@ -191,7 +202,7 @@ const finishExercise = useCallback(() => {
     }
 
     setGradeText(`완벽 ${gradeCountsRef.current.perfect} 보통 ${gradeCountsRef.current.normal}`);
-  }, [finishExercise, restTime, targetCount, totalSets]);
+  }, [finishExercise, restTime, targetreps, targetSets]);
 
   /* ─────────────────────────────────────────
      8. 포즈 감지 결과 처리
@@ -325,29 +336,6 @@ const finishExercise = useCallback(() => {
   };
 
   /* ─────────────────────────────────────────
-     13. 운동 종목 변경
-     - 카메라/상태 전부 초기화 후 종목 변경
-  ───────────────────────────────────────── */
-  const changeExerciseType = (nextType) => {
-    setIsTypeMenuOpen(false);
-    if (nextType === selectedType) return;
-    stopCamera();
-    stateRef.current         = { count: 0, dir: 0 };
-    gradeCountsRef.current   = { perfect: 0, normal: 0 };
-    completedSetsRef.current = 0;
-    previousTypeRef.current  = nextType;
-    setSelectedType(nextType);
-    setCount(0); setCompletedSets(0); setTotalReps(0);
-    setRestRemaining(0); setElapsedTime(0);
-    isRestingRef.current = false;
-    setIsResting(false);
-    setFeedback('준비');
-    setGradeText('완벽 0 보통 0');
-    setRewardTick(0);
-    setMessage('운동이 변경되었습니다. 시작을 눌러 카메라를 켜세요.');
-  };
-
-  /* ─────────────────────────────────────────
      14. Effects
   ───────────────────────────────────────── */
 
@@ -399,7 +387,7 @@ const finishExercise = useCallback(() => {
   ───────────────────────────────────────── */
   return (
     <main className="exercise-page">
-      <section className="exercise-phone">
+      <section className={`exercise-phone ${isCameraOn ? 'exercise-phone--active' : ''}`}>
 
         {/* 15-1. 카메라 카드 */}
         <section className="exercise-camera-card">
@@ -412,49 +400,44 @@ const finishExercise = useCallback(() => {
             </div>
           )}
 
-          <button type="button" className="exercise-back-button" onClick={onBack}>Back</button>
-
-          {/* 15-2. 운동 종목 선택 드롭다운 */}
-          <div className="exercise-type-picker">
-            <span>운동</span>
-            <button
-              type="button"
-              className="exercise-type-trigger"
-              onClick={() => setIsTypeMenuOpen((o) => !o)}
-              aria-expanded={isTypeMenuOpen}
-            >
-              {exercise.name}<span aria-hidden="true">⌄</span>
-            </button>
-            {isTypeMenuOpen && (
-              <div className="exercise-type-menu">
-                {Object.entries(EXERCISES).map(([value, item]) => (
-                  <button
-                    type="button"
-                    key={value}
-                    className={value === selectedType ? 'is-active' : ''}
-                    onClick={() => changeExerciseType(value)}
-                  >
-                    {item.name}
-                  </button>
-                ))}
+          {/* 15-3. 운동 현황 패널 */}
+          <div className="exercise-status-panel">
+            <div className="exercise-counter-stat">
+              <img className="exercise-stat-icon exercise-stat-icon--set" src={setIcon} alt="" />
+              <div>
+                <em>세트</em>
+                <strong>{completedSets}<small>/ {targetSets}</small></strong>
               </div>
-            )}
-          </div>
-
-          {/* 15-3. 횟수/세트 배지 */}
-          <div className="exercise-counter-badge">
-            <small>{completedSets}/{totalSets} Set</small>
-            <strong>{count}</strong>
-            <span>/ {targetCount}</span>
-            <em>횟수</em>
+            </div>
+            <div className="exercise-counter-stat">
+              <img className="exercise-stat-icon exercise-stat-icon--rep" src={repIcon} alt="" />
+              <div>
+                <em>횟수</em>
+                <strong>{count}<small>/ {targetreps}</small></strong>
+              </div>
+            </div>
+            <div className="exercise-grade-stat">
+              <img className="exercise-stat-icon exercise-stat-icon--grade" src={perfectIcon} alt="" />
+              <div>
+                <em>완벽</em>
+                <strong>{gradeCountsRef.current.perfect}</strong>
+              </div>
+            </div>
+            <div className="exercise-grade-stat exercise-grade-stat--normal">
+              <img className="exercise-stat-icon exercise-stat-icon--normal" src={normalIcon} alt="" />
+              <div>
+                <em>보통</em>
+                <strong>{gradeCountsRef.current.normal}</strong>
+              </div>
+            </div>
           </div>
 
           {/* 15-4. 피드백 / 등급 배지 */}
           <div key={feedback} className="exercise-feedback-badge">{feedback}</div>
-          <div className="exercise-grade-badge">{gradeText}</div>
 
           {/* 15-5. EXP 리워드 */}
           <div className="exercise-reward-slot">
+            <img className="exercise-reward-cat" src={cheeringCat} alt="" />
             <strong>{totalReps} EXP</strong>
             {rewardTick > 0 && <span key={rewardTick} className="exercise-reward-pop">+1 EXP</span>}
           </div>
@@ -463,19 +446,19 @@ const finishExercise = useCallback(() => {
         {/* 15-6. 칼로리 / 시간 / 휴식 정보 바 */}
         <section className="exercise-info-bar">
           <div className="exercise-metric">
-            <span className="metric-icon">K</span>
+            <img className="metric-icon" src={calorieIcon} alt="" />
             <strong>{caloriesBurned}</strong>
             <em>kcal</em>
           </div>
           <div className="exercise-metric exercise-metric--center">
-            <span className="metric-icon">T</span>
+            <img className="metric-icon" src={timerIcon} alt="" />
             <strong>
               {String(Math.floor(elapsedTime / 60)).padStart(2, '0')}:
               {String(elapsedTime % 60).padStart(2, '0')}
             </strong>
           </div>
           <button type="button" className="exercise-rest" onClick={skipRest} disabled={!isResting} aria-label="휴식">
-            <span>휴식</span>
+            <span><img className="metric-icon" src={restIcon} alt="" />휴식</span>
             <strong>{restTimeText}</strong>
           </button>
         </section>
@@ -496,9 +479,9 @@ const finishExercise = useCallback(() => {
                 <span className="exercise-control-icon" aria-hidden="true">▶</span>
                 <span>시작</span>
               </button>
-              <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={finishExercise}>
+              <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={() => setShowGiveUpConfirm(true)}>
                 <span className="exercise-control-icon exercise-control-icon--stop" aria-hidden="true" />
-                <span>정지</span>
+                <span>포기하기</span>
               </button>
               <button type="button" className="exercise-control-button exercise-control-button--screen" onClick={startScreenCapture}>
                 <span className="exercise-control-icon" aria-hidden="true">▣</span>
@@ -517,12 +500,25 @@ const finishExercise = useCallback(() => {
             </button>
           )}
           {isCameraOn && (
-            <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={finishExercise}>
+            <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={() => setShowGiveUpConfirm(true)}>
               <span className="exercise-control-icon exercise-control-icon--stop" aria-hidden="true" />
-              <span>정지</span>
+              <span>포기하기</span>
             </button>
           )}
         </section>
+
+        {showGiveUpConfirm && (
+          <div className="exercise-confirm-overlay" role="presentation">
+            <section className="exercise-confirm-dialog" role="dialog" aria-modal="true" aria-label="운동 포기 확인">
+              <img className="exercise-confirm-cat" src={quitCatPopup} alt="" />
+              <p>정말 포기할꺼냥?</p>
+              <div className="exercise-confirm-actions">
+                <button type="button" onClick={() => setShowGiveUpConfirm(false)}>계속하기</button>
+                <button type="button" className="exercise-confirm-give-up" onClick={() => finishExercise(true)}>포기하기</button>
+              </div>
+            </section>
+          </div>
+        )}
 
       </section>
     </main>
