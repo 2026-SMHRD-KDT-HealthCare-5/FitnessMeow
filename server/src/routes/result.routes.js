@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
   try {
     const [[workoutRows], [charRows]] = await Promise.all([
       db.query(
-        `SELECT *, (reps * sets) AS gained_exp
+        `SELECT *, total_reps AS gained_exp
          FROM workout_records
          WHERE user_idx = ?
          ORDER BY performed_at DESC

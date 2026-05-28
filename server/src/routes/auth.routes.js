@@ -168,7 +168,24 @@ router.get('/me', async (req, res) => {
       [req.session.user.user_idx]
     );
 
-    res.json({ success: true, data: rows[0] });
+    const today = new Date().toISOString().split('T')[0];
+    const [logs] = await db.query(
+      'SELECT care_type FROM care_logs WHERE user_idx = ? AND care_date = ?',
+      [req.session.user.user_idx, today]
+    );
+    const doneTypes = new Set(logs.map(r => r.care_type));
+
+    res.json({
+      success: true,
+      data: {
+        ...rows[0],
+        today_status: {
+          feed_done:  doneTypes.has('feed'),
+          groom_done: doneTypes.has('groom'),
+          clean_done: doneTypes.has('clean'),
+        },
+      },
+    });
 
   } catch (err) {
     console.error(err);
