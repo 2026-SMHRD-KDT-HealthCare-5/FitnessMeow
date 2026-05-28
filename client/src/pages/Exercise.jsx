@@ -17,6 +17,8 @@ import restIcon                                         from '../assets/exercise
 import setIcon                                          from '../assets/exercise-page-icons/set_calendar.png';
 import timerIcon                                        from '../assets/exercise-page-icons/timer_stopwatch.png';
 import quitCatPopup                                     from '../assets/exercise-page-icons/quit_cat_popup_transparent.png';
+import perfectSound                                     from '../assets/sounds/perfect_sound.wav';
+import normalSound                                      from '../assets/sounds/normal_sound.wav';
 
 function Exercise({ type = 'squat', settings }) {
   const navigate = useNavigate();
@@ -37,6 +39,8 @@ function Exercise({ type = 'squat', settings }) {
   const completedSetsRef = useRef(0);      // 완료된 세트 수 (클로저 문제 방지용)
   const gradeCountsRef   = useRef({ perfect: 0, normal: 0 }); // 퍼펙트/일반 횟수
   const previousTypeRef  = useRef(type);   // 이전 운동 종목 (변경 감지용)
+  const perfectSoundRef  = useRef(null);  // 퍼펙트 사운드 오디오 객체
+  const normalSoundRef   = useRef(null);  // 일반 사운드 오디오 객체
 
   /* ─────────────────────────────────────────
      2. State
@@ -81,6 +85,13 @@ function Exercise({ type = 'squat', settings }) {
     normal:   gradeCountsRef.current.normal,
   }), [bodyInfo.heightCm, bodyInfo.weightKg, selectedType, totalReps, targetSets, targetreps]);
 
+  const playGradeSound = useCallback((grade) => {
+    const sound = grade === 'perfect' ? perfectSoundRef.current : normalSoundRef.current;
+    if (!sound) return;
+    sound.currentTime = 0;
+    sound.play().catch(() => {});
+  }, []);
+
   /* ─────────────────────────────────────────
      5. 카메라 정지
      - 카메라/캔버스/스트림 전부 정리
@@ -120,7 +131,10 @@ const finishExercise = useCallback((isGiveUp = false) => {
   stopCamera();
 
   const currentReps = Math.floor(stateRef.current.count + 1e-6);
-  const totalReps = currentReps + completedSetsRef.current * targetreps; // 실제 완료 횟수
+  const totalReps = Math.min(
+  currentReps + completedSetsRef.current * targetreps,
+  targetSets * targetreps
+);
 
   const workoutData = {
     exercise_key  : selectedType,
@@ -157,8 +171,14 @@ const finishExercise = useCallback((isGiveUp = false) => {
 
     // 7-1. 등급 카운트 업데이트
     if (nextState.grade && didCompleteRep) {
-      if (nextState.grade === 'PERFECT' || nextState.grade === '퍼펙트') gradeCountsRef.current.perfect += 1;
-      if (nextState.grade === 'NORMAL'  || nextState.grade === '그냥저냥') gradeCountsRef.current.normal  += 1;
+      if (nextState.grade === 'PERFECT' || nextState.grade === '퍼펙트') {
+        gradeCountsRef.current.perfect += 1;
+        playGradeSound('perfect');
+      }
+      if (nextState.grade === 'NORMAL'  || nextState.grade === '그냥저냥') {
+        gradeCountsRef.current.normal += 1;
+        playGradeSound('normal');
+      }
     }
 
     // 7-2. 총 횟수 업데이트
@@ -202,7 +222,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
     }
 
     setGradeText(`완벽 ${gradeCountsRef.current.perfect} 보통 ${gradeCountsRef.current.normal}`);
-  }, [finishExercise, restTime, targetreps, targetSets]);
+  }, [finishExercise, playGradeSound, restTime, targetreps, targetSets]);
 
   /* ─────────────────────────────────────────
      8. 포즈 감지 결과 처리
@@ -381,6 +401,11 @@ const finishExercise = useCallback((isGiveUp = false) => {
 
   // 14-4. 컴포넌트 언마운트 시 카메라 정리
   useEffect(() => () => stopCamera(), [stopCamera]);
+
+  useEffect(() => {
+    perfectSoundRef.current = new Audio(perfectSound);
+    normalSoundRef.current = new Audio(normalSound);
+  }, []);
 
   /* ─────────────────────────────────────────
      15. Render
