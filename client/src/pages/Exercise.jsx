@@ -19,6 +19,7 @@ import timerIcon                                        from '../assets/exercise
 import quitCatPopup                                     from '../assets/exercise-page-icons/quit_cat_popup_transparent.png';
 import perfectSound                                     from '../assets/sounds/perfect_sound.wav';
 import normalSound                                      from '../assets/sounds/normal_sound.wav';
+import workoutBgm                                      from '../assets/sounds/workout_bgm_8bit_loop_15s.wav';
 
 function Exercise({ type = 'squat', settings }) {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ function Exercise({ type = 'squat', settings }) {
   const previousTypeRef  = useRef(type);   // 이전 운동 종목 (변경 감지용)
   const perfectSoundRef  = useRef(null);  // 퍼펙트 사운드 오디오 객체
   const normalSoundRef   = useRef(null);  // 일반 사운드 오디오 객체
+  const workoutBgmRef    = useRef(null);
 
   /* ─────────────────────────────────────────
      2. State
@@ -113,6 +115,11 @@ function Exercise({ type = 'squat', settings }) {
 
     const ctx = canvasRef.current?.getContext('2d');
     if (canvasRef.current && ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+    if (workoutBgmRef.current) {
+      workoutBgmRef.current.pause();
+      workoutBgmRef.current.currentTime = 0;
+    }
 
     startTimeRef.current = null;
     setIsCameraOn(false);
@@ -294,6 +301,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
 
       cameraRef.current = camera;
       await camera.start();
+      workoutBgmRef.current?.play().catch(() => {});
       startTimeRef.current = performance.now();
       setIsCameraOn(true);
       setMessage('자세를 인식하는 중입니다.');
@@ -336,6 +344,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
       if (track) track.onended = () => { stopCamera(); setMessage('화면공유 측정이 종료되었습니다.'); };
 
       startTimeRef.current = performance.now();
+      workoutBgmRef.current?.play().catch(() => {});
       setIsCameraOn(true);
       setMessage('화면공유 영상으로 자세를 인식하는 중입니다.');
       screenFrameRef.current = requestAnimationFrame(processScreenFrame);
@@ -405,6 +414,8 @@ const finishExercise = useCallback((isGiveUp = false) => {
   useEffect(() => {
     perfectSoundRef.current = new Audio(perfectSound);
     normalSoundRef.current = new Audio(normalSound);
+    workoutBgmRef.current = new Audio(workoutBgm);
+    workoutBgmRef.current.loop = true;
   }, []);
 
   /* ─────────────────────────────────────────
