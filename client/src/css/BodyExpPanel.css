@@ -1,68 +1,17 @@
 /* ══════════════════════════════════════════════════════════════════
-   BodyExpPanel.css — 부위별 경험치 패널 (토글형)
-
-   최소화: 💪 아이콘 버튼만 표시 (.body-exp-panel--mini)
-   펼침  : 버튼 + EXP 바 목록 표시 (.body-exp-panel--open)
+   BodyExpPanel.css — 부위별 경험치 패널
+   항상 펼침 상태로 표시 (내부 토글 없음)
+   표시 여부는 MainLobby expPanelOpen 상태로 제어
 ══════════════════════════════════════════════════════════════════ */
 
-/* ── 공통 패널 베이스 ── */
+/* ── 패널 베이스 ── */
 .body-exp-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end; /* 버튼을 오른쪽 정렬 */
-  gap: 0;
-}
-
-/* ── 최소화 상태: 아이콘 버튼만 ── */
-.body-exp-panel--mini .body-exp-toggle {
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-}
-
-/* ── 펼침 상태: 패널 박스 ── */
-.body-exp-panel--open {
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(6px);
   border-radius: 16px;
   border: 1.5px solid rgba(255, 255, 255, 0.7);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   padding: 8px 12px 12px;
-  align-items: stretch;
-}
-
-/* 펼침 상태일 때 토글 버튼을 중앙 정렬 → "부위별 경험치" 타이틀과 시각적으로 균형 맞춤 */
-.body-exp-panel--open .body-exp-toggle {
-  align-self: center;
-}
-
-/* ── 토글 버튼 (공통) ── */
-.body-exp-toggle {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(6px);
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: transform 0.15s ease, background 0.15s;
-  align-self: flex-end; /* 펼침 상태에서 오른쪽 끝 */
-  margin-bottom: 4px;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-}
-
-.body-exp-toggle:hover {
-  transform: scale(1.1);
-  background: #fff8f2;
-}
-
-/* ── 펼침 내용 영역 ── */
-.body-exp-content {
   display: flex;
   flex-direction: column;
   gap: 8px;

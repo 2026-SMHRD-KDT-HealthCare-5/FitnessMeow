@@ -85,23 +85,25 @@ router.post('/', async (req, res) => {
     await applyDailyQuest(conn, user_idx, exercise_key, total_reps);
 
     // 9-2. 출석 기록 자동 등록 (오늘 첫 운동 시)
-    const today     = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
+    // CURDATE()로 DB 타임존 기준 날짜 사용
     const [[existingAtt]] = await conn.query(
-      'SELECT attendance_idx FROM attendances WHERE user_idx = ? AND addtend_date = ?',
-      [user_idx, today],
+      'SELECT attendance_idx FROM attendances WHERE user_idx = ? AND addtend_date = CURDATE()',
+      [user_idx],
     );
+
     if (!existingAtt) {
+      // 어제 출석 기록 조회 →  없으면 1부터 시작
       const [[yesterdayAtt]] = await conn.query(
-        'SELECT streak_count FROM attendances WHERE user_idx = ? AND addtend_date = ?',
-        [user_idx, yesterday],
+        `SELECT streak_count FROM attendances
+         WHERE user_idx = ? AND addtend_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY)`,
+        [user_idx],
       );
+       // 어제 출석 기록 조회 → 있으면 streak +1
       const newStreak = yesterdayAtt ? yesterdayAtt.streak_count + 1 : 1;
       await conn.query(
         `INSERT INTO attendances (user_idx, addtend_date, streak_count, reward_given)
-         VALUES (?, ?, ?, 0)`,
-        [user_idx, today, newStreak],
+         VALUES (?, CURDATE(), ?, 0)`,
+        [user_idx, newStreak],
       );
     }
 

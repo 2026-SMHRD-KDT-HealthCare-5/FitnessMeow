@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import "../css/Login.css";
 import logoimg from "../assets/logo.png";
-import { Link } from 'react-router-dom'; // Link 컴포넌트 임포트
+import { Link } from 'react-router-dom';
 
-
+// 서버 주소: .env 에 VITE_API_URL 이 있으면 사용, 없으면 로컬 3001포트
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 const Login = () => {
   const [id, setId] = useState('');
@@ -15,7 +16,7 @@ const Login = () => {
 
   async function handleLogin() {
     try {
-      const res = await fetch('http://localhost:3001/api/auth/login', {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

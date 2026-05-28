@@ -1,149 +1,49 @@
 // config/shopItems.js
 // 상점 아이템 마스터 데이터
-// DB shop_items 테이블 대신 config로 관리
-// item_keyword는 DB user_items.item_keyword와 연결되는 고유 키
+// item_keyword → DB user_items.item_keyword 와 연결되는 고유 키
 
-export const SHOP_CATEGORIES = ['전체', '가구', '고양이 용품', '벽지', '타일'];
+export const SHOP_CATEGORIES = ['all', 'furniture', 'wallpaper', 'tile'];
 
+// 카테고리 식별자 → UI 표시 레이블 (한국어)
+export const CATEGORY_LABELS = {
+  all:       '전체',
+  furniture: '가구',
+  cat:       '고양이',
+  wallpaper: '벽지',
+  tile:      '타일',
+};
+
+// 배경 아이템 — assets/wallpaper/ 및 assets/tile/ 파일 기반
+// isDefault: true → 구매 없이 기본 제공
+export const BG_ITEMS = [
+  // ── 벽지 (assets/wallpaper/) ─────────────────────────
+  { item_keyword: 'wallpaper_1', item_name: '벽지 1', category: 'wallpaper', price: 0,   icon_name: 'wallpaper1.png',  isDefault: true },
+  { item_keyword: 'wallpaper_2', item_name: '벽지 2', category: 'wallpaper', price: 300, icon_name: 'wallpapers2.png' },
+
+  // ── 타일 (assets/tile/) ──────────────────────────────
+  { item_keyword: 'tile_1', item_name: '타일 1', category: 'tile', price: 0,   icon_name: 'floortiles1.png', isDefault: true },
+  { item_keyword: 'tile_2', item_name: '타일 2', category: 'tile', price: 300, icon_name: 'floortiles2.png' },
+];
+
+// 가구 아이템 — assets/furniture/ 파일 기반 (고양이 용품 통합)
 export const SHOP_ITEMS = [
-
-    // ────────────────────────────────
-    //  침대 / 소파
-    // ────────────────────────────────
-    {
-        item_keyword : 'bed_cushion',
-        item_name    : '쿠션',
-        category     : '가구',
-        price        : 200,
-        icon_name    : 'cushion.png',
-        size         : { w: 1, h: 1 },
-    },
-    {
-        item_keyword : 'bed_sofa',
-        item_name    : '소파',
-        category     : '가구',
-        price        : 500,
-        icon_name    : 'sofa.png',
-        size         : { w: 2, h: 1 },
-    },
-
-    // ────────────────────────────────
-    //  캣타워
-    // ────────────────────────────────
-    {
-        item_keyword : 'cat_tower_wood',
-        item_name    : '원목 캣타워',
-        category     : '가구',
-        price        : 350,
-        icon_name    : 'cattower.png',
-        size         : { w: 1, h: 2 },
-    },
-    {
-        item_keyword : 'cat_tower_2',
-        item_name    : '캣타워 2',
-        category     : '가구',
-        price        : 450,
-        icon_name    : 'cattower2.png',
-        size         : { w: 1, h: 2 },
-    },
-    {
-        item_keyword : 'cat_tower_condo',
-        item_name    : '캣콘도',
-        category     : '가구',
-        price        : 500,
-        icon_name    : 'catcondo.png',
-        size         : { w: 2, h: 2 },
-    },
-    {
-        item_keyword : 'cat_tower_pole',
-        item_name    : '캣폴',
-        category     : '가구',
-        price        : 400,
-        icon_name    : 'catpole.png',
-        size         : { w: 1, h: 2 },
-    },
-    {
-        item_keyword : 'cat_tower_wheel',
-        item_name    : '캣휠',
-        category     : '가구',
-        price        : 600,
-        icon_name    : 'catwheel.png',
-        size         : { w: 2, h: 2 },
-    },
-
-    // ────────────────────────────────
-    //  고양이 용품
-    // ────────────────────────────────
-    {
-        item_keyword : 'toy_ball1',
-        item_name    : '털뭉치 1',
-        category     : '고양이 용품',
-        price        : 50,
-        icon_name    : 'ball1.png',
-        size         : { w: 1, h: 1 },
-    },
-    {
-        item_keyword : 'toy_ball2',
-        item_name    : '털뭉치 2',
-        category     : '고양이 용품',
-        price        : 80,
-        icon_name    : 'ball2.png',
-        size         : { w: 1, h: 1 },
-    },
-    {
-        item_keyword : 'toy_ball3',
-        item_name    : '털뭉치 3',
-        category     : '고양이 용품',
-        price        : 120,
-        icon_name    : 'ball3.png',
-        size         : { w: 1, h: 1 },
-    },
-    {
-        item_keyword : 'toy_mouse',
-        item_name    : '쥐 인형',
-        category     : '고양이 용품',
-        price        : 80,
-        icon_name    : 'mouse.png',
-        size         : { w: 1, h: 1 },
-    },
-    {
-        item_keyword : 'toy_scratcher',
-        item_name    : '스크래쳐',
-        category     : '고양이 용품',
-        price        : 250,
-        icon_name    : 'scratcher.png',
-        size         : { w: 1, h: 1 },
-    },
-    {
-        item_keyword : 'toy_catnippile',
-        item_name    : '캣닢 더미',
-        category     : '고양이 용품',
-        price        : 150,
-        icon_name    : 'catnippile.png',
-        size         : { w: 1, h: 1 },
-    },
-    {
-        item_keyword : 'toy_catfoodcontainer',
-        item_name    : '사료 용기',
-        category     : '고양이 용품',
-        price        : 100,
-        icon_name    : 'catfoodcontainer.png',
-        size         : { w: 1, h: 1 },
-    },
-    {
-        item_keyword : 'toy_toilet',
-        item_name    : '화장실',
-        category     : '고양이 용품',
-        price        : 300,
-        icon_name    : 'toilet.png',
-        size         : { w: 1, h: 1 },
-    },
-    {
-        item_keyword : 'toy_waterdispenser',
-        item_name    : '정수기',
-        category     : '고양이 용품',
-        price        : 200,
-        icon_name    : 'waterdispenser.png',
-        size         : { w: 1, h: 1 },
-    },
+  { item_keyword: 'barbell',        item_name: '바벨',          category: 'furniture', price: 200, icon_name: 'barbell.png',        size: { w: 1, h: 1 } },
+  { item_keyword: 'book',           item_name: '책',            category: 'furniture', price: 80,  icon_name: 'book.png',           size: { w: 1, h: 1 } },
+  { item_keyword: 'box',            item_name: '상자',          category: 'furniture', price: 100, icon_name: 'box.png',            size: { w: 1, h: 1 } },
+  { item_keyword: 'cabinet',        item_name: '캐비닛',        category: 'furniture', price: 400, icon_name: 'cabinet.png',        size: { w: 1, h: 2 } },
+  { item_keyword: 'catbed',         item_name: '고양이 침대',   category: 'furniture', price: 250, icon_name: 'catbed.png',         size: { w: 1, h: 1 } },
+  { item_keyword: 'catbed2',        item_name: '고양이 침대 2', category: 'furniture', price: 300, icon_name: 'catbed2.png',        size: { w: 1, h: 1 } },
+  { item_keyword: 'catfoodbowl',    item_name: '밥그릇',        category: 'furniture', price: 80,  icon_name: 'catfoodbowl.png',    size: { w: 1, h: 1 } },
+  { item_keyword: 'cathouse',       item_name: '고양이 집',     category: 'furniture', price: 350, icon_name: 'cathouse.png',       size: { w: 2, h: 2 } },
+  { item_keyword: 'cattoilet',      item_name: '화장실',        category: 'furniture', price: 200, icon_name: 'cattoilet.png',      size: { w: 1, h: 1 } },
+  { item_keyword: 'cattower',       item_name: '캣타워',        category: 'furniture', price: 450, icon_name: 'cattower.png',       size: { w: 1, h: 2 } },
+  { item_keyword: 'catwaterbowl',   item_name: '물그릇',        category: 'furniture', price: 80,  icon_name: 'catwaterbowl.png',   size: { w: 1, h: 1 } },
+  { item_keyword: 'frame',          item_name: '액자',          category: 'furniture', price: 150, icon_name: 'frame.png',          size: { w: 1, h: 1 } },
+  { item_keyword: 'gymball',        item_name: '짐볼',          category: 'furniture', price: 200, icon_name: 'gymball.png',        size: { w: 1, h: 1 } },
+  { item_keyword: 'plant',          item_name: '화분',          category: 'furniture', price: 150, icon_name: 'plant2.png',         size: { w: 1, h: 1 } },
+  { item_keyword: 'shelf',          item_name: '선반',          category: 'furniture', price: 250, icon_name: 'shelf.png',          size: { w: 2, h: 1 } },
+  { item_keyword: 'tissuecase',     item_name: '티슈케이스',    category: 'furniture', price: 80,  icon_name: 'tissuecase.png',     size: { w: 1, h: 1 } },
+  { item_keyword: 'walkingmachine', item_name: '러닝머신',      category: 'furniture', price: 600, icon_name: 'walkingmachine.png', size: { w: 2, h: 1 } },
+  { item_keyword: 'window',         item_name: '창문',          category: 'furniture', price: 200, icon_name: 'window.png',         size: { w: 2, h: 1 } },
+  { item_keyword: 'yogamat',        item_name: '요가 매트',     category: 'furniture', price: 150, icon_name: 'yogamat.png',        size: { w: 2, h: 1 } },
 ];

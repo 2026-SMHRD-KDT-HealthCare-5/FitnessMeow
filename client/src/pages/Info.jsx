@@ -33,30 +33,12 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar.jsx';
 import { CHARACTER_CONFIG } from '../config/characters.js'; // 캐릭터 이름 조회용
+import { getCatUrl } from '../utils/catUtils.js';          // 캐릭터 이미지 URL 공통 유틸
 import stampImg from '../assets/icons/stamp.png';
 import '../css/Info.css';
 
 // 서버 주소: .env 에 VITE_API_URL 이 있으면 사용, 없으면 로컬 3001포트
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-
-/* ── 캐릭터 이미지 번들 ───────────────────────────────────────────────────────
-   빌드 시점에 모든 캐릭터 PNG를 URL 맵으로 로드.
-   프로필 카드에 현재 캐릭터 이미지(현재 레벨 기준)를 표시하는 데 사용.
-─────────────────────────────────────────────────────────────────────────── */
-const CAT_IMAGES = import.meta.glob(
-  '../assets/characters/**/*.png',
-  { eager: true, import: 'default' },
-);
-
-/**
- * 캐릭터 키와 레벨로 이미지 URL 반환
- * @param {string} key   — 캐릭터 키 (예: "cheese_korean_shorthair")
- * @param {number} level — 레벨 1·2·3
- * @returns {string|null}
- */
-function getCatUrl(key, level = 1) {
-  return CAT_IMAGES[`../assets/characters/${key}/${key}_LV_${level}.png`] ?? null;
-}
 
 /* ══════════════════════════════════════════════════════════════
    Info 컴포넌트
@@ -189,11 +171,10 @@ const Info = () => {
   // ── 스탯 카드 목록 ────────────────────────────────────────────────────────
   // 이 배열을 수정해 표시할 통계 항목을 추가·제거·순서 변경 가능
   const STATS = [
-    { icon: '🪙', value: coins.toLocaleString(),   label: '코인'      },
-    { icon: '⚖️', value: user?.bmi    ?? '--',     label: 'BMI'       },
+    { icon: '🪙', value: coins.toLocaleString(),   label: '코인'   },
+    { icon: '⚖️', value: user?.bmi    ?? '--',     label: 'BMI'    },
     { icon: '📏', value: user?.height ?? '--', unit: 'cm', label: '키'    },
     { icon: '💪', value: user?.weight ?? '--', unit: 'kg', label: '몸무게' },
-    { icon: '✨', value: user?.point  ?? 0,        label: '총 경험치'  },
   ];
 
   // ── 렌더 ──────────────────────────────────────────────────────────────────

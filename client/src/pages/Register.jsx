@@ -1,9 +1,12 @@
 import React  from 'react';
 import { useNavigate } from 'react-router-dom';
 import "../css/Register.css";
-import logoImg from "../assets/logo.png"; 
+import logoImg from "../assets/logo.png";
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+
+// 서버 주소: .env 에 VITE_API_URL 이 있으면 사용, 없으면 로컬 3001포트
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 const Register = () => {
 
@@ -32,7 +35,7 @@ const [error,setError]= useState('');
     }
 
     try {
-      const res = await fetch('http://localhost:3001/api/auth/register', {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

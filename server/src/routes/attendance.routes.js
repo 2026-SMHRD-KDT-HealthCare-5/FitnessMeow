@@ -27,24 +27,16 @@ router.get('/streak', async (req, res) => {
     );
 
     // 가장 최근 출석일이 오늘 또는 어제가 아니면 스트릭 끊긴 것
-    const [[latest]] = await db.query(
-      `SELECT addtend_date FROM attendances
-       WHERE user_idx = ? ORDER BY addtend_date DESC LIMIT 1`,
+    // CURDATE()로 DB 타임존 기준 비교 (JS new Date()는 UTC라 KST와 날짜 불일치 가능)
+    const [[activeCheck]] = await db.query(
+      `SELECT COUNT(*) AS cnt
+       FROM attendances
+       WHERE user_idx = ?
+         AND addtend_date >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)`,
       [user_idx],
     );
 
-    let current_streak = 0;
-    if (latest) {
-      const today     = new Date().toISOString().split('T')[0];
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-      const lastDate  = latest.addtend_date.toISOString?.().split('T')[0]
-                     ?? String(latest.addtend_date).split('T')[0];
-
-      if (lastDate === today || lastDate === yesterday) {
-        current_streak = row.current_streak ?? 0;
-      }
-      // 그 외엔 0 (스트릭 끊김)
-    }
+    const current_streak = activeCheck.cnt > 0 ? (row.current_streak ?? 0) : 0;
 
     res.json({
       current_streak,

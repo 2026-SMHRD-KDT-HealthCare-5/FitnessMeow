@@ -31,29 +31,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar.jsx';
 import { CHARACTER_CONFIG } from '../config/characters.js'; // 캐릭터 이름·설명 설정
+import { getCatUrl } from '../utils/catUtils.js';          // 캐릭터 이미지 URL 공통 유틸
 import '../css/Collection.css';
 
 // 서버 주소: .env 에 VITE_API_URL 이 있으면 사용, 없으면 로컬 3001포트
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-
-/* ── 캐릭터 이미지 번들 ───────────────────────────────────────────────────────
-   빌드 시점에 모든 캐릭터 레벨별 PNG를 URL 맵으로 로드.
-   getCatUrl(key, level) 함수로 특정 캐릭터+레벨 이미지 URL 조회.
-─────────────────────────────────────────────────────────────────────────── */
-const CAT_IMAGES = import.meta.glob(
-  '../assets/characters/**/*.png',
-  { eager: true, import: 'default' },
-);
-
-/**
- * 캐릭터 키와 레벨로 이미지 URL 반환
- * @param {string} key   — 캐릭터 키 (예: "cheese_korean_shorthair")
- * @param {number} level — 레벨 1·2·3
- * @returns {string|null} — URL 또는 null (파일 없으면)
- */
-function getCatUrl(key, level = 1) {
-  return CAT_IMAGES[`../assets/characters/${key}/${key}_LV_${level}.png`] ?? null;
-}
 
 // 도감에 표시할 캐릭터 순서 (= 해금 순서)
 const CHARACTER_ORDER = ['cheese_korean_shorthair', 'russian_blue', 'munchkin'];

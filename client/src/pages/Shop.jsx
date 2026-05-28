@@ -16,7 +16,7 @@
  *
  * 상태(state):
  *   coins        — 유저가 현재 보유한 코인 (로드 시 /api/care/status 에서 조회)
- *   activeTab    — 현재 선택된 탭 ('가구' | '벽지' | '타일')
+ *   activeTab    — 현재 선택된 탭 ('furniture' | 'cat_items' | 'wallpaper' | 'tile')
  *   ownedItems   — 구매한 아이템 목록 [{ keyword }] (/api/inventory 에서 조회)
  *   selectedItem — 구매 확인 모달에 표시할 아이템 (카드 클릭 시 설정)
  *   isModalOpen  — 구매 확인 모달 표시 여부
@@ -41,7 +41,7 @@ import ShopItemCard  from '../components/ShopItemCard.jsx';
 import PurchaseModal from '../components/PurchaseModal.jsx';
 import ToastMessage  from '../components/ToastMessage.jsx';
 import axios         from 'axios';
-import { SHOP_ITEMS } from '../config/shopitems.js';
+import { SHOP_ITEMS, BG_ITEMS, CATEGORY_LABELS } from '../config/shopitems.js';
 
 // 서버 주소: .env 에 VITE_API_URL 이 있으면 사용, 없으면 로컬 3001포트
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
@@ -51,7 +51,7 @@ const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
    런타임에 파일명(icon_name) 으로 즉시 URL 조회 가능.
 ─────────────────────────────────────────────────────────────────────────── */
 const ALL_IMGS = import.meta.glob(
-  '../assets/{furniture,cat_items}/**/*.png',
+  '../assets/{furniture,wallpaper,tile}/**/*.png',
   { eager: true, import: 'default' },
 );
 
@@ -62,10 +62,9 @@ Object.entries(ALL_IMGS).forEach(([path, url]) => {
 });
 
 /* ── 탭별 아이템 그룹핑 ────────────────────────────────────────────────────────
-   SHOP_ITEMS 에서 category 별로 분류한 뒤, 표시용 필드(id, name, img)를 추가
-   - 가구: 침대·캣타워·장난감 카테고리 통합
-   - 벽지: 현재 아이템 있으면 포함 (현재는 빈 배열)
-   - 타일: 준비 중 (빈 배열)
+   - furniture / cat_items : SHOP_ITEMS 에서 category 별 분류
+   - wallpaper / tile      : BG_ITEMS 에서 price > 0 인 판매 아이템만 포함
+                             (isDefault 아이템은 기본 제공이므로 상점 미노출)
 ─────────────────────────────────────────────────────────────────────────── */
 const toCard = i => ({
   ...i,
@@ -75,20 +74,19 @@ const toCard = i => ({
 });
 
 const GROUPED = {
-  '가구':        SHOP_ITEMS.filter(i => i.category === '가구').map(toCard),
-  '고양이 용품': SHOP_ITEMS.filter(i => i.category === '고양이 용품').map(toCard),
-  '벽지':        SHOP_ITEMS.filter(i => i.category === '벽지').map(toCard),
-  '타일':        [],
+  furniture: SHOP_ITEMS.filter(i => i.category === 'furniture').map(toCard),
+  wallpaper: BG_ITEMS.filter(i => i.category === 'wallpaper' && !i.isDefault).map(toCard),
+  tile:      BG_ITEMS.filter(i => i.category === 'tile'      && !i.isDefault).map(toCard),
 };
 
-const TABS = ['가구', '고양이 용품', '벽지', '타일'];
+const TABS = ['furniture', 'wallpaper', 'tile'];
 
 /* ══════════════════════════════════════════════════════════════
    Shop 컴포넌트
 ══════════════════════════════════════════════════════════════ */
 const Shop = () => {
   const [coins,        setCoins]        = useState(0);      // 현재 보유 코인
-  const [activeTab,    setActiveTab]    = useState('가구'); // 선택된 탭
+  const [activeTab,    setActiveTab]    = useState('furniture'); // 선택된 탭
   const [ownedItems,   setOwnedItems]   = useState([]);     // 보유 아이템 [{ keyword }]
   const [selectedItem, setSelectedItem] = useState(null);   // 구매 확인할 아이템
   const [isModalOpen,  setIsModalOpen]  = useState(false);  // 구매 모달 표시 여부
@@ -189,7 +187,7 @@ const Shop = () => {
         <UserCoin coins={coins} />
       </div>
 
-      {/* ── ② 탭 전환: 가구 / 벽지 / 타일 ── */}
+      {/* ── ② 탭 전환: furniture / cat_items / wallpaper / tile ── */}
       <div className="shop-tabs">
         {TABS.map(tab => (
           <button
@@ -197,7 +195,7 @@ const Shop = () => {
             className={`shop-tab ${activeTab === tab ? 'active' : ''}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab}
+            {CATEGORY_LABELS[tab]}
           </button>
         ))}
       </div>

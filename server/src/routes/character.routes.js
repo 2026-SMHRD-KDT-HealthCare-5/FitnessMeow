@@ -4,6 +4,22 @@ const router  = express.Router();
 const db      = require('../db');
 const { CHARACTER_CONFIG } = require('../config/characters.cjs');
 
+/* ── GET /api/character/all — 해금된 모든 고양이 목록 ── */
+router.get('/all', async (req, res) => {
+  const user_idx = req.session.user?.user_idx;
+  if (!user_idx) return res.status(401).json({ message: '로그인 필요' });
+  try {
+    const [rows] = await db.query(
+      'SELECT character_key, level FROM characters WHERE user_idx = ? ORDER BY created_at ASC',
+      [user_idx],
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('GET /api/character/all 오류:', err);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
 router.get('/', async (req, res) => {
   const user_idx = req.session.user?.user_idx;
   if (!user_idx) return res.status(401).json({ message: '로그인 필요' });
