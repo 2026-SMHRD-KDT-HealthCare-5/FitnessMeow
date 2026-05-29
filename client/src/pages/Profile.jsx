@@ -1,7 +1,29 @@
+/**
+ * Profile.jsx — 최근 운동 기록 페이지
+ *
+ * 목차:
+ *   1. 상수 및 임포트   — API URL 설정, 운동 종목 한글 변환 맵
+ *   2. 상태 선언        — 운동 기록·로딩·에러 상태
+ *   3. 데이터 로드      — 마운트 시 GET /api/result 로 최근 운동 기록 1건 조회
+ *   4. 렌더             — 로딩/에러 처리 → 운동 기록 테이블 표시
+ *
+ * API 연동:
+ *   GET /api/result — 최근 운동 기록 1건 { exercise_key, sets, reps, total_score, calories }
+ *
+ * 비고:
+ *   - 현재는 최근 1건만 표시하는 단순 테이블 구조
+ *   - 히스토리 목록 등 확장 시 workout을 배열로 변경 필요
+ */
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar.jsx";
 import "../App.css";
+
+// ══════════════════════════════════════
+// 1. 상수 및 임포트
+//    API URL 및 운동 종목 한글 변환 맵 정의
+// ══════════════════════════════════════
 
 // 서버 주소: .env 에 VITE_API_URL 이 있으면 사용, 없으면 로컬 3001포트
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
@@ -14,9 +36,19 @@ const EXERCISE_LABEL = {
 };
 
 const Profile = () => {
+  // ══════════════════════════════════════
+  // 2. 상태 선언
+  //    운동 기록 단건, 로딩 여부, 에러 메시지
+  // ══════════════════════════════════════
+
   const [workout,  setWorkout]  = useState(null);  // 최근 운동 기록 (단건)
   const [loading,  setLoading]  = useState(true);  // 로딩 상태
   const [error,    setError]    = useState(null);   // 에러 메시지
+
+  // ══════════════════════════════════════
+  // 3. 데이터 로드
+  //    마운트 시 최근 운동 기록 1건 조회
+  // ══════════════════════════════════════
 
   // 마운트 시 최근 운동 기록 1건 조회
   useEffect(() => {
@@ -32,6 +64,10 @@ const Profile = () => {
       });
   }, []);
 
+  // ══════════════════════════════════════
+  // 4. 렌더
+  //    로딩 → 에러 → 운동 기록 테이블 순으로 조건부 렌더
+  // ══════════════════════════════════════
   return (
     <div className="app-layout">
       <div className="main-content">

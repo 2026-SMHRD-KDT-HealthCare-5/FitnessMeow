@@ -1,37 +1,40 @@
 /**
  * TestCoinButton.jsx — 개발용 코인·돌봄포인트·경험치 즉시 증가 버튼
  *
+ * 목차:
+ *   1. API 설정 및 상태   — API URL, loading·toast 상태
+ *   2. handleCoin        — 코인 즉시 증가 API 호출
+ *   3. handleExp         — 경험치 즉시 증가 API 호출 (레벨업 처리 포함)
+ *   4. 렌더링             — 고정 위치 버튼 2개 + 토스트 알림
+ *
  * ⚠️  경고: 이 컴포넌트는 개발 편의를 위한 임시 UI 입니다.
  *          배포(프로덕션) 시 MainLobby.jsx 에서 반드시 제거해야 합니다.
  *          서버의 /api/test/* 라우트도 함께 비활성화해야 합니다.
  *
- * 역할:
- *   화면 우하단에 세 개의 원형 버튼을 고정 위치(fixed)로 표시
- *   🐾 버튼: POST /api/test/add-care-points → 돌봄포인트 즉시 증가
- *   ✨ 버튼: POST /api/test/add-exp         → 경험치 즉시 증가 (레벨업 자동 처리)
- *   🪙 버튼: POST /api/test/add-coins       → 코인 즉시 증가
- *
  * Props:
- *   onCoinsChange      — (newCoins: number) => void       코인 상태 갱신 콜백
- *   onCarePointsChange — (newCarePoints: number) => void  돌봄포인트 상태 갱신 콜백
- *   onExpChange        — (character: object) => void      캐릭터 전체 상태 갱신 콜백
- *                        (경험치·레벨이 모두 바뀔 수 있으므로 character 객체 통째로 전달)
- *   coinAmount         — 한 번에 증가할 코인 (기본: 500)
- *   careAmount         — 한 번에 증가할 돌봄포인트 (기본: 5)
- *   expAmount          — 한 번에 증가할 경험치 (기본: 5, 서버 최대: 99)
+ *   onCoinsChange — (newCoins: number) => void       코인 상태 갱신 콜백
+ *   onExpChange   — (character: object) => void      캐릭터 전체 상태 갱신 콜백
+ *                   (경험치·레벨이 모두 바뀔 수 있으므로 character 객체 통째로 전달)
+ *   coinAmount    — 한 번에 증가할 코인 (기본: 500)
+ *   expAmount     — 한 번에 증가할 경험치 (기본: 5, 서버 최대: 99)
  */
 
 import React, { useState } from 'react';
 import axios from 'axios';
 
+// ══════════════════════════════════════
+// 1. API 설정 및 상태
+//    API: VITE_API_URL 환경변수 우선, 없으면 localhost:3001 폴백
+//    loading: 현재 호출 중인 버튼 식별자 ('coin' | 'care' | 'exp' | '')
+//    toast:   성공/오류 피드백 메시지 { msg, type: 'ok'|'err' }
+// ══════════════════════════════════════
+
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 const TestCoinButton = ({
   onCoinsChange,
-  onCarePointsChange,
   onExpChange,
   coinAmount = 500,
-  careAmount = 5,
   expAmount  = 5,
 }) => {
   // 현재 API 호출 중인 버튼 식별자 ('coin' | 'care' | 'exp' | '')
@@ -44,7 +47,10 @@ const TestCoinButton = ({
     setTimeout(() => setToast(null), 2200);
   };
 
-  // ── 🪙 코인 증가 ─────────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 2. handleCoin — 코인 즉시 증가
+  //    POST /api/test/add-coins → 응답의 coins 값으로 부모 상태 갱신
+  // ══════════════════════════════════════
   const handleCoin = async () => {
     if (loading) return;
     setLoading('coin');
@@ -63,27 +69,11 @@ const TestCoinButton = ({
     }
   };
 
-  // ── 🐾 돌봄포인트 증가 ────────────────────────────────────────────────────
-  const handleCare = async () => {
-    if (loading) return;
-    setLoading('care');
-    try {
-      const res = await axios.post(
-        `${API}/api/test/add-care-points`,
-        { amount: careAmount },
-        { withCredentials: true },
-      );
-      onCarePointsChange?.(res.data.care_point);
-      showToast(`🐾 +${careAmount} 돌봄포인트! (잔액: ${res.data.care_point})`);
-    } catch (err) {
-      showToast(err.response?.data?.message ?? '오류 발생', 'err');
-    } finally {
-      setLoading('');
-    }
-  };
-
-  // ── ✨ 경험치 증가 ─────────────────────────────────────────────────────────
-  // 서버가 레벨업 여부를 함께 반환 → 레벨업이면 토스트 메시지 다르게 표시
+  // ══════════════════════════════════════
+  // 3. handleExp — 경험치 즉시 증가 (레벨업 처리 포함)
+  //    POST /api/test/add-exp → 응답의 leveled_up 여부에 따라 토스트 메시지 분기
+  //    서버가 레벨업 여부를 함께 반환 → 레벨업이면 토스트 메시지 다르게 표시
+  // ══════════════════════════════════════
   const handleExp = async () => {
     if (loading) return;
     setLoading('exp');
@@ -97,8 +87,10 @@ const TestCoinButton = ({
       onExpChange?.(res.data.character);
 
       if (res.data.leveled_up) {
+        // 레벨업 달성 시 레벨 표시
         showToast(`🎉 레벨 업! Lv.${res.data.character.level} 달성!`);
       } else {
+        // 레벨업 없을 때: 4개 부위 경험치 평균으로 현황 표시
         const avg = (
           (res.data.character.arm_exp   ?? 0) +
           (res.data.character.chest_exp ?? 0) +
@@ -113,6 +105,13 @@ const TestCoinButton = ({
       setLoading('');
     }
   };
+
+  // ══════════════════════════════════════
+  // 4. 렌더링
+  //    버튼 묶음: 화면 좌하단 고정 (Navbar 위: bottom 270px)
+  //    버튼 공통 인라인 스타일 (btnBase) 적용
+  //    토스트: 화면 우하단 고정, 성공(#2b2b2b) / 오류(#ff3b30) 배경색 구분
+  // ══════════════════════════════════════
 
   // 버튼 공통 인라인 스타일
   const btnBase = {
@@ -131,7 +130,7 @@ const TestCoinButton = ({
 
   return (
     <>
-      {/* 버튼 묶음 — 우하단 고정 (Navbar 위: bottom: 80px) */}
+      {/* 버튼 묶음 — 좌하단 고정 (Navbar 위: bottom: 270px) */}
       <div style={{
         position:     'fixed',
         bottom:       '270px',
@@ -176,7 +175,7 @@ const TestCoinButton = ({
         </button>
       </div>
 
-      {/* 토스트 알림 */}
+      {/* 토스트 알림 — 성공/오류에 따라 배경색 다르게 적용 */}
       {toast && (
         <div style={{
           position:     'fixed',
@@ -197,6 +196,7 @@ const TestCoinButton = ({
         </div>
       )}
 
+      {/* fadeInUp 애니메이션 키프레임 정의 */}
       <style>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(8px); }

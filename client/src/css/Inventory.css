@@ -1,3 +1,17 @@
+/* ══════════════════════════════════════════
+   Inventory.css — 우측 고정 인벤토리 패널
+   (MyRoom.css의 .inv-panel과 다른 별도 컴포넌트)
+
+   목차:
+     1. 고정 컨테이너   — 화면 우측에 슬라이드 인되는 패널
+     2. 카테고리 탭     — 세로 배치 탭 버튼 (가구/배경 등)
+     3. 아이템 목록     — 세로 스크롤, 스크롤바 숨김
+     4. 아이템 카드     — 110px 높이 카드, 장착 상태 구분
+     5. 아이템 내부     — 아이콘·이름·가격 뱃지
+══════════════════════════════════════════ */
+
+/* ── 1. 고정 컨테이너 ────────────────────── */
+/* 우측에서 슬라이드 인 애니메이션으로 등장, Navbar 위(bottom: 70px)까지 차지 */
 .inventory-fixed-container {
   position: fixed;
   right: 0;
@@ -21,6 +35,8 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
+/* ── 2. 카테고리 탭 ──────────────────────── */
+/* 세로 배치 탭 버튼 — 활성 탭: 흰색 배경 + 주황색 텍스트 */
 /* 카테고리 탭 - 세로로 */
 .inventory-categories {
   display: flex;
@@ -50,6 +66,8 @@
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 }
 
+/* ── 3. 아이템 목록 ──────────────────────── */
+/* 세로 스크롤, 스크롤바 완전 숨김 */
 /* 아이템 세로 스크롤 */
 .inventory-item-list {
   display: flex;
@@ -66,6 +84,8 @@
   display: none;
 }
 
+/* ── 4. 아이템 카드 ──────────────────────── */
+/* 110px 고정 높이, 장착 중인 아이템은 보라색 테두리로 구분 */
 /* 아이템 카드 */
 .inventory-item-card {
   width: 100%;
@@ -89,11 +109,14 @@
   border-color: rgba(255, 130, 58, 0.4);
 }
 
+/* 장착 중 상태 — 보라색 테두리 */
 .inventory-item-card.equipped {
   border-color: var(--point-purple);
   background: #faf5ff;
 }
 
+/* ── 5. 아이템 내부 ──────────────────────── */
+/* 아이콘(이모지 or 이미지) + 이름 + 가격/보유 뱃지 */
 .item-icon {
   font-size: 28px;
   margin-bottom: 4px;
@@ -107,6 +130,7 @@
   text-align: center;
 }
 
+/* 가격 뱃지 — 주황색 / 보유 중이면 보라색으로 변경 */
 .item-price {
   font-size: 10px;
   color: var(--main-orange);

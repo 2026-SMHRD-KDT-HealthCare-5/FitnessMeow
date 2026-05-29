@@ -1,30 +1,34 @@
 /**
  * Info.jsx — 내 정보 페이지
  *
+ * 목차:
+ *   1. 상수 및 임포트     — API URL 설정
+ *   2. 상태 선언          — 유저·캐릭터·코인·캘린더·스트릭·편집 상태
+ *   3. 초기 데이터 로드   — 유저 정보·캐릭터·스트릭 병렬 조회
+ *   4. 캘린더 로직        — 월 변경 시 운동 기록 조회, 이전/다음 달 이동, 날짜 배열 생성
+ *   5. 로그아웃 핸들러    — POST /api/auth/logout 후 /login 이동
+ *   6. 키·몸무게 편집     — PATCH /api/auth/me 로 신체 정보 수정
+ *   7. 표시용 계산값      — 캐릭터 이미지·스탯 카드 배열 생성
+ *   8. 렌더               — 프로필·스탯·캘린더·계정 정보·로그아웃·Navbar
+ *
  * 전체 화면 구성 (위 → 아래):
  *   ① info-profile-card : 캐릭터 이미지 + 닉네임·아이디 + 레벨 뱃지 + EXP 바
- *   ② info-stats-grid   : 코인·돌봄포인트·BMI·키·몸무게·총경험치 통계 카드
- *   ③ info-account-card : 이메일·아이디 계정 정보
- *   ④ info-logout-btn   : 로그아웃 버튼
- *   ⑤ Navbar            : 하단 탭 바
- *
- * 상태(state):
- *   user       — 유저 기본 정보 { name, id, email, bmi, height, weight }
- *   character  — 고양이 정보 { character_key, level, exp, max_exp, ... }
- *   coins      — 현재 보유 코인
- *   carePoints — 현재 돌봄포인트
+ *   ② info-stats-grid   : 코인·BMI·키·몸무게 통계 카드 (편집 버튼)
+ *   ③ info-calendar-row : 출석 캘린더 + 연속 출석 스트릭 카드
+ *   ④ info-account-card : 이메일·아이디 계정 정보
+ *   ⑤ info-logout-btn   : 로그아웃 버튼
+ *   ⑥ Navbar            : 하단 탭 바
  *
  * API 연동:
- *   GET  /api/auth/me       — 유저 기본 정보 (이름·이메일·신체 정보)
- *   GET  /api/character     — 고양이 레벨·경험치 정보
- *   GET  /api/care/status   — 코인·돌봄포인트 조회
- *   POST /api/auth/logout   — 로그아웃 (세션 삭제 후 /login 으로 이동)
- *
- * EXP 바 계산:
- *   character.exp / character.max_exp × 100 = 퍼센트 (100% 초과 방지)
+ *   GET   /api/auth/me              — 유저 기본 정보 (이름·이메일·신체 정보)
+ *   PATCH /api/auth/me              — 키·몸무게 수정
+ *   GET   /api/character            — 고양이 레벨·경험치 정보
+ *   GET   /api/attendance/streak    — 연속 출석 스트릭 조회
+ *   GET   /api/calendar?year=&month= — 해당 월 운동 기록 날짜 목록
+ *   POST  /api/auth/logout          — 로그아웃 (세션 삭제 후 /login 으로 이동)
  *
  * 스탯 카드 목록 (STATS 배열):
- *   코인, 돌봄포인트, BMI, 키(cm), 몸무게(kg), 총 경험치
+ *   코인, BMI, 키(cm), 몸무게(kg)
  *   각 항목은 { icon, value, unit?, label } 형식
  */
 
@@ -32,8 +36,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar.jsx';
-import { CHARACTER_CONFIG } from '../config/characters.js'; // 캐릭터 이름 조회용
-import { getCatUrl } from '../utils/catUtils.js';          // 캐릭터 이미지 URL 공통 유틸
+import { getCatUrl } from '../utils/catUtils.js'; // 캐릭터 이미지 URL 공통 유틸
 import stampImg from '../assets/icons/stamp.png';
 import '../css/Info.css';
 
@@ -46,7 +49,10 @@ const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 const Info = () => {
   const navigate = useNavigate();
 
-  // ── 상태 선언 ─────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 2. 상태 선언
+  //    유저·캐릭터·코인·캘린더·스트릭·편집 상태 관리
+  // ══════════════════════════════════════
   const [user,       setUser]       = useState(null); // 유저 기본 정보
   const [character,  setCharacter]  = useState(null); // 고양이 정보
   const [coins,      setCoins]      = useState(0);    // 보유 코인
@@ -66,7 +72,10 @@ const Info = () => {
   const [editWeight,  setEditWeight]  = useState('');
   const [editSaving,  setEditSaving]  = useState(false);
 
-  // ── 초기 데이터 로드 (3개 API 병렬 호출) ──────────────────────────────────
+  // ══════════════════════════════════════
+  // 3. 초기 데이터 로드
+  //    유저 정보·캐릭터·스트릭 2개 API 병렬 호출 후 스트릭 순차 조회
+  // ══════════════════════════════════════
   useEffect(() => {
     const load = async () => {
       try {
@@ -90,7 +99,12 @@ const Info = () => {
     load();
   }, []);
 
-  // ── 캘린더 월 변경 시 운동 기록 조회 ─────────────────────────────────────
+  // ══════════════════════════════════════
+  // 4. 캘린더 로직
+  //    월 변경 시 운동 기록 조회, 이전/다음 달 이동, 날짜 배열 생성
+  // ══════════════════════════════════════
+
+  // 캘린더 월 변경 시 운동 기록 조회
   const loadCalendar = useCallback(async (year, month) => {
     try {
       const res = await axios.get(
@@ -130,7 +144,11 @@ const Info = () => {
   ];
   const activeSet = new Set(activeDays);
 
-  // ── 로그아웃 핸들러 ──────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 5. 로그아웃 핸들러
+  //    POST /api/auth/logout 후 성공·실패 관계없이 /login 이동
+  // ══════════════════════════════════════
+
   // 서버에 로그아웃 요청 후 성공·실패 관계없이 /login 으로 이동
   const handleLogout = async () => {
     try {
@@ -140,7 +158,12 @@ const Info = () => {
     }
   };
 
-  // ── 키·몸무게 편집 ────────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 6. 키·몸무게 편집
+  //    PATCH /api/auth/me 로 신체 정보 수정 후 user 상태 갱신
+  // ══════════════════════════════════════
+
+  // 편집 폼 열기 — 현재 유저 신체 정보를 입력 필드 초기값으로 설정
   const openEdit = () => {
     setEditHeight(user?.height ?? '');
     setEditWeight(user?.weight ?? '');
@@ -164,9 +187,13 @@ const Info = () => {
     }
   };
 
-  // ── 표시용 계산값 ────────────────────────────────────────────────────────
-  const charConfig = character ? CHARACTER_CONFIG[character.character_key] : null;
-  const catImg     = character ? getCatUrl(character.character_key, character.level ?? 1) : null;
+  // ══════════════════════════════════════
+  // 7. 표시용 계산값
+  //    캐릭터 이미지 URL·스탯 카드 배열 생성
+  // ══════════════════════════════════════
+
+  // 캐릭터 이미지 URL 계산 (character_name은 GET /api/character 응답에 포함)
+  const catImg = character ? getCatUrl(character.character_key, character.level ?? 1) : null;
 
   // ── 스탯 카드 목록 ────────────────────────────────────────────────────────
   // 이 배열을 수정해 표시할 통계 항목을 추가·제거·순서 변경 가능
@@ -177,7 +204,10 @@ const Info = () => {
     { icon: '💪', value: user?.weight ?? '--', unit: 'kg', label: '몸무게' },
   ];
 
-  // ── 렌더 ──────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 8. 렌더
+  //    프로필 → 스탯 → 캘린더·스트릭 → 계정 정보 → 로그아웃 → Navbar
+  // ══════════════════════════════════════
   return (
     <div className="info-page">
       {/* 최대 너비 제한 + 가운데 정렬 (PC 화면에서도 보기 좋게) */}
@@ -201,7 +231,7 @@ const Info = () => {
             {/* 레벨 뱃지 + 캐릭터 이름 */}
             <div className="info-level-row">
               <span className="info-level-badge">Lv.{character?.level ?? 1}</span>
-              <span className="info-char-name">{charConfig?.character_name ?? '---'}</span>
+              <span className="info-char-name">{character?.character_name ?? '---'}</span>
             </div>
 
           </div>
@@ -322,7 +352,7 @@ const Info = () => {
 
         </div>{/* info-calendar-row */}
 
-        {/* ── ④ 계정 정보 ── */}
+        {/* ── ⑤ 계정 정보 ── */}
         <div className="info-section-title">계정 정보</div>
         <div className="info-account-card">
           <div className="info-account-row">
@@ -335,14 +365,14 @@ const Info = () => {
           </div>
         </div>
 
-        {/* ── ④ 로그아웃 버튼 ── */}
+        {/* ── ⑥ 로그아웃 버튼 ── */}
         <button className="info-logout-btn" onClick={handleLogout}>
           로그아웃
         </button>
 
       </div>
 
-      {/* ── ⑤ 하단 탭 바 ── */}
+      {/* ── ⑦ 하단 탭 바 ── */}
       <Navbar />
     </div>
   );

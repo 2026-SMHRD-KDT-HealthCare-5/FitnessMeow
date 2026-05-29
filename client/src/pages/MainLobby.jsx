@@ -42,7 +42,10 @@ import '../css/MainLobby.css';
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 const MainLobby = () => {
-  // ── 상태 선언 ─────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 1. 상태 선언
+  //    고양이·유저·코인·UI 토글·가구·방 테마 등 페이지 전체 상태
+  // ══════════════════════════════════════
   const [character,       setCharacter]       = useState(null);  // 고양이 데이터
   const [userName,        setUserName]        = useState('');    // 유저 닉네임
   const [coins,           setCoins]           = useState(0);     // 보유 코인
@@ -50,6 +53,7 @@ const MainLobby = () => {
   const [todayStatus,     setTodayStatus]     = useState({       // 오늘 돌봄 완료 여부
     feed_done: false, groom_done: false, clean_done: false,
   });
+  const [todayReps,       setTodayReps]       = useState({ squat: 0, pushup: 0, lunge: 0 });
   const [placedFurniture, setPlacedFurniture] = useState([]);    // 방에 배치된 가구
   const [ownedItems,      setOwnedItems]      = useState([]);    // 소유한 가구 전체
   const [invOpen,         setInvOpen]         = useState(false); // 인벤토리 열림 여부
@@ -58,15 +62,19 @@ const MainLobby = () => {
     tile_key:      'tile_1',
   });
   const [unlockedCats,    setUnlockedCats]    = useState([]);    // 해금된 고양이 목록
-  const [activeCat,       setActiveCat]       = useState(null);  // 방에 표시 중인 고양이
+  const [placedCats,      setPlacedCats]      = useState([]);    // 방에 배치된 고양이 목록
 
-  // ── 초기 데이터 로드 ───────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 2. 초기 데이터 로드
+  //    마운트 시 5개 API를 순차 호출하여 페이지 데이터 초기화
+  // ══════════════════════════════════════
   useEffect(() => {
     fetchCharacter();    // 고양이 정보
     fetchUserData();     // 코인·돌봄포인트·오늘 상태
     fetchInventory();    // 인벤토리·배치 좌표
     fetchRoomTheme();    // 방 배경 테마 (벽지·타일)
     fetchUnlockedCats(); // 해금된 고양이 전체 목록
+    fetchCatPositions(); // 방에 배치된 고양이 좌표
   }, []);
 
   /** 고양이 캐릭터 정보 조회 */
@@ -74,8 +82,6 @@ const MainLobby = () => {
     try {
       const res = await axios.get(`${API}/api/character`, { withCredentials: true });
       setCharacter(res.data);
-      // 첫 로드 시에만 activeCat 초기화 (이미 선택된 고양이 유지)
-      setActiveCat(prev => prev ?? { character_key: res.data.character_key, level: res.data.level ?? 1 });
     } catch { /* 로그인 안 된 경우 등 — 무시 */ }
   };
 
@@ -87,6 +93,14 @@ const MainLobby = () => {
     } catch { }
   };
 
+  /** 방에 배치된 고양이 좌표 조회 */
+  const fetchCatPositions = async () => {
+    try {
+      const res = await axios.get(`${API}/api/coordinates/cats`, { withCredentials: true });
+      setPlacedCats(res.data ?? []);
+    } catch { }
+  };
+
   /** 코인·오늘 돌봄 완료 상태 조회 */
   const fetchUserData = async () => {
     try {
@@ -94,6 +108,7 @@ const MainLobby = () => {
       setCoins(res.data.data?.point ?? 0);
       setUserName(res.data.data?.name ?? '');
       setTodayStatus(res.data.data?.today_status ?? {});
+      setTodayReps(res.data.data?.today_reps ?? { squat: 0, pushup: 0, lunge: 0 });
     } catch { }
   };
 
@@ -114,19 +129,37 @@ const MainLobby = () => {
       const res = await axios.get(`${API}/api/inventory`, { withCredentials: true });
       const items = res.data ?? [];
 
-      // 소유 가구 전체 (배치 여부 무관)
-      setOwnedItems(items.map(i => ({ item_keyword: i.item_keyword })));
+      // 소유 아이템 전체 — icon_name, size, category, item_name 포함
+      setOwnedItems(items.map(i => ({
+        item_keyword: i.item_keyword,
+        icon_name:    i.icon_name,
+        size_w:       i.size_w,
+        size_h:       i.size_h,
+        category:     i.category,
+        item_name:    i.item_name,
+      })));
 
-      // x_pos·y_pos 가 있는 항목만 → 방에 배치된 가구
+      // x_pos·y_pos 가 있는 항목만 → 방에 배치된 가구 (스프라이트 생성에 필요한 필드 포함)
       setPlacedFurniture(
         items
           .filter(i => i.x_pos != null && i.y_pos != null)
-          .map(i => ({ item_keyword: i.item_keyword, x_pos: i.x_pos, y_pos: i.y_pos })),
+          .map(i => ({
+            item_keyword: i.item_keyword,
+            icon_name:    i.icon_name,
+            size_w:       i.size_w,
+            size_h:       i.size_h,
+            x_pos:        i.x_pos,
+            y_pos:        i.y_pos,
+            z_order:      i.z_order ?? 10,
+          })),
       );
     } catch { }
   };
 
-  // ── 가구 드래그 이동 핸들러 ────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 3. 가구 드래그 이동 핸들러
+  //    PixiJS에서 드래그 완료 시 호출 — 낙관적 UI 업데이트 + 서버 좌표 저장
+  // ══════════════════════════════════════
   /**
    * PixiJS 캔버스에서 가구를 드래그로 옮겼을 때 호출됨
    * 1) UI 상태 즉시 반영 (낙관적 업데이트)
@@ -141,7 +174,10 @@ const MainLobby = () => {
     } catch { }
   }, []);
 
-  // ── 가구 배치/해제 토글 핸들러 ────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 4. 가구 배치/해제 토글 핸들러
+  //    인벤토리 패널 클릭 시 배치 ↔ 해제 토글 (DB 동기화 포함)
+  // ══════════════════════════════════════
   /**
    * 인벤토리 패널에서 가구 클릭 시 호출됨
    * - 이미 배치된 가구 → 해제 (DB 좌표 삭제)
@@ -157,20 +193,49 @@ const MainLobby = () => {
       try { await axios.delete(`${API}/api/coordinates/${item_keyword}`, { withCredentials: true }); }
       catch { }
     } else {
-      // 기본 위치에 배치 (캔버스 중앙: 320, 240)
-      setPlacedFurniture(prev => [...prev, { item_keyword, x_pos: 195, y_pos: 435 }]);
+      // 기본 위치에 배치 — ownedItems에서 icon_name/size 등 메타 포함
+      const fullItem = ownedItems.find(i => i.item_keyword === item_keyword) ?? { item_keyword };
+      setPlacedFurniture(prev => [...prev, { ...fullItem, x_pos: 195, y_pos: 435, z_order: 10 }]);
       try {
         await axios.post(`${API}/api/coordinates`, { item_keyword, x_pos: 195, y_pos: 435 }, { withCredentials: true });
       } catch { }
     }
-  }, [placedFurniture]);
+  }, [placedFurniture, ownedItems]);
 
-  // ── 고양이 선택 핸들러 ───────────────────────────────────────────────────
-  const handleSelectCat = useCallback((character_key, level) => {
-    setActiveCat({ character_key, level });
+  // ══════════════════════════════════════
+  // 5. 고양이 배치/해제 토글 핸들러
+  // ══════════════════════════════════════
+  const handleToggleCat = useCallback(async (character_key, level) => {
+    const cat_key = `cat_${character_key}_lv${level}`;
+    const isPlaced = placedCats.some(c => c.cat_key === cat_key);
+
+    if (isPlaced) {
+      setPlacedCats(prev => prev.filter(c => c.cat_key !== cat_key));
+      try { await axios.delete(`${API}/api/coordinates/${cat_key}`, { withCredentials: true }); }
+      catch { }
+    } else {
+      const newCat = { cat_key, character_key, level, x_pos: 195, y_pos: 435 };
+      setPlacedCats(prev => [...prev, newCat]);
+      try {
+        await axios.post(`${API}/api/coordinates`, { item_keyword: cat_key, x_pos: 195, y_pos: 435 }, { withCredentials: true });
+      } catch { }
+    }
+  }, [placedCats]);
+
+  /** 고양이 드래그 이동 핸들러 */
+  const handleCatMove = useCallback(async (cat_key, x, y) => {
+    setPlacedCats(prev =>
+      prev.map(c => c.cat_key === cat_key ? { ...c, x_pos: x, y_pos: y } : c),
+    );
+    try {
+      await axios.post(`${API}/api/coordinates`, { item_keyword: cat_key, x_pos: x, y_pos: y }, { withCredentials: true });
+    } catch { }
   }, []);
 
-  // ── 배경 테마 적용 핸들러 ─────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 6. 배경 테마 적용 핸들러
+  //    벽지/타일 선택 시 UI 즉시 반영 + PATCH /api/room/theme 서버 저장
+  // ══════════════════════════════════════
   /**
    * 인벤토리 패널의 벽지·타일 탭에서 "적용" 버튼 클릭 시 호출됨
    * 1) UI 즉시 반영 (낙관적 업데이트)
@@ -193,11 +258,17 @@ const MainLobby = () => {
     }
   }, []);
 
-  // ── 헤더 표시용 계산값 ────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 7. 헤더 표시용 계산값
+  //    character 상태에서 레벨·이름 파생 (null 안전 처리 포함)
+  // ══════════════════════════════════════
   const level   = character?.level          ?? 1;      // 현재 레벨 (없으면 1)
   const catName = character?.character_name ?? '냥이'; // 고양이 이름
 
-  // ── 렌더 ──────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 8. 렌더
+  //    헤더 → 방 캔버스 → 퀘스트 패널 → Navbar (+ 개발용 코인 버튼)
+  // ══════════════════════════════════════
   return (
     <div className="lobby-page">
 
@@ -259,8 +330,9 @@ const MainLobby = () => {
           tileKey={roomTheme.tile_key}
           onApplyBackground={handleApplyBackground}
           unlockedCats={unlockedCats}
-          activeCat={activeCat}
-          onSelectCat={handleSelectCat}
+          placedCats={placedCats}
+          onToggleCat={handleToggleCat}
+          onCatMove={handleCatMove}
         />
 
         {/* 부위별 경험치 오버레이 — 절대 위치(우측 상단), 버튼으로 토글 */}
@@ -281,7 +353,7 @@ const MainLobby = () => {
         visibility: invOpen ? 'hidden' : 'visible',
         transition: 'opacity 0.15s ease',
       }}>
-        <QuestPanel todayStatus={todayStatus} />
+        <QuestPanel todayStatus={todayStatus} todayReps={todayReps} />
       </div>
 
       {/* ══════════════ ④ 하단 탭 바 ══════════════ */}
