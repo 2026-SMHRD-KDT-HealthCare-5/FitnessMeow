@@ -1,6 +1,12 @@
 /**
  * Collection.jsx — 동물 도감 페이지
  *
+ * 목차:
+ *   1. 상수 정의         — 캐릭터 순서 배열, 카드 색상 맵
+ *   2. 상태 및 데이터 로드 — GET /api/character 로 유저 캐릭터 키 조회
+ *   3. 해금 판별 로직    — CHARACTER_ORDER 인덱스 비교로 잠금/해금 결정
+ *   4. 렌더              — 헤더 → 캐릭터 카드 그리드 → Navbar
+ *
  * 역할:
  *   - 게임에 등장하는 모든 고양이 캐릭터를 카드 형식으로 나열
  *   - 유저가 현재 보유한 캐릭터와 그 이전 캐릭터들은 "해금" 상태로 표시
@@ -13,7 +19,7 @@
  *         'munchkin' 은 잠금
  *
  * 캐릭터 이미지 로딩:
- *   - Vite의 import.meta.glob 으로 빌드 타임에 모든 캐릭터 PNG를 URL 맵으로 로드
+ *   - getCatUrl 유틸 함수 사용 (내부적으로 Vite glob 활용)
  *   - 경로 규칙: assets/characters/{key}/{key}_LV_{level}.png
  *
  * 화면 구성:
@@ -30,33 +36,26 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar.jsx';
-import { CHARACTER_CONFIG } from '../config/characters.js'; // 캐릭터 이름·설명 설정
+import { getCatUrl } from '../utils/catUtils.js'; // 캐릭터 이미지 URL 공통 유틸
 import '../css/Collection.css';
 
 // 서버 주소: .env 에 VITE_API_URL 이 있으면 사용, 없으면 로컬 3001포트
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
-/* ── 캐릭터 이미지 번들 ───────────────────────────────────────────────────────
-   빌드 시점에 모든 캐릭터 레벨별 PNG를 URL 맵으로 로드.
-   getCatUrl(key, level) 함수로 특정 캐릭터+레벨 이미지 URL 조회.
-─────────────────────────────────────────────────────────────────────────── */
-const CAT_IMAGES = import.meta.glob(
-  '../assets/characters/**/*.png',
-  { eager: true, import: 'default' },
-);
-
-/**
- * 캐릭터 키와 레벨로 이미지 URL 반환
- * @param {string} key   — 캐릭터 키 (예: "cheese_korean_shorthair")
- * @param {number} level — 레벨 1·2·3
- * @returns {string|null} — URL 또는 null (파일 없으면)
- */
-function getCatUrl(key, level = 1) {
-  return CAT_IMAGES[`../assets/characters/${key}/${key}_LV_${level}.png`] ?? null;
-}
+// ══════════════════════════════════════
+// 1. 상수 정의
+//    도감 표시 순서 배열 및 캐릭터별 카드 색상 맵
+// ══════════════════════════════════════
 
 // 도감에 표시할 캐릭터 순서 (= 해금 순서)
 const CHARACTER_ORDER = ['cheese_korean_shorthair', 'russian_blue', 'munchkin'];
+
+// 캐릭터 표시 이름 맵 (UI 전용 — 게임 로직 아님)
+const CHARACTER_NAMES = {
+  cheese_korean_shorthair: '치즈코리안숏헤어',
+  russian_blue:            '러시안블루',
+  munchkin:                '먼치킨',
+};
 
 // 해금된 카드 배경 색상 맵 (캐릭터별로 고유한 파스텔 색상)
 const CARD_COLORS = {
@@ -69,15 +68,25 @@ const CARD_COLORS = {
    Collection 컴포넌트
 ══════════════════════════════════════════════════════════════ */
 const Collection = () => {
+  // ══════════════════════════════════════
+  // 2. 상태 및 데이터 로드
+  //    마운트 시 유저 캐릭터 키를 조회하여 해금 판별 기준 설정
+  // ══════════════════════════════════════
+
   // 유저의 현재 캐릭터 키 — 해금 판별의 기준
   const [userCharacterKey, setUserCharacterKey] = useState(null);
 
-  // ── 유저 캐릭터 조회 ─────────────────────────────────────────────────────
+  // 유저 캐릭터 조회
   useEffect(() => {
     axios.get(`${API}/api/character`, { withCredentials: true })
       .then(res => setUserCharacterKey(res.data.character_key))
       .catch(() => {}); // 비로그인 등 오류 시 기본값 유지 (첫 캐릭터만 해금으로 표시)
   }, []);
+
+  // ══════════════════════════════════════
+  // 3. 해금 판별 로직
+  //    CHARACTER_ORDER 인덱스 비교 — 유저 캐릭터 이하 인덱스는 모두 해금
+  // ══════════════════════════════════════
 
   /**
    * 특정 캐릭터가 해금되었는지 판단
@@ -89,7 +98,10 @@ const Collection = () => {
     return CHARACTER_ORDER.indexOf(key) <= CHARACTER_ORDER.indexOf(userCharacterKey);
   };
 
-  // ── 렌더 ──────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 4. 렌더
+  //    헤더 → 캐릭터 카드 그리드(해금/잠금) → Navbar
+  // ══════════════════════════════════════
   return (
     <div className="collection-page">
 
@@ -102,7 +114,6 @@ const Collection = () => {
       {/* ── ② 캐릭터 카드 그리드 ── */}
       <div className="collection-grid">
         {CHARACTER_ORDER.map((key) => {
-          const config   = CHARACTER_CONFIG[key];  // 이름·설명 등 설정
           const unlocked = isUnlocked(key);        // 해금 여부
           const colors   = CARD_COLORS[key];       // 카드 배경 색상
           // 이전 캐릭터 키 — 잠금 카드에 "OOO 달성 시 해금" 안내에 사용
@@ -118,7 +129,7 @@ const Collection = () => {
               {/* ── 캐릭터 이미지 영역 ── */}
               <div className="collection-img-wrap">
                 {getCatUrl(key, 1)
-                  ? <img src={getCatUrl(key, 1)} alt={config.character_name} className="collection-img" />
+                  ? <img src={getCatUrl(key, 1)} alt={CHARACTER_NAMES[key]} className="collection-img" />
                   : <span style={{ fontSize: 60 }}>🐱</span>  /* 이미지 없으면 이모지 대체 */
                 }
                 {/* 잠금 오버레이: unlocked=false 이면 이미지 위에 어두운 레이어 + 🔒 표시 */}
@@ -130,13 +141,13 @@ const Collection = () => {
               </div>
 
               {/* ── 이름: 해금 = 실제 이름, 잠금 = "???" ── */}
-              <p className="collection-name">{unlocked ? config.character_name : '???'}</p>
+              <p className="collection-name">{unlocked ? CHARACTER_NAMES[key] : '???'}</p>
 
               {/* ── 해금 상태 안내 ── */}
               <p className="collection-unlock-desc">
                 {unlocked
                   ? (key === 'cheese_korean_shorthair' ? '기본 캐릭터' : '해금 완료 ✓')
-                  : `${CHARACTER_CONFIG[prevKey]?.character_name} 달성 시 해금`
+                  : `${CHARACTER_NAMES[prevKey]} 달성 시 해금`
                 }
               </p>
 

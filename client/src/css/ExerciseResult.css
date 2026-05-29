@@ -1,3 +1,19 @@
+/* ══════════════════════════════════════════
+   ExerciseResult.css — 운동 세션 완료 결과 카드 스타일
+   (Exercise.jsx 내 결과 화면에서 사용. Result.css와 별개)
+
+   목차:
+     1. 페이지 / 결과 카드   — 황색 배경 + 크림 그라디언트 카드
+     2. 결과 헤더             — 파티 아이콘 + 제목 + 컨페티 장식
+     3. 요약 카드             — 점수·칼로리 좌우 분리 표시
+     4. 등급 평가 카드        — 완벽·보통·완료 3개 열 평가
+     5. 보상 카드             — EXP 바 + 아이템 보상 행
+     6. 액션 버튼             — 홈으로·다시하기 버튼 행
+     7. 반응형                — 420px 이하 전체 화면 카드
+══════════════════════════════════════════ */
+
+/* ── 1. 페이지 / 결과 카드 ───────────────── */
+/* 황색 배경에 크림 그라디언트 카드 — 최대 너비 390px */
 .result-page {
   width: 100%;
   min-height: 100svh;
@@ -24,6 +40,8 @@
     linear-gradient(180deg, #fff9ea 0%, #f9ebd1 100%);
 }
 
+/* ── 2. 결과 헤더 ────────────────────────── */
+/* 파티 아이콘 + 제목 중앙 배치, 좌우 CSS 컨페티 장식 */
 .result-header {
   display: flex;
   align-items: center;
@@ -46,6 +64,7 @@
   letter-spacing: 0;
 }
 
+/* CSS 그라디언트로 구현한 컨페티 장식 — pointer-events: none */
 .result-confetti {
   position: absolute;
   top: 26px;
@@ -68,6 +87,8 @@
   transform: scaleX(-1);
 }
 
+/* ── 3. 요약 카드 ────────────────────────── */
+/* 점수(주황)와 칼로리(검정)를 수직 구분선으로 2열 분리 */
 .result-summary-card,
 .result-rating-card,
 .result-reward-card {
@@ -136,6 +157,8 @@
   font-weight: 950;
 }
 
+/* ── 4. 등급 평가 카드 ───────────────────── */
+/* 완벽(초록)·보통(주황)·완료(파랑) 3열, 각 열 좌측 구분선 */
 .result-rating-card {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -171,6 +194,8 @@
   color: #5b75dd;
 }
 
+/* ── 5. 보상 카드 ────────────────────────── */
+/* EXP 바(그라디언트) + 코인·츄르 아이콘 보상 행 */
 .result-reward-card {
   display: grid;
   gap: 16px;
@@ -246,6 +271,8 @@
   background: linear-gradient(90deg, #8be05b, #41bd73);
 }
 
+/* ── 6. 액션 버튼 ────────────────────────── */
+/* 홈으로(흰색 secondary) + 다시하기(황금색 primary) 2열 버튼 */
 .result-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -275,6 +302,8 @@
   box-shadow: 0 4px 9px rgba(167, 112, 26, 0.2);
 }
 
+/* ── 7. 반응형 ───────────────────────────── */
+/* 420px 이하: 여백 제거, 카드가 화면 전체 차지 */
 @media (max-width: 420px) {
   .result-page {
     padding: 0;

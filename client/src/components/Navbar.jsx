@@ -1,6 +1,10 @@
 /**
  * Navbar.jsx — 하단 탭 바 (공통 내비게이션)
  *
+ * 목차:
+ *   1. 탭 항목 정의   — navItems 배열 (key, path, icon, label)
+ *   2. 컴포넌트       — 현재 경로와 일치하는 탭에 active 스타일 적용
+ *
  * 역할:
  *   - 앱 하단에 고정되는 탭 바
  *   - 현재 경로(location.pathname)와 탭 path 가 일치하면 active 스타일 적용
@@ -23,6 +27,12 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../css/Navbar.css';
 
+// ══════════════════════════════════════
+// 1. 탭 항목 정의
+//    navItems: 하단 탭 바에 표시할 탭 목록
+//    여기서 탭 추가·삭제·순서 변경 가능
+// ══════════════════════════════════════
+
 // ★ 탭 항목 목록 — 여기서 탭 추가·삭제·순서 변경 가능
 const navItems = [
   { key: "mainlobby",  path: "/mainlobby",      icon: "🏠",  label: "홈"     },
@@ -32,6 +42,11 @@ const navItems = [
   { key: "info",       path: "/info",            icon: "👤", label: "내 정보" },
 ];
 
+// ══════════════════════════════════════
+// 2. 컴포넌트
+//    useLocation 으로 현재 URL을 읽어 탭별 active 여부를 결정한다.
+//    클릭 시 navigate 로 URL을 변경해 히스토리에 기록한다.
+// ══════════════════════════════════════
 const Navbar = () => {
   const navigate  = useNavigate();
   const location  = useLocation(); // 현재 URL 경로

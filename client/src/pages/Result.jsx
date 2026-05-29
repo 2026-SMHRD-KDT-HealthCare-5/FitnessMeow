@@ -1,24 +1,59 @@
+/**
+ * Result.jsx — 운동 결과 페이지
+ *
+ * 목차:
+ *   1. 이미지 로드       — Vite glob으로 캐릭터 PNG 전체를 URL 맵으로 로드
+ *   2. 상수 및 맵        — 운동별 EXP 적용 부위, 부위별 메타 정보, 파티클 설정
+ *   3. 유틸 함수         — maxExp 조회, level 안전 파싱
+ *   4. 상태 및 데이터 로드 — GET /api/result 로 운동 기록 + 캐릭터 상태 조회
+ *   5. 파생값 계산       — 레벨·EXP 바·캐릭터 이미지 등 렌더용 값 계산
+ *   6. 렌더             — 헤더·캐릭터 EXP 카드·정확도·점수·로비 버튼
+ *
+ * 데이터 흐름:
+ *   Exercise.jsx → POST /api/workouts → navigate('/result', { state: data })
+ *   Result.jsx   → location.state (이벤트성 데이터) + GET /api/result (최신 상태)
+ *
+ * API 연동:
+ *   GET /api/result — 최근 운동 기록 { workout } + 현재 캐릭터 상태 { character }
+ *
+ * 비고:
+ *   - location.state 없이 URL 직접 접근 시 /mainlobby 로 리다이렉트
+ *   - charFromState: 레벨업·캐릭터 해금 직후 API가 새 캐릭터를 반환하는 경우 대비
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import "../css/Result.css";
-import { CHARACTER_CONFIG } from '../config/characters.js';
 import coinImg from "../assets/coin.png";
+
+// ══════════════════════════════════════
+// 1. 이미지 로드
+//    빌드 타임에 캐릭터 이미지를 모두 URL 맵으로 로드
+// ══════════════════════════════════════
 
 /* ════════════════════════════════════════════
    캐릭터 이미지
    파일명 규칙: assets/characters/{configKey}/{configKey}_LV_{level}.png
 ════════════════════════════════════════════ */
+// 캐릭터 폴더 하위 모든 PNG를 eager 로드하여 경로 → URL 맵 생성
 const IMAGES = import.meta.glob('../assets/characters/**/*.png', { eager: true });
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
+// 캐릭터 키 + 레벨로 이미지 URL 조회 (파일 없으면 null 반환)
 function getCharacterImage(configKey, level) {
   const path = `../assets/characters/${configKey}/${configKey}_LV_${level}.png`;
   return IMAGES[path]?.default ?? null;
 }
 
+// ══════════════════════════════════════
+// 2. 상수 및 맵
+//    운동별 EXP 부위, 부위 메타, 파티클 애니메이션 설정
+// ══════════════════════════════════════
+
 /* ════════════════════════════════════════════
    운동 종류 → EXP 적용 부위
 ════════════════════════════════════════════ */
+// 각 운동에서 EXP가 증가하는 신체 부위 목록
 const EXERCISE_EXP_MAP = {
   pushup: ['chest', 'arm', 'core'],
   squat:  ['lower', 'core'],
@@ -28,6 +63,7 @@ const EXERCISE_EXP_MAP = {
 /* ════════════════════════════════════════════
    EXP 부위별 메타 정보
 ════════════════════════════════════════════ */
+// 각 부위의 UI 레이블·CSS 바 클래스·DB 컬럼 키 매핑
 const EXP_PART_META = {
   arm:   { label: '팔 EXP',      barClass: 'bar-arm',   dbKey: 'arm_exp'   },
   chest: { label: '가슴·등 EXP', barClass: 'bar-chest', dbKey: 'chest_exp' },
@@ -38,6 +74,7 @@ const EXP_PART_META = {
 /* ════════════════════════════════════════════
    파티클 설정
 ════════════════════════════════════════════ */
+// 결과 화면 상단 파티클 애니메이션 위치·색상·지연 설정
 const PARTICLE_CONFIG = [
   { left: '8%',  color: '#ff8c42', delay: '0s'    },
   { left: '20%', color: '#ffd166', delay: '0.15s' },
@@ -49,20 +86,24 @@ const PARTICLE_CONFIG = [
   { left: '93%', color: '#34c759', delay: '0.35s' },
 ];
 
+// EXP 바 애니메이션 시작 딜레이 (마운트 후 150ms 뒤 barReady=true)
 const BAR_ANIMATION_DELAY_MS = 150;
-const DEFAULT_CONFIG_KEY     = 'cheese_korean_shorthair';
 
-// level 문자열/숫자 혼재 대응
-function getMaxExp(configKey, level) {
-  const levelKey = { '1': 'lv1', '2': 'lv2', '3': 'lv3' }[String(level)] ?? 'lv1';
-  return CHARACTER_CONFIG[configKey]?.max_exp?.[levelKey] ?? 50;
-}
+// ══════════════════════════════════════
+// 3. 유틸 함수
+//    level 안전 파싱 (문자열/숫자 혼재 대응)
+// ══════════════════════════════════════
 
 // DB level이 문자열/숫자 혼재할 수 있어 parseInt로 안전하게 파싱
 function parseLevelSafe(level, fallback = 1) {
   const n = parseInt(level, 10);
   return Number.isFinite(n) ? n : fallback;
 }
+
+// ══════════════════════════════════════
+// 4. 상태 및 데이터 로드
+//    location.state 검증 → GET /api/result 로 운동 기록 + 캐릭터 상태 조회
+// ══════════════════════════════════════
 
 /* ════════════════════════════════════════════
    Result 컴포넌트
@@ -112,7 +153,8 @@ const Result = () => {
         setWorkout(workout);
         setCharacter(character);
         setIsLoading(false);
-        setTimeout(() => setBarReady(true), BAR_ANIMATION_DELAY_MS); // 마운트 후 바 애니메이션 시작
+        // 마운트 후 딜레이를 두고 EXP 바 애니메이션 시작
+        setTimeout(() => setBarReady(true), BAR_ANIMATION_DELAY_MS);
       })
       .catch((err) => {
         console.error('[Result] API 실패:', err);
@@ -124,6 +166,7 @@ const Result = () => {
   // ── 조건부 return (hooks 이후에 위치) ──
   if (!location.state) return null;
 
+  // 로딩 중: 스켈레톤 UI 표시
   if (isLoading) {
     return (
       <div className="container">
@@ -137,6 +180,7 @@ const Result = () => {
     );
   }
 
+  // API 오류: 에러 메시지 + 로비 이동 버튼
   if (fetchError) {
     return (
       <div className="container">
@@ -151,20 +195,27 @@ const Result = () => {
     );
   }
 
+  // ══════════════════════════════════════
+  // 5. 파생값 계산
+  //    렌더에 필요한 캐릭터·레벨·EXP 바 데이터 계산
+  // ══════════════════════════════════════
+
   // ── 파생값 계산 (실제 렌더할 때만 실행) ──
   // charFromState: 운동한 캐릭터(러시안블루 등) 최종 상태 — 해금 직후에도 올바른 캐릭터 보장
   // character (API): charFromState 없을 때 폴백용
   const displayChar     = charFromState ?? character;
-  const configKey       = displayChar?.character_key ?? DEFAULT_CONFIG_KEY;
-  const displayName     = CHARACTER_CONFIG[configKey]?.character_name ?? '';
   const currentLevel    = String(displayChar?.level ?? '1');
   const currentLevelNum = parseLevelSafe(currentLevel, 1);
-  const maxExp          = getMaxExp(configKey, currentLevel);
-  const prevLevel       = level_up ? String(Math.max(1, currentLevelNum - 1)) : currentLevel; // 레벨업 시 이전 레벨 이미지 표시용
+  const displayName     = displayChar?.character_name ?? '';
+  const maxExp          = displayChar?.max_exp ?? 50;
+  // 레벨업 시 이전 레벨 이미지를 비교 표시용으로 계산
+  const prevLevel       = level_up ? String(Math.max(1, currentLevelNum - 1)) : currentLevel;
+  const configKey       = displayChar?.character_key ?? 'cheese_korean_shorthair';
   const currentImg      = getCharacterImage(configKey, currentLevel);
   const prevImg         = getCharacterImage(configKey, prevLevel);
   const exercise_key    = workout?.exercise_key ?? 'pushup';
   const gained_exp      = workout?.gained_exp   ?? 0;
+  // 이번 운동에서 EXP를 획득한 부위 집합
   const gainedParts = new Set(EXERCISE_EXP_MAP[exercise_key] ?? []);
 
   // 모든 부위 EXP 바 데이터 생성 (획득 여부 포함)
@@ -176,6 +227,11 @@ const Result = () => {
     return { ...meta, current, isMaxed, barWidth, gained };
   });
 
+  // ══════════════════════════════════════
+  // 6. 렌더
+  //    헤더·파티클 → 캐릭터 EXP 카드 → 정확도 → 점수·칼로리 → 로비 버튼
+  // ══════════════════════════════════════
+
   // ── 메인 렌더 ──
   return (
     <div className="container">
@@ -185,6 +241,7 @@ const Result = () => {
         {/* ── 1. 헤더 + 파티클 ── */}
         <div className="result-header">
           <h1 className="result-title">🎉 운동 완료!</h1>
+          {/* 파티클 애니메이션 — PARTICLE_CONFIG 설정 기반 */}
           <div className="particle-wrap">
             {PARTICLE_CONFIG.map((p, i) => (
               <div
@@ -216,6 +273,7 @@ const Result = () => {
               <div className="levelup-banner">✨ 레벨업! 고양이가 성장했습니다!</div>
             </>
           ) : (
+            // 레벨업 없는 경우 현재 레벨 캐릭터만 단독 표시
             <div className="cat-single">
               <span className="lv-badge">LV. {currentLevel}</span>
               <img src={currentImg} className="cat-img" alt={`${displayName} LV.${currentLevel}`} />
@@ -229,7 +287,7 @@ const Result = () => {
             </div>
           )}
 
-          {/* 부위별 EXP 바 */}
+          {/* 부위별 EXP 바 — barReady=true 시 CSS 애니메이션으로 확장 */}
           <div className="exp-list">
             {expBarData.map((item, i) => (
               <div className="exp-row" key={i}>

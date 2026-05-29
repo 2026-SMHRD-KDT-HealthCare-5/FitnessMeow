@@ -1,3 +1,22 @@
+/* ══════════════════════════════════════════
+   Exercise.css — 운동 실시간 화면 스타일
+
+   목차:
+     1. 페이지 / 폰 래퍼        — 배경, 스마트폰 형태 카드
+     2. 카메라 카드              — 웹캠 영상 + 포즈 캔버스 오버레이
+     3. 카메라 플레이스홀더      — 카메라 로딩 전 안내 화면
+     4. 상태 패널               — 카운터·세트·점수·등급 정보 상단 고정
+     5. 피드백 뱃지              — "Good!" 등 자세 평가 팝업
+     6. 보상 슬롯               — 운동 중 고양이 보상 표시 영역
+     7. 정보 바                 — 경과시간·칼로리·휴식 버튼
+     8. 진행 바                 — 세트 진행도 그라디언트 바
+     9. 메시지 / 컨트롤 버튼    — 하단 안내 텍스트 + 일시정지·종료 버튼
+    10. 중단 확인 오버레이      — 운동 포기 확인 다이얼로그
+    11. 반응형                  — 420px 이하 / 768px·900px·1200px 이상
+══════════════════════════════════════════ */
+
+/* ── 1. 페이지 / 폰 래퍼 ─────────────────── */
+/* CSS 변수로 테마색(초록) / 위험색(빨강) 선언. 폰 프레임 형태의 어두운 카드 */
 .exercise-page {
   --exercise-theme: #36e66c;
   --exercise-danger: #ef4634;
@@ -25,10 +44,13 @@
   flex-direction: column;
 }
 
+/* 운동 중 활성 상태 — 넓은 화면에서 폰 프레임 확장 */
 .exercise-phone--active {
   width: min(100%, 760px);
 }
 
+/* ── 2. 카메라 카드 ──────────────────────── */
+/* flex: 1로 나머지 공간 채움, 웹캠 영상 + 포즈 캔버스 겹침 */
 .exercise-camera-card {
   position: relative;
   flex: 1 1 auto;
@@ -38,6 +60,7 @@
   background: #000000;
 }
 
+/* 웹캠 영상 — opacity: 0 (포즈 캔버스가 위에 올라오므로 숨김) */
 .exercise-video {
   display: block;
   width: 100%;
@@ -46,6 +69,7 @@
   opacity: 0;
 }
 
+/* 포즈 감지 캔버스 — 좌우 반전(거울 모드), 영상 위에 절대 위치 */
 .exercise-pose-canvas {
   position: absolute;
   inset: 0;
@@ -58,6 +82,8 @@
   transform: scaleX(-1);
 }
 
+/* ── 3. 카메라 플레이스홀더 ──────────────── */
+/* 카메라 권한 획득 전 또는 로딩 중 중앙 안내 텍스트 표시 */
 .exercise-camera-placeholder {
   position: absolute;
   inset: 0;
@@ -86,6 +112,8 @@
   line-height: 1;
 }
 
+/* ── 4. 상태 패널 ────────────────────────── */
+/* 카메라 위 절대 위치, 4열 grid — 카운터·세트·점수·등급 */
 .exercise-status-panel {
   position: absolute;
   top: 12px;
@@ -104,6 +132,7 @@
   color: #2f2721;
 }
 
+/* 카운터 열 (횟수·세트) */
 .exercise-counter-stat {
   display: flex;
   align-items: center;
@@ -143,6 +172,7 @@
   font-size: 17px;
 }
 
+/* 등급 열 (점수·등급) */
 .exercise-grade-stat {
   display: flex;
   align-items: center;
@@ -164,10 +194,13 @@
   object-fit: contain;
 }
 
+/* 마지막 등급 열 — 오른쪽 구분선 제거 */
 .exercise-grade-stat--normal {
   border-right: 0;
 }
 
+/* ── 5. 피드백 뱃지 ──────────────────────── */
+/* "Good!" 등 자세 평가 텍스트가 아래에서 위로 떠오르는 애니메이션 */
 .exercise-feedback-badge {
   position: absolute;
   right: 18px;
@@ -200,6 +233,8 @@
   }
 }
 
+/* ── 6. 보상 슬롯 ────────────────────────── */
+/* 운동 중 고양이 보상 이미지를 카메라 우측 하단에 고정 표시 */
 .exercise-reward-slot {
   position: absolute;
   right: 18px;
@@ -235,6 +270,7 @@
   transform: translateY(-10px);
 }
 
+/* 획득 보상 팝업 — 위로 떠오르며 사라지는 애니메이션 */
 .exercise-reward-pop {
   position: absolute;
   top: -28px;
@@ -264,6 +300,8 @@
   }
 }
 
+/* ── 7. 정보 바 ──────────────────────────── */
+/* 3열 grid — 경과시간 / 칼로리(중앙 강조) / 휴식 버튼 */
 .exercise-info-bar {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -286,6 +324,7 @@
   font: inherit;
 }
 
+/* 중앙 열 — 양쪽 구분선 */
 .exercise-metric--center {
   border-inline: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -309,6 +348,7 @@
   font-weight: 800;
 }
 
+/* 휴식 버튼 — grid 배치, 클릭 가능 */
 .exercise-rest {
   display: grid;
   justify-items: center;
@@ -337,6 +377,8 @@
   white-space: nowrap;
 }
 
+/* ── 8. 진행 바 ──────────────────────────── */
+/* 세트 진행도를 초록 그라디언트 바로 표시 */
 .exercise-progress {
   height: 12px;
   padding: 0 8px;
@@ -352,6 +394,8 @@
   transition: width 160ms ease;
 }
 
+/* ── 9. 메시지 / 컨트롤 버튼 ─────────────── */
+/* 하단 안내 메시지 + 일시정지·화면 잠금·종료 버튼 */
 .exercise-message {
   min-height: 20px;
   margin: 0;
@@ -370,6 +414,7 @@
   background: rgba(36, 36, 36, 0.86);
 }
 
+/* 설정 화면 — 화면 잠금 버튼이 전체 너비를 차지 */
 .exercise-controls--setup {
   gap: 10px;
 }
@@ -400,6 +445,7 @@
   line-height: 1;
 }
 
+/* 정지 아이콘 — 직사각형 CSS 도형 */
 .exercise-control-icon--stop {
   display: inline-block;
   width: 15px;
@@ -420,6 +466,8 @@
   background: var(--exercise-danger);
 }
 
+/* ── 10. 중단 확인 오버레이 ──────────────── */
+/* 운동 포기 버튼 클릭 시 전체화면 반투명 다이얼로그 */
 .exercise-confirm-overlay {
   position: fixed;
   inset: 0;
@@ -471,11 +519,14 @@
   cursor: pointer;
 }
 
+/* 포기 버튼 — 위험색(빨강) */
 .exercise-confirm-actions .exercise-confirm-give-up {
   background: var(--exercise-danger);
   color: #ffffff;
 }
 
+/* ── 11. 반응형 ──────────────────────────── */
+/* 420px 이하: 여백 제거, 카메라 높이 고정 / 768px·900px·1200px 이상: 폰 프레임 확장 */
 @media (max-width: 420px) {
   .exercise-page {
     padding: 0;

@@ -1,3 +1,16 @@
+/* ══════════════════════════════════════════
+   App.css — 앱 공통 레이아웃 컨테이너
+
+   목차:
+     1. .page-container     — 일반 페이지 공통 래퍼 (padding + flex column)
+     2. .responsive-content — 콘텐츠 최대 너비 제한 및 flex 확장
+     3. 반응형               — 500px 이하 padding 축소
+     4. .app-layout         — 앱 전체 fixed 레이아웃 (Navbar 포함)
+     5. .main-content       — Navbar 위 실제 콘텐츠 영역
+══════════════════════════════════════════ */
+
+/* ── 1. .page-container ─────────────────── */
+/* 페이지 배경·padding 기본값. 하단에 Navbar(65px) + 여유(20px) 공간 확보 */
 .page-container {
   width: 100%;
   height: 100vh;           /* ✅ min-height → height 고정 */
@@ -11,6 +24,8 @@
   align-items: center;
 }
 
+/* ── 2. .responsive-content ─────────────── */
+/* max-width 1200px 제한 + flex: 1로 남은 공간 채움 */
 .responsive-content {
   width: 100%;
   max-width: 1200px;
@@ -20,12 +35,16 @@
   transition: all 0.3s ease;
 }
 
+/* ── 3. 반응형 ───────────────────────────── */
+/* 500px 이하에서 좌우 padding을 16px으로 축소 */
 @media (max-width: 500px) {
   .page-container {
     padding: 16px 16px 85px 16px;
   }
 }
 
+/* ── 4. .app-layout ─────────────────────── */
+/* 뷰포트 전체를 fixed로 덮는 앱 루트 레이아웃 — overflow: hidden으로 스크롤 차단 */
 .app-layout {
   position: fixed;
   top: 0;
@@ -37,6 +56,8 @@
   overflow: hidden;
 }
 
+/* ── 5. .main-content ───────────────────── */
+/* Navbar 높이만큼 하단 padding을 확보하고 나머지 공간을 flex: 1로 채움 */
 .main-content {
   flex: 1;
   overflow: hidden;

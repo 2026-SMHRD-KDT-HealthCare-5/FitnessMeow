@@ -1,4 +1,20 @@
-/* src/Login.css */
+/* ══════════════════════════════════════════
+   Login.css — 로그인 페이지 스타일
+
+   목차:
+     1. 전역 리셋          — 여백·박스 모델·폰트 초기화
+     2. 페이지 컨테이너    — 크림색 배경, 중앙 정렬
+     3. 오버레이           — 도트 패턴 배경 장식
+     4. 로그인 카드        — 폼 래퍼 (420px 고정 너비)
+     5. 타이틀 & 로고      — h1 + 로고 이미지
+     6. 입력 필드          — 공통 input 스타일
+     7. 버튼               — 로그인·회원가입 공통 및 전용 스타일
+     8. 구분선             — "또는" 텍스트 양측 수평선
+     9. 하단 메뉴          — 회원가입 링크 등 부가 메뉴
+══════════════════════════════════════════ */
+
+/* ── 1. 전역 리셋 ────────────────────────── */
+/* 모든 요소 여백 초기화 및 Pretendard 폰트 적용 */
 * {
   margin: 0;
   padding: 0;
@@ -10,6 +26,8 @@ body {
   overflow-x: hidden;
 }
 
+/* ── 2. 페이지 컨테이너 ──────────────────── */
+/* 뷰포트 전체를 크림색으로 채우고 카드를 중앙에 배치 */
 .container {
   width: 100%;
   height: 100vh;
@@ -20,6 +38,8 @@ body {
   position: relative;
 }
 
+/* ── 3. 오버레이 ─────────────────────────── */
+/* radial-gradient 도트 패턴으로 배경에 은은한 질감 부여 */
 .overlay {
   position: absolute;
   width: 100%;
@@ -31,6 +51,8 @@ body {
   background-size: 40px 40px;
 }
 
+/* ── 4. 로그인 카드 ──────────────────────── */
+/* 폼을 감싸는 중앙 카드 — z-index: 1로 오버레이 위에 위치 */
 .login-card {
   width: 420px;
   padding: 40px 35px;
@@ -40,6 +62,8 @@ body {
   z-index: 1;
 }
 
+/* ── 5. 타이틀 & 로고 ────────────────────── */
+/* 주황색 h1 타이틀 + 로고 이미지 여백 조정 */
 h1 {
   color: #ff8c42; /* 왼쪽 원본 화면의 주황색 계열 타이틀 반영 */
   font-size: 36px;
@@ -60,6 +84,8 @@ h1 {
   opacity: 0.9;
 }
 
+/* ── 6. 입력 필드 ────────────────────────── */
+/* 전체 너비, 둥근 모서리, 흰색 반투명 배경 */
 input {
   width: 100%;
   padding: 15px;
@@ -75,6 +101,8 @@ input:focus {
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
 }
 
+/* ── 7. 버튼 ─────────────────────────────── */
+/* 로그인·회원가입 공통 스타일 (너비·패딩·둥근 모서리) */
 /* [공통 버튼 스타일 정의] */
 .login-btn, .signup-btn {
   width: 100%;
@@ -101,6 +129,8 @@ input:focus {
   background: #ff7420;
 }
 
+/* ── 8. 구분선 ───────────────────────────── */
+/* "또는" 텍스트 양쪽에 수평선 — flex + ::before/::after pseudo-element 활용 */
 /* [또는 구분선 스타일 추가] */
 .divider {
   width: 100%;
@@ -132,16 +162,18 @@ input:focus {
   background: #ffffff;
   color: #333333;
   border: 1px solid #e0e0e0;
-  display: flex;           
-  justify-content: center; 
-  align-items: center;     
-  text-decoration: none;   
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
 }
 
 .signup-btn:hover {
   background: #f9f9f9;
 }
 
+/* ── 9. 하단 메뉴 ────────────────────────── */
+/* 회원가입 링크 등 보조 메뉴 — 중앙 정렬, 클릭 커서 */
 /* [하단 메뉴 스타일 수정] */
 .bottom-menu {
   width: 100%;

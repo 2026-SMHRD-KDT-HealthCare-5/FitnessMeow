@@ -1,3 +1,30 @@
+/**
+ * Exercise.jsx — 운동 실행 페이지
+ *
+ * 목차:
+ *   1. Refs             — DOM 참조 및 렌더 없이 유지할 운동 내부 상태값
+ *   2. State            — UI 렌더링에 필요한 상태값 (횟수·세트·피드백·타이머 등)
+ *   3. Derived Values   — state/settings에서 파생된 계산값 (진행률·칼로리·휴식 표시 등)
+ *   4. 카메라 정지       — 카메라·캔버스·스트림 전부 정리하는 클린업 함수
+ *   5. 운동 완료 처리    — 카메라 정지 → DB 저장 → /result 페이지 이동
+ *   6. 운동 상태 업데이트 — 포즈 감지 결과를 받아 횟수/세트/휴식 처리 (매 프레임 호출)
+ *   7. 포즈 감지 결과 처리 — 캔버스에 영상/스켈레톤 그리기 + 운동 로직 실행
+ *   8. Pose 인스턴스 생성 — MediaPipe Pose 객체 초기화 및 콜백 설정
+ *   9. 카메라 시작       — MediaPipe 스크립트 로드 → Pose 생성 → Camera 시작
+ *   10. 화면공유 테스트  — 웹캠 대신 화면공유 스트림으로 포즈 감지 (개발용)
+ *   11. 휴식 건너뛰기    — 휴식 타이머 즉시 종료
+ *   12. Effects          — 타입 변경·경과 시간·휴식 타이머·언마운트 클린업
+ *   13. 렌더             — 카메라 카드·운동 현황·피드백·컨트롤 버튼·포기 확인 다이얼로그
+ *
+ * Props:
+ *   type     {string}  — 운동 종목 키 ('squat' | 'pushup' | 'lunge'), 기본값 'squat'
+ *   settings {object}  — { sets, reps, rest } 운동 설정값
+ *
+ * 외부 의존:
+ *   MediaPipe Pose (CDN 동적 로드)
+ *   window.__fitnessMeowLogic — 운동별 자세 판별 로직 (동적 스크립트 로드)
+ */
+
 // src/Exercise.jsx
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -73,18 +100,7 @@ function Exercise({ type = 'squat', settings }) {
   const restDisplayTime = isResting ? restRemaining : restTime;
   const restTimeText    = `${String(Math.floor(restDisplayTime / 60)).padStart(2, '0')}:${String(restDisplayTime % 60).padStart(2, '0')}`;
 
-  /* ─────────────────────────────────────────
-     4. Result Stats
-     - 운동 완료 시 DB에 저장할 최종 결과값
-     - targetSets * targetreps 로 직접 계산 (totalReps 클로저 문제 방지)
-  ───────────────────────────────────────── */
-  const resultStats = useMemo(() => ({
-    score:    Math.min(999, 800 + totalReps * 10 + gradeCountsRef.current.perfect * 8),
-    calories: calcCalories(selectedType, bodyInfo.weightKg, bodyInfo.heightCm, targetSets * targetreps),
-    perfect:  gradeCountsRef.current.perfect,
-    normal:   gradeCountsRef.current.normal,
-  }), [bodyInfo.heightCm, bodyInfo.weightKg, selectedType, totalReps, targetSets, targetreps]);
-
+  // 등급에 따른 사운드 재생 (perfect/normal)
   const playGradeSound = useCallback((grade) => {
     const sound = grade === 'perfect' ? perfectSoundRef.current : normalSoundRef.current;
     if (!sound) return;
@@ -93,7 +109,7 @@ function Exercise({ type = 'squat', settings }) {
   }, []);
 
   /* ─────────────────────────────────────────
-     5. 카메라 정지
+     4. 카메라 정지
      - 카메라/캔버스/스트림 전부 정리
   ───────────────────────────────────────── */
   const stopCamera = useCallback(() => {
@@ -105,12 +121,14 @@ function Exercise({ type = 'squat', settings }) {
       screenFrameRef.current = null;
     }
 
+    // 카메라 스트림 트랙 전체 종료 및 video srcObject 해제
     const stream = videoRef.current?.srcObject;
     if (stream) {
       stream.getTracks().forEach((t) => t.stop());
       videoRef.current.srcObject = null;
     }
 
+    // 캔버스 초기화
     const ctx = canvasRef.current?.getContext('2d');
     if (canvasRef.current && ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
@@ -123,13 +141,14 @@ function Exercise({ type = 'squat', settings }) {
   }, []);
 
   /* ─────────────────────────────────────────
-     6. 운동 완료 처리
+     5. 운동 완료 처리
      - 카메라 정지 → DB 저장 → result 페이지 이동
      - updateExerciseState 보다 먼저 선언 필요
   ───────────────────────────────────────── */
 const finishExercise = useCallback((isGiveUp = false) => {
   stopCamera();
 
+  // 최종 총 횟수 계산 — 클로저 문제를 피하기 위해 ref에서 직접 읽음
   const currentReps = Math.floor(stateRef.current.count + 1e-6);
   const totalReps = Math.min(
   currentReps + completedSetsRef.current * targetreps,
@@ -149,13 +168,14 @@ const finishExercise = useCallback((isGiveUp = false) => {
     total_reps    : totalReps
   };
 
+  // DB 저장 후 result 페이지로 이동 (서버 응답 state 전달)
   postWorkoutWithRetry(workoutData)
     .then((data) => navigate('/result', { state: data }))
     .catch(() => console.error('운동 기록 저장 실패'));
 
 }, [stopCamera, selectedType, targetreps, bodyInfo, navigate]);
   /* ─────────────────────────────────────────
-     7. 운동 상태 업데이트
+     6. 운동 상태 업데이트
      - 포즈 감지 결과를 받아 횟수/세트/휴식 처리
      - 매 프레임 호출됨
   ───────────────────────────────────────── */
@@ -225,7 +245,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
   }, [finishExercise, playGradeSound, restTime, targetreps, targetSets]);
 
   /* ─────────────────────────────────────────
-     8. 포즈 감지 결과 처리
+     7. 포즈 감지 결과 처리
      - 캔버스에 영상/스켈레톤 그리기
      - 운동 로직 실행 → updateExerciseState 호출
   ───────────────────────────────────────── */
@@ -242,12 +262,16 @@ const finishExercise = useCallback((isGiveUp = false) => {
     canvas.height = fh;
     ctx.save();
     ctx.clearRect(0, 0, fw, fh);
+    // 카메라 영상 프레임 캔버스에 그리기
     ctx.drawImage(results.image, 0, 0, fw, fh);
 
     if (results.poseLandmarks) {
+      // MediaPipe 유틸: 관절 연결선 그리기
       window.drawConnectors?.(ctx, results.poseLandmarks, window.POSE_CONNECTIONS, { color: '#30e465', lineWidth: 4 });
+      // MediaPipe 유틸: 관절 포인트 그리기
       window.drawLandmarks?.(ctx, results.poseLandmarks, { color: '#ff4d3d', lineWidth: 2 });
 
+      // 운동 종목별 자세 판별 로직 실행 (동적 로드된 전역 함수)
       const logic = window.__fitnessMeowLogic?.[LOGIC_BY_TYPE[selectedType] ?? 'squat'];
       if (typeof logic === 'function') {
         updateExerciseState(logic(results.poseLandmarks, fw, fh, stateRef.current));
@@ -260,9 +284,10 @@ const finishExercise = useCallback((isGiveUp = false) => {
   }, [selectedType, updateExerciseState]);
 
   /* ─────────────────────────────────────────
-     9. Pose 인스턴스 생성
+     8. Pose 인스턴스 생성
   ───────────────────────────────────────── */
   const createPose = useCallback(() => {
+    // MediaPipe Pose 객체 생성 — CDN 경로로 모델 파일 로케이션 설정
     const pose = new window.Pose({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
     });
@@ -273,12 +298,13 @@ const finishExercise = useCallback((isGiveUp = false) => {
   }, [onResults]);
 
   /* ─────────────────────────────────────────
-     10. 카메라 시작
+     9. 카메라 시작
      - MediaPipe 스크립트 로드 → Pose 생성 → Camera 시작
   ───────────────────────────────────────── */
   const startCamera = async () => {
     try {
       setMessage('자세 인식 모델을 불러오는 중입니다.');
+      // MediaPipe 스크립트 및 운동 로직 파일 동적 로드
       await Promise.all(MEDIAPIPE_SCRIPTS.map(loadScript));
       await loadExerciseLogicFiles();
       if (!videoRef.current) return;
@@ -304,9 +330,10 @@ const finishExercise = useCallback((isGiveUp = false) => {
   };
 
   /* ─────────────────────────────────────────
-     11. 화면공유 테스트 (TODO: 배포 전 삭제)
+     10. 화면공유 테스트 (TODO: 배포 전 삭제)
      - 웹캠 대신 화면공유 스트림으로 포즈 감지
   ───────────────────────────────────────── */
+  // 화면공유 스트림을 requestAnimationFrame으로 반복 처리
   const processScreenFrame = useCallback(async () => {
     const video = videoRef.current;
     const pose  = poseRef.current;
@@ -318,6 +345,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
     screenFrameRef.current = requestAnimationFrame(processScreenFrame);
   }, []);
 
+  // 화면공유 스트림 시작 — getDisplayMedia 사용 (개발·테스트용)
   const startScreenCapture = async () => {
     try {
       await Promise.all(MEDIAPIPE_SCRIPTS.map(loadScript));
@@ -333,6 +361,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
       await videoRef.current.play();
 
       const [track] = stream.getVideoTracks();
+      // 화면공유 종료(X버튼) 시 자동으로 카메라 정리
       if (track) track.onended = () => { stopCamera(); setMessage('화면공유 측정이 종료되었습니다.'); };
 
       startTimeRef.current = performance.now();
@@ -346,8 +375,9 @@ const finishExercise = useCallback((isGiveUp = false) => {
   };
 
   /* ─────────────────────────────────────────
-     12. 휴식 건너뛰기
+     11. 휴식 건너뛰기
   ───────────────────────────────────────── */
+  // 휴식 타이머를 즉시 0으로 설정하여 다음 세트로 진행
   const skipRest = () => {
     setRestRemaining(0);
     isRestingRef.current = false;
@@ -356,7 +386,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
   };
 
   /* ─────────────────────────────────────────
-     14. Effects
+     12. Effects
   ───────────────────────────────────────── */
 
   // 14-1. 외부 type prop 변경 감지 → 상태 초기화
@@ -402,13 +432,14 @@ const finishExercise = useCallback((isGiveUp = false) => {
   // 14-4. 컴포넌트 언마운트 시 카메라 정리
   useEffect(() => () => stopCamera(), [stopCamera]);
 
+  // 14-5. 사운드 오디오 객체 초기화 (마운트 시 1회)
   useEffect(() => {
     perfectSoundRef.current = new Audio(perfectSound);
     normalSoundRef.current = new Audio(normalSound);
   }, []);
 
   /* ─────────────────────────────────────────
-     15. Render
+     13. Render
   ───────────────────────────────────────── */
   return (
     <main className="exercise-page">
@@ -418,6 +449,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
         <section className="exercise-camera-card">
           <video ref={videoRef} playsInline muted className="exercise-video" />
           <canvas ref={canvasRef} className="exercise-pose-canvas" aria-hidden="true" />
+          {/* 카메라 꺼진 상태에서 운동 이름 + 미리보기 텍스트 표시 */}
           {!isCameraOn && (
             <div className="exercise-camera-placeholder">
               <span>{exercise.name}</span>
@@ -457,10 +489,10 @@ const finishExercise = useCallback((isGiveUp = false) => {
             </div>
           </div>
 
-          {/* 15-4. 피드백 / 등급 배지 */}
+          {/* 15-4. 피드백 / 등급 배지 — key 변경으로 CSS 애니메이션 재트리거 */}
           <div key={feedback} className="exercise-feedback-badge">{feedback}</div>
 
-          {/* 15-5. EXP 리워드 */}
+          {/* 15-5. EXP 리워드 — 횟수 완료 시 +1 EXP 팝업 */}
           <div className="exercise-reward-slot">
             <img className="exercise-reward-cat" src={cheeringCat} alt="" />
             <strong>{totalReps} EXP</strong>
@@ -482,13 +514,14 @@ const finishExercise = useCallback((isGiveUp = false) => {
               {String(elapsedTime % 60).padStart(2, '0')}
             </strong>
           </div>
+          {/* 휴식 버튼: 휴식 중일 때만 활성화, 클릭 시 건너뛰기 */}
           <button type="button" className="exercise-rest" onClick={skipRest} disabled={!isResting} aria-label="휴식">
             <span><img className="metric-icon" src={restIcon} alt="" />휴식</span>
             <strong>{restTimeText}</strong>
           </button>
         </section>
 
-        {/* 15-7. 진행 바 */}
+        {/* 15-7. 진행 바 — 현재 세트 내 진행률 표시 */}
         <div className="exercise-progress">
           <span style={{ width: `${progress}%` }} />
         </div>
@@ -500,6 +533,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
         <section className={`exercise-controls ${!isCameraOn ? 'exercise-controls--setup' : ''}`}>
           {!isCameraOn ? (
             <>
+              {/* 카메라 꺼진 상태: 시작·포기하기·화면공유 테스트 버튼 */}
               <button type="button" className="exercise-control-button exercise-control-button--pause" onClick={startCamera} aria-label="시작">
                 <span className="exercise-control-icon" aria-hidden="true">▶</span>
                 <span>시작</span>
@@ -514,6 +548,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
               </button>
             </>
           ) : (
+            // 카메라 켜진 상태: 일시정지 또는 휴식 건너뛰기 버튼
             <button
               type="button"
               className="exercise-control-button exercise-control-button--pause"
@@ -524,6 +559,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
               <span>{isResting ? '휴식 건너뛰기' : '일시정지'}</span>
             </button>
           )}
+          {/* 카메라 켜진 상태에서 포기하기 버튼 */}
           {isCameraOn && (
             <button type="button" className="exercise-control-button exercise-control-button--stop" onClick={() => setShowGiveUpConfirm(true)}>
               <span className="exercise-control-icon exercise-control-icon--stop" aria-hidden="true" />
@@ -532,6 +568,7 @@ const finishExercise = useCallback((isGiveUp = false) => {
           )}
         </section>
 
+        {/* 포기 확인 다이얼로그 — 포기하기 버튼 클릭 시 표시 */}
         {showGiveUpConfirm && (
           <div className="exercise-confirm-overlay" role="presentation">
             <section className="exercise-confirm-dialog" role="dialog" aria-modal="true" aria-label="운동 포기 확인">

@@ -1,5 +1,9 @@
 // utils/dailyQuest.cjs
-// 일일 퀘스트 자동 달성 로직 (운동 완료 시 호출)
+// 일일 퀘스트 자동 달성 로직
+//
+// 호출 시점: POST /api/workouts 트랜잭션 내부
+// 처리 순서: 운동 키·횟수 조건 체크 → care_logs INSERT → 코인 +50
+// DB 테이블: care_logs (care_type: 'feed' | 'groom' | 'clean')
 
 const CARE_QUEST_MAP = {
   squat:  { care_type: 'feed',  required_reps: 15 },

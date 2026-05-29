@@ -1,6 +1,9 @@
 /**
  * ShopItemCard.jsx — 상점 아이템 카드 컴포넌트
  *
+ * 목차:
+ *   1. 컴포넌트   — 아이템 이미지·이름·가격(또는 보유 완료) 렌더링
+ *
  * 역할:
  *   - 상점 그리드 안에서 각 아이템을 카드 형태로 표시
  *   - 보유 여부에 따라 두 가지 상태를 시각적으로 구분:
@@ -22,6 +25,11 @@
 import React from 'react';
 import coinImg from '../assets/coin.png';
 
+// ══════════════════════════════════════
+// 1. 컴포넌트
+//    isOwned 에 따라 'owned' CSS 클래스를 토글하고
+//    이미지 영역에 보유 중 오버레이를 조건부 렌더링한다.
+// ══════════════════════════════════════
 const ShopItemCard = ({ item, isOwned, onCardClick }) => {
   return (
     <div

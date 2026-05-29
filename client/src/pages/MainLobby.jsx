@@ -2,31 +2,35 @@
  * MainLobby.jsx — 메인 로비 페이지
  *
  * 전체 화면 구성 (위 → 아래):
- *   ① lobby-header  : 고양이 프로필 / 레벨·경험치 바 / 코인 / 돌봄포인트 / 아이콘 버튼
- *   ② lobby-room-area : PixiJS 방 캔버스 + 부위별 경험치 오버레이(우측)
- *   ③ CarePanel     : 오늘의 할일 (밥주기·빗질·화장실) 카드 + 돌봄포인트 표시
- *   ④ Navbar        : 하단 탭 바
+ *   ① lobby-header    : 아바타 · 닉네임 · Lv · 고양이명 · 코인 / 경험치 패널 토글 버튼
+ *   ② lobby-room-area : PixiJS 방 캔버스 + 부위별 경험치 오버레이(우측, 토글)
+ *   ③ QuestPanel      : 오늘의 할일 카드 3개 (밥주기·빗질·화장실)
+ *   ④ Navbar          : 하단 탭 바
  *
  * 주요 상태(state):
- *   character       — 서버에서 받아온 고양이 정보 (레벨·경험치·캐릭터키 등)
+ *   character       — 서버에서 받아온 고양이 정보 (레벨·부위별 경험치·캐릭터키 등)
+ *   userName        — 유저 닉네임
  *   coins           — 유저의 현재 코인
- *   carePoints      — 유저의 현재 돌봄포인트 (운동 1세트 완료 시 +1)
- *   todayStatus     — 오늘 돌봄 행동 완료 여부 { feed_done, groom_done, clean_done }
+ *   expPanelOpen    — 부위별 경험치 패널 열림 여부 (💪 버튼으로 토글)
+ *   todayStatus     — 오늘 퀘스트 완료 여부 { feed_done, groom_done, clean_done }
  *   placedFurniture — 방에 배치된 가구 목록 [{ item_keyword, x_pos, y_pos }]
  *   ownedItems      — 유저가 소유한 가구 목록 [{ item_keyword }]
+ *   roomTheme       — 현재 적용된 방 배경 { wallpaper_key, tile_key }
  *
  * API 연동:
- *   GET  /api/character       — 고양이 정보
- *   GET  /api/care/status     — 코인·돌봄포인트·오늘 돌봄 완료 여부
- *   GET  /api/inventory       — 인벤토리(소유 가구 + 배치 좌표)
- *   POST /api/coordinates     — 가구 배치 좌표 저장/업데이트
- *   DEL  /api/coordinates/:kw — 가구 배치 해제
+ *   GET   /api/auth/me          — 유저 정보 (닉네임·코인·오늘 퀘스트 완료 여부)
+ *   GET   /api/character        — 고양이 정보 (레벨·부위별 경험치·캐릭터키)
+ *   GET   /api/inventory        — 인벤토리 (소유 가구 + 배치 좌표)
+ *   POST  /api/coordinates      — 가구 배치 좌표 저장/업데이트
+ *   DEL   /api/coordinates/:kw  — 가구 배치 해제
+ *   GET   /api/room/theme       — 현재 벽지·타일 키 조회
+ *   PATCH /api/room/theme       — 벽지 또는 타일 키 변경
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import MyRoom          from '../components/MyRoom.jsx';          // PixiJS 방 캔버스
-import CarePanel       from '../components/CarePanel.jsx';       // 돌봄 행동 카드 섹션
+import QuestPanel       from '../components/QuestPanel.jsx'; // 돌봄 행동 카드 섹션
 import BodyExpPanel    from '../components/BodyExpPanel.jsx';    // 부위별 경험치 패널
 import Navbar          from '../components/Navbar.jsx';          // 하단 탭 바
 import TestCoinButton  from '../components/TestCoinButton.jsx';  // ⚠️ 개발용 코인 버튼
@@ -38,21 +42,39 @@ import '../css/MainLobby.css';
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 const MainLobby = () => {
-  // ── 상태 선언 ─────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 1. 상태 선언
+  //    고양이·유저·코인·UI 토글·가구·방 테마 등 페이지 전체 상태
+  // ══════════════════════════════════════
   const [character,       setCharacter]       = useState(null);  // 고양이 데이터
+  const [userName,        setUserName]        = useState('');    // 유저 닉네임
   const [coins,           setCoins]           = useState(0);     // 보유 코인
+  const [expPanelOpen,    setExpPanelOpen]    = useState(false); // 경험치 패널 열림 여부
   const [todayStatus,     setTodayStatus]     = useState({       // 오늘 돌봄 완료 여부
     feed_done: false, groom_done: false, clean_done: false,
   });
+  const [todayReps,       setTodayReps]       = useState({ squat: 0, pushup: 0, lunge: 0 });
   const [placedFurniture, setPlacedFurniture] = useState([]);    // 방에 배치된 가구
   const [ownedItems,      setOwnedItems]      = useState([]);    // 소유한 가구 전체
   const [invOpen,         setInvOpen]         = useState(false); // 인벤토리 열림 여부
+  const [roomTheme,       setRoomTheme]       = useState({       // 방 배경 테마
+    wallpaper_key: 'wallpaper_1',
+    tile_key:      'tile_1',
+  });
+  const [unlockedCats,    setUnlockedCats]    = useState([]);    // 해금된 고양이 목록
+  const [placedCats,      setPlacedCats]      = useState([]);    // 방에 배치된 고양이 목록
 
-  // ── 초기 데이터 로드 ───────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 2. 초기 데이터 로드
+  //    마운트 시 5개 API를 순차 호출하여 페이지 데이터 초기화
+  // ══════════════════════════════════════
   useEffect(() => {
-    fetchCharacter(); // 고양이 정보
-    fetchUserData();  // 코인·돌봄포인트·오늘 상태
-    fetchInventory(); // 인벤토리·배치 좌표
+    fetchCharacter();    // 고양이 정보
+    fetchUserData();     // 코인·돌봄포인트·오늘 상태
+    fetchInventory();    // 인벤토리·배치 좌표
+    fetchRoomTheme();    // 방 배경 테마 (벽지·타일)
+    fetchUnlockedCats(); // 해금된 고양이 전체 목록
+    fetchCatPositions(); // 방에 배치된 고양이 좌표
   }, []);
 
   /** 고양이 캐릭터 정보 조회 */
@@ -63,12 +85,41 @@ const MainLobby = () => {
     } catch { /* 로그인 안 된 경우 등 — 무시 */ }
   };
 
+  /** 해금된 고양이 전체 목록 조회 */
+  const fetchUnlockedCats = async () => {
+    try {
+      const res = await axios.get(`${API}/api/character/all`, { withCredentials: true });
+      setUnlockedCats(res.data ?? []);
+    } catch { }
+  };
+
+  /** 방에 배치된 고양이 좌표 조회 */
+  const fetchCatPositions = async () => {
+    try {
+      const res = await axios.get(`${API}/api/coordinates/cats`, { withCredentials: true });
+      setPlacedCats(res.data ?? []);
+    } catch { }
+  };
+
   /** 코인·오늘 돌봄 완료 상태 조회 */
   const fetchUserData = async () => {
     try {
       const res = await axios.get(`${API}/api/auth/me`, { withCredentials: true });
       setCoins(res.data.data?.point ?? 0);
+      setUserName(res.data.data?.name ?? '');
       setTodayStatus(res.data.data?.today_status ?? {});
+      setTodayReps(res.data.data?.today_reps ?? { squat: 0, pushup: 0, lunge: 0 });
+    } catch { }
+  };
+
+  /** 방 배경 테마 조회 — 현재 적용된 벽지·타일 키 */
+  const fetchRoomTheme = async () => {
+    try {
+      const res = await axios.get(`${API}/api/room/theme`, { withCredentials: true });
+      setRoomTheme({
+        wallpaper_key: res.data.wallpaper_key ?? 'wallpaper_1',
+        tile_key:      res.data.tile_key      ?? 'tile_1',
+      });
     } catch { }
   };
 
@@ -78,19 +129,37 @@ const MainLobby = () => {
       const res = await axios.get(`${API}/api/inventory`, { withCredentials: true });
       const items = res.data ?? [];
 
-      // 소유 가구 전체 (배치 여부 무관)
-      setOwnedItems(items.map(i => ({ item_keyword: i.item_keyword })));
+      // 소유 아이템 전체 — icon_name, size, category, item_name 포함
+      setOwnedItems(items.map(i => ({
+        item_keyword: i.item_keyword,
+        icon_name:    i.icon_name,
+        size_w:       i.size_w,
+        size_h:       i.size_h,
+        category:     i.category,
+        item_name:    i.item_name,
+      })));
 
-      // x_pos·y_pos 가 있는 항목만 → 방에 배치된 가구
+      // x_pos·y_pos 가 있는 항목만 → 방에 배치된 가구 (스프라이트 생성에 필요한 필드 포함)
       setPlacedFurniture(
         items
           .filter(i => i.x_pos != null && i.y_pos != null)
-          .map(i => ({ item_keyword: i.item_keyword, x_pos: i.x_pos, y_pos: i.y_pos })),
+          .map(i => ({
+            item_keyword: i.item_keyword,
+            icon_name:    i.icon_name,
+            size_w:       i.size_w,
+            size_h:       i.size_h,
+            x_pos:        i.x_pos,
+            y_pos:        i.y_pos,
+            z_order:      i.z_order ?? 10,
+          })),
       );
     } catch { }
   };
 
-  // ── 가구 드래그 이동 핸들러 ────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 3. 가구 드래그 이동 핸들러
+  //    PixiJS에서 드래그 완료 시 호출 — 낙관적 UI 업데이트 + 서버 좌표 저장
+  // ══════════════════════════════════════
   /**
    * PixiJS 캔버스에서 가구를 드래그로 옮겼을 때 호출됨
    * 1) UI 상태 즉시 반영 (낙관적 업데이트)
@@ -105,7 +174,10 @@ const MainLobby = () => {
     } catch { }
   }, []);
 
-  // ── 가구 배치/해제 토글 핸들러 ────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 4. 가구 배치/해제 토글 핸들러
+  //    인벤토리 패널 클릭 시 배치 ↔ 해제 토글 (DB 동기화 포함)
+  // ══════════════════════════════════════
   /**
    * 인벤토리 패널에서 가구 클릭 시 호출됨
    * - 이미 배치된 가구 → 해제 (DB 좌표 삭제)
@@ -121,59 +193,117 @@ const MainLobby = () => {
       try { await axios.delete(`${API}/api/coordinates/${item_keyword}`, { withCredentials: true }); }
       catch { }
     } else {
-      // 기본 위치에 배치 (캔버스 중앙: 320, 240)
-      setPlacedFurniture(prev => [...prev, { item_keyword, x_pos: 320, y_pos: 240 }]);
+      // 기본 위치에 배치 — ownedItems에서 icon_name/size 등 메타 포함
+      const fullItem = ownedItems.find(i => i.item_keyword === item_keyword) ?? { item_keyword };
+      setPlacedFurniture(prev => [...prev, { ...fullItem, x_pos: 195, y_pos: 435, z_order: 10 }]);
       try {
-        await axios.post(`${API}/api/coordinates`, { item_keyword, x_pos: 320, y_pos: 240 }, { withCredentials: true });
+        await axios.post(`${API}/api/coordinates`, { item_keyword, x_pos: 195, y_pos: 435 }, { withCredentials: true });
       } catch { }
     }
-  }, [placedFurniture]);
+  }, [placedFurniture, ownedItems]);
 
-  // ── 헤더 표시용 계산값 ────────────────────────────────────────────────────
-  const level  = character?.level   ?? 1;   // 현재 레벨 (없으면 1)
-  const maxExp = character?.max_exp ?? 30;  // 레벨업에 필요한 최대 경험치
+  // ══════════════════════════════════════
+  // 5. 고양이 배치/해제 토글 핸들러
+  // ══════════════════════════════════════
+  const handleToggleCat = useCallback(async (character_key, level) => {
+    const cat_key = `cat_${character_key}_lv${level}`;
+    const isPlaced = placedCats.some(c => c.cat_key === cat_key);
 
-  // 팔·가슴·코어·하체 경험치의 평균값 → 헤더 EXP 바에 표시
-  const avgExp = character
-    ? ((character.arm_exp ?? 0) + (character.chest_exp ?? 0) +
-       (character.core_exp ?? 0) + (character.lower_exp ?? 0)) / 4
-    : 0;
+    if (isPlaced) {
+      setPlacedCats(prev => prev.filter(c => c.cat_key !== cat_key));
+      try { await axios.delete(`${API}/api/coordinates/${cat_key}`, { withCredentials: true }); }
+      catch { }
+    } else {
+      const newCat = { cat_key, character_key, level, x_pos: 195, y_pos: 435 };
+      setPlacedCats(prev => [...prev, newCat]);
+      try {
+        await axios.post(`${API}/api/coordinates`, { item_keyword: cat_key, x_pos: 195, y_pos: 435 }, { withCredentials: true });
+      } catch { }
+    }
+  }, [placedCats]);
 
-  const expPct  = Math.min((avgExp / maxExp) * 100, 100); // EXP 바 퍼센트 (100% 초과 방지)
-  const catName = character?.character_name ?? '냥이';     // 고양이 이름
+  /** 고양이 드래그 이동 핸들러 */
+  const handleCatMove = useCallback(async (cat_key, x, y) => {
+    setPlacedCats(prev =>
+      prev.map(c => c.cat_key === cat_key ? { ...c, x_pos: x, y_pos: y } : c),
+    );
+    try {
+      await axios.post(`${API}/api/coordinates`, { item_keyword: cat_key, x_pos: x, y_pos: y }, { withCredentials: true });
+    } catch { }
+  }, []);
 
-  // ── 렌더 ──────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════
+  // 6. 배경 테마 적용 핸들러
+  //    벽지/타일 선택 시 UI 즉시 반영 + PATCH /api/room/theme 서버 저장
+  // ══════════════════════════════════════
+  /**
+   * 인벤토리 패널의 벽지·타일 탭에서 "적용" 버튼 클릭 시 호출됨
+   * 1) UI 즉시 반영 (낙관적 업데이트)
+   * 2) 서버에 PATCH /api/room/theme 으로 저장
+   *
+   * @param {'wallpaper'|'tile'} type  — 변경할 배경 종류
+   * @param {string}             key   — 적용할 item_keyword
+   */
+  const handleApplyBackground = useCallback(async (type, key) => {
+    if (type === 'wallpaper') {
+      setRoomTheme(prev => ({ ...prev, wallpaper_key: key }));
+      try {
+        await axios.patch(`${API}/api/room/theme`, { wallpaper_key: key }, { withCredentials: true });
+      } catch { }
+    } else if (type === 'tile') {
+      setRoomTheme(prev => ({ ...prev, tile_key: key }));
+      try {
+        await axios.patch(`${API}/api/room/theme`, { tile_key: key }, { withCredentials: true });
+      } catch { }
+    }
+  }, []);
+
+  // ══════════════════════════════════════
+  // 7. 헤더 표시용 계산값
+  //    character 상태에서 레벨·이름 파생 (null 안전 처리 포함)
+  // ══════════════════════════════════════
+  const level   = character?.level          ?? 1;      // 현재 레벨 (없으면 1)
+  const catName = character?.character_name ?? '냥이'; // 고양이 이름
+
+  // ══════════════════════════════════════
+  // 8. 렌더
+  //    헤더 → 방 캔버스 → 퀘스트 패널 → Navbar (+ 개발용 코인 버튼)
+  // ══════════════════════════════════════
   return (
     <div className="lobby-page">
 
       {/* ══════════════ ① 상단 헤더 ══════════════ */}
       <header className="lobby-header">
 
-        {/* 고양이 프로필: 아바타 + 이름 + 레벨 + EXP 바 */}
+        {/* 고양이 프로필: 아바타 + 이름 + 레벨 + 닉네임 + 코인 */}
         <div className="lh-profile">
           <img src={profileImg} alt="프로필" className="lh-avatar" />
+          
           <div className="lh-lv-block">
-            <span className="lh-cat-name">{catName}</span>
+            <span className="lh-username">{userName}</span>
+
             <div className="lh-lv-row">
               <span className="lh-lv-badge">Lv. {level}</span>
-              {/* EXP 진행 바 — width는 avgExp / maxExp 비율로 계산 */}
-              <div className="lh-exp-track">
-                <div className="lh-exp-fill" style={{ width: `${expPct}%` }} />
-              </div>
-              <span className="lh-exp-text">{Math.round(avgExp)}/{maxExp}</span>
+              {userName && <span className="lh-cat-name">{catName}</span>}
             </div>
+          </div>
+          
+          {/* 코인 표시 pill */}
+          <div className="lh-pill lh-coin">
+            <img src={coinImg} alt="코인" className="lh-coin-img" />
+            <span>{coins.toLocaleString()}</span>
           </div>
         </div>
 
-        {/* 코인 표시 pill */}
-        <div className="lh-pill lh-coin">
-          <img src={coinImg} alt="코인" className="lh-coin-img" />
-          <span>{coins.toLocaleString()}</span>
-        </div>
 
-        {/* 우측 아이콘 버튼: 출석·설정 */}
+        {/* 우측 아이콘 버튼: 경험치 패널 토글 · 설정 */}
         <div className="lh-icons">
-          <button className="lh-icon-btn" title="출석">📅</button>
+          <button
+            className={`lh-icon-btn${expPanelOpen ? ' active' : ''}`}
+            title="경험치 패널"
+            onClick={() => setExpPanelOpen(v => !v)}
+          >💪</button>
+
           <button className="lh-icon-btn" title="설정">⚙️</button>
         </div>
       </header>
@@ -196,19 +326,26 @@ const MainLobby = () => {
           onToggleFurniture={handleToggleFurniture}
           invOpen={invOpen}
           onInvToggle={setInvOpen}
+          wallpaperKey={roomTheme.wallpaper_key}
+          tileKey={roomTheme.tile_key}
+          onApplyBackground={handleApplyBackground}
+          unlockedCats={unlockedCats}
+          placedCats={placedCats}
+          onToggleCat={handleToggleCat}
+          onCatMove={handleCatMove}
         />
 
-        {/* 부위별 경험치 오버레이 — 절대 위치(우측 상단) */}
-        <div className="room-overlay-right">
-          <BodyExpPanel character={character} />
-        </div>
+        {/* 부위별 경험치 오버레이 — 절대 위치(우측 상단), 버튼으로 토글 */}
+        {expPanelOpen && (
+          <div className="room-overlay-right">
+            <BodyExpPanel character={character} />
+          </div>
+        )}
       </div>
 
-      {/* ══════════════ ③ 돌봄 섹션 ══════════════ */}
+      {/* ══════════════ ③ 일일퀘스트 섹션 ══════════════ */}
       {/*
-        CarePanel은 오늘의 할일 카드 3개(밥주기·빗질·화장실) +
-        돌봄포인트 표시 카드로 구성됨.
-        돌봄 행동 1회 = 돌봄포인트 1 소모 + 코인 +50 획득
+        QuestPanel은 오늘의 할일 카드 3개(밥주기·빗질·화장실)로 구성됨.
       */}
       {/* 인벤토리 열릴 때 먼저 사라지고, 닫힐 때 다시 나타남 */}
       <div style={{
@@ -216,7 +353,7 @@ const MainLobby = () => {
         visibility: invOpen ? 'hidden' : 'visible',
         transition: 'opacity 0.15s ease',
       }}>
-        <CarePanel todayStatus={todayStatus} />
+        <QuestPanel todayStatus={todayStatus} todayReps={todayReps} />
       </div>
 
       {/* ══════════════ ④ 하단 탭 바 ══════════════ */}

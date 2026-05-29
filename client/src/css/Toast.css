@@ -1,3 +1,14 @@
+/* ══════════════════════════════════════════
+   Toast.css — 전역 토스트 알림 컴포넌트
+
+   목차:
+     1. 토스트 공통   — 고정 위치, 애니메이션 기본값
+     2. 타입별 색상   — error(빨강) / success(초록) / info(파랑)
+     3. 등장 애니메이션 — 슬라이드 인 → 유지 → 페이드아웃
+══════════════════════════════════════════ */
+
+/* ── 1. 토스트 공통 ──────────────────────── */
+/* 화면 상단 중앙에 고정, z-index: 9999로 항상 최상단 표시 */
 /* ── 토스트 공통 ── */
 .toast {
   position: fixed;
@@ -12,11 +23,15 @@
   white-space: nowrap;
 }
 
+/* ── 2. 타입별 색상 ──────────────────────── */
+/* error: 빨강 / success: 초록 / info: 파랑 */
 /* ── 타입별 색상 ── */
-.toast--error   { background: #ff4d4f; color: #fff; }
-.toast--success { background: #52c41a; color: #fff; }
-.toast--info    { background: #1890ff; color: #fff; }
+.toast-error   { background: #ff6b6b; color: #fff; }
+.toast-success { background: #ff9f43; color: #fff; }
+.toast-info    { background: #1890ff; color: #fff; }
 
+/* ── 3. 등장 애니메이션 ──────────────────── */
+/* 위에서 슬라이드 인(0→15%) → 유지(15→80%) → 페이드아웃(80→100%) */
 /* ── 등장 → 유지 → 페이드아웃 ── */
 @keyframes toast-in-out {
   0%   { opacity: 0; transform: translateX(-50%) translateY(-8px); }
