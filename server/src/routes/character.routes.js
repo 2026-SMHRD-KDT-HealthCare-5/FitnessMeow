@@ -1,16 +1,38 @@
+/**
+ * character.routes.js — 캐릭터 조회 API 라우터
+ *
+ * 목차:
+ *   1. 모듈 임포트        — Express, DB
+ *   2. GET /all           — 해금된 모든 캐릭터 목록 반환
+ *   3. GET /              — 현재(최신) 캐릭터 상세 정보 반환
+ */
+
+// ══════════════════════════════════════
+// 1. 모듈 임포트
+// ══════════════════════════════════════
 // routes/character.routes.js
+
 const express = require('express');
 const router  = express.Router();
 const db      = require('../db');
-const { CHARACTER_CONFIG } = require('../config/characters.cjs');
 
+// ══════════════════════════════════════
+// 2. GET /all
+//    유저가 보유한 모든 캐릭터 목록 반환
+//    character_masters 와 LEFT JOIN 하여 캐릭터 이름 포함
+//    생성일 오름차순 정렬 (첫 번째 캐릭터가 맨 앞)
+// ══════════════════════════════════════
 /* ── GET /api/character/all — 해금된 모든 고양이 목록 ── */
 router.get('/all', async (req, res) => {
   const user_idx = req.session.user?.user_idx;
   if (!user_idx) return res.status(401).json({ message: '로그인 필요' });
   try {
     const [rows] = await db.query(
-      'SELECT character_key, level FROM characters WHERE user_idx = ? ORDER BY created_at ASC',
+      `SELECT c.character_key, c.level, cm.character_name
+       FROM characters c
+       LEFT JOIN character_masters cm ON cm.character_key = c.character_key
+       WHERE c.user_idx = ?
+       ORDER BY c.created_at ASC`,
       [user_idx],
     );
     res.json(rows);
@@ -20,11 +42,18 @@ router.get('/all', async (req, res) => {
   }
 });
 
+// ══════════════════════════════════════
+// 3. GET /
+//    현재 활성 캐릭터(가장 최근 생성) 상세 정보 반환
+//    character_masters 에서 이름 + 레벨별 max_exp 조회
+// ══════════════════════════════════════
+/* ── GET /api/character — 현재(최신) 캐릭터 ── */
 router.get('/', async (req, res) => {
   const user_idx = req.session.user?.user_idx;
   if (!user_idx) return res.status(401).json({ message: '로그인 필요' });
 
   try {
+    // 가장 최근에 생성된 캐릭터를 현재 캐릭터로 사용
     const [rows] = await db.query(
       `SELECT character_key, level, arm_exp, chest_exp, core_exp, lower_exp
        FROM characters
@@ -35,38 +64,23 @@ router.get('/', async (req, res) => {
 
     if (!rows.length) return res.status(404).json({ message: '캐릭터 없음' });
 
-    const char     = rows[0];
-    const config   = CHARACTER_CONFIG[char.character_key];
-    const levelKey = `lv${char.level}`;
+    const char = rows[0];
 
-    // ── Lv3 자동 해금 체크 ───────────────────────────────────────────
-    // 현재 캐릭터가 Lv3인데 다음 캐릭터가 없으면 자동 생성
-    if (Number(char.level) === 3) {
-      const next_key = Object.keys(CHARACTER_CONFIG).find(key => {
-        const cond = CHARACTER_CONFIG[key].unlock_condition;
-        return cond?.prev_character === char.character_key && cond?.badge == null;
-      });
-      if (next_key) {
-        const [[existing]] = await db.query(
-          'SELECT character_idx FROM characters WHERE user_idx = ? AND character_key = ?',
-          [user_idx, next_key],
-        );
-        if (!existing) {
-          await db.query(
-            `INSERT INTO characters
-               (user_idx, character_key, level, arm_exp, chest_exp, core_exp, lower_exp)
-             VALUES (?, ?, '1', 0, 0, 0, 0)`,
-            [user_idx, next_key],
-          );
-        }
-      }
-    }
-    // ────────────────────────────────────────────────────────────────
+    // character_masters 에서 이름 + max_exp 조회
+    const [[master]] = await db.query(
+      `SELECT character_name, lv1_max_exp, lv2_max_exp, lv3_max_exp
+       FROM character_masters
+       WHERE character_key = ?`,
+      [char.character_key],
+    );
+
+    // 현재 레벨에 해당하는 max_exp 키 선택 (예: lv2_max_exp)
+    const levelKey = `lv${char.level}_max_exp`;
 
     res.json({
       ...char,
-      max_exp:        config?.max_exp?.[levelKey] ?? 30,
-      character_name: config?.character_name      ?? char.character_key,
+      max_exp:        master?.[levelKey]     ?? 30,
+      character_name: master?.character_name ?? char.character_key,
     });
   } catch (err) {
     console.error('GET /api/character 오류:', err);
