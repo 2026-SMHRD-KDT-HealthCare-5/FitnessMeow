@@ -184,7 +184,7 @@
 .lobby-room-area {
   flex: 1;       
   min-height: 0;
-   max-height: calc(100dvh - 257px);/* header·care-section이 절대 위치이므로, 남은 공간(= 100dvh - Navbar) 전부 차지 */
+   max-height: calc(100dvh - 250px);/* header·care-section이 절대 위치이므로, 남은 공간(= 100dvh - Navbar) 전부 차지 */
   position: relative;
   overflow: hidden;
 }

@@ -132,8 +132,8 @@ function getFurnitureUrl(icon_name) {
 //    WALL_H: 벽지(상단 0~WALL_H) / 타일(하단 WALL_H~580) 경계선
 // ══════════════════════════════════════
 
-// 캔버스 내부 해상도 — 모바일 2:3 비율 (표시 크기와 1:1 매칭) 1:195
-const CANVAS_W = 390+390;
+// 캔버스 내부 해상도 — 
+const CANVAS_W = 390+600;
 const CANVAS_H = 580+580;
 // 벽지(상단 0~WALL_H) / 타일(하단 WALL_H~580) 경계선 — 각 50%
 const WALL_H   = 580;
