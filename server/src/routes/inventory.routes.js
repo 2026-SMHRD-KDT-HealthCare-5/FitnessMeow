@@ -1,6 +1,10 @@
 /**
  * inventory.routes.js — 인벤토리 API 라우터
  *
+ * 목차:
+ *   1. 모듈 임포트        — Express, DB
+ *   2. GET /             — 소유 아이템 + 배치 좌표 통합 반환
+ *
  * 역할:
  *   - 유저가 상점에서 구매한 아이템 목록과 방 배치 좌표를 함께 반환
  *   - 프론트의 두 가지 상태(ownedItems, placedFurniture)를 단일 API 호출로 초기화
@@ -25,6 +29,9 @@
  *   → MainLobby.jsx fetchInventory 함수에서 filter 로 분리
  */
 
+// ══════════════════════════════════════
+// 1. 모듈 임포트
+// ══════════════════════════════════════
 const express = require('express');
 const router  = express.Router();
 const db      = require('../db');
@@ -39,6 +46,12 @@ const db      = require('../db');
      { item_keyword: "toy_1",      quantity: 1, x_pos: null, y_pos: null }
    ]
 ════════════════════════════════════════════ */
+
+// ══════════════════════════════════════
+// 2. GET /
+//    user_items LEFT JOIN coordinates 로 소유 아이템과 배치 좌표를 한 번에 반환
+//    배치되지 않은 아이템의 x_pos/y_pos 는 NULL
+// ══════════════════════════════════════
 router.get('/', async (req, res) => {
   // 세션에서 로그인 유저 식별
   const user_idx = req.session.user?.user_idx;
@@ -49,13 +62,20 @@ router.get('/', async (req, res) => {
       `SELECT
          ui.item_keyword,              -- 아이템 고유 키 (예: "cattower_1")
          ui.quantity,                  -- 보유 수량 (현재 정책상 항상 1)
-         c.pos_x AS x_pos,            -- 배치 X 좌표 (미배치면 NULL)
-         c.pos_y AS y_pos             -- 배치 Y 좌표 (미배치면 NULL)
+         c.pos_x  AS x_pos,           -- 배치 X 좌표 (미배치면 NULL)
+         c.pos_y  AS y_pos,           -- 배치 Y 좌표 (미배치면 NULL)
+         c.z_order,                   -- 렌더링 z순서
+         i.icon_name,                 -- 이미지 파일명
+         i.size_w,                    -- 가구 가로 크기(칸)
+         i.size_h,                    -- 가구 세로 크기(칸)
+         i.category,                  -- 카테고리 (furniture / wallpaper / tile)
+         i.item_name                  -- 표시 이름
        FROM user_items ui
-       -- 배치 좌표가 없는 아이템도 포함하기 위해 LEFT JOIN 사용
        LEFT JOIN coordinates c
          ON  c.user_idx     = ui.user_idx
          AND c.item_keyword = ui.item_keyword
+       LEFT JOIN items i
+         ON  i.item_keyword = ui.item_keyword
        WHERE ui.user_idx = ?`,
       [user_idx],
     );
