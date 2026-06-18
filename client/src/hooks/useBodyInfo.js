@@ -16,7 +16,7 @@
 import { useState, useEffect } from 'react';
 
 // 환경변수 VITE_API_URL 우선 사용, 없으면 localhost:3001 폴백
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL ?? '';
 
 // ══════════════════════════════════════
 // 1. 상태 초기화

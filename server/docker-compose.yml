@@ -8,8 +8,6 @@ services:
       MYSQL_USER: fitnessmeow
       MYSQL_PASSWORD: fitnessmeow_password
       MYSQL_ROOT_PASSWORD: root_password
-    ports:
-      - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
@@ -38,17 +36,6 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: fitnessmeow-client
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    depends_on:
-      - server
 
 volumes:
   mysql-data:
