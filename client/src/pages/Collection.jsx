@@ -40,7 +40,7 @@ import { getCatUrl } from '../utils/catUtils.js'; // 캐릭터 이미지 URL 공
 import '../css/Collection.css';
 
 // 서버 주소: .env 에 VITE_API_URL 이 있으면 사용, 없으면 로컬 3001포트
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const API = '';
 
 // ══════════════════════════════════════
 // 1. 상수 정의

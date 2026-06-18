@@ -29,7 +29,7 @@ import axios from 'axios';
 //    toast:   성공/오류 피드백 메시지 { msg, type: 'ok'|'err' }
 // ══════════════════════════════════════
 
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const API = '';
 
 const TestCoinButton = ({
   onCoinsChange,

@@ -13,7 +13,7 @@
 // ══════════════════════════════════════
 
 // 하드코딩 제거 → env 변수로 관리 (보안)
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const API = '';
 
 // ms 만큼 대기하는 Promise 반환 (재시도 간격 조절용)
 function wait(ms) {

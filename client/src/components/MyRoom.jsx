@@ -29,8 +29,7 @@ import * as PIXI from 'pixi.js';
 import axios from 'axios';
 import '../css/MyRoom.css';
 
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-
+const API = '';
 // 고양이 소리 파일 (assets/catsounds/ 하위 전체)
 const CAT_SOUND_URLS = import.meta.glob(
   '../assets/catsounds/**/*',

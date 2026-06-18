@@ -19,7 +19,7 @@ import PurchaseModal from '../components/PurchaseModal.jsx';
 import ToastMessage  from '../components/ToastMessage.jsx';
 import axios         from 'axios';
 
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const API = '';
 
 // ══════════════════════════════════════
 // 1. 이미지 매핑

@@ -20,7 +20,7 @@ import logoImg from "../assets/logo.png";
 // ══════════════════════════════════════
 
 // API 서버 기본 주소
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const API = '';
 
 const Register = () => {
   const navigate = useNavigate();

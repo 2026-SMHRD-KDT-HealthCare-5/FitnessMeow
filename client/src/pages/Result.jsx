@@ -37,7 +37,7 @@ import coinImg from "../assets/coin.png";
 ════════════════════════════════════════════ */
 // 캐릭터 폴더 하위 모든 PNG를 eager 로드하여 경로 → URL 맵 생성
 const IMAGES = import.meta.glob('../assets/characters/**/*.png', { eager: true });
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const API = '';
 
 // 캐릭터 키 + 레벨로 이미지 URL 조회 (파일 없으면 null 반환)
 function getCharacterImage(configKey, level) {

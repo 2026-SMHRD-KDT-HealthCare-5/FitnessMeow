@@ -39,7 +39,7 @@ import profileImg   from '../assets/profile.png';         // 프로필 기본 �
 import '../css/MainLobby.css';
 
 // 서버 주소: .env 에 VITE_API_URL 이 있으면 사용, 없으면 로컬 3001포트
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const API = '';
 
 const MainLobby = () => {
   // ══════════════════════════════════════
