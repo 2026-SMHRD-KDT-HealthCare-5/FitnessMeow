@@ -32,7 +32,7 @@ function wait(ms) {
 export async function postWorkoutWithRetry(workoutData, maxAttempts = 3) {
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      const response = await fetch(`${API_URL}/api/workouts`, {
+      const response = await fetch(`${API}/api/workouts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

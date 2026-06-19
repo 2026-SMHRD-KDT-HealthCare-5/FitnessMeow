@@ -42,7 +42,7 @@ const Login = () => {
   // 로그인 버튼 클릭 시 실행 — fetch로 세션 쿠키 포함 로그인 요청
   async function handleLogin() {
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      const res = await fetch(`${API}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -53,7 +53,7 @@ const Profile = () => {
   // 마운트 시 최근 운동 기록 1건 조회
   useEffect(() => {
     axios
-      .get(`${API_URL}/api/result`, { withCredentials: true })
+      .get(`${API}/api/result`, { withCredentials: true })
       .then((res) => {
         setWorkout(res.data.workout ?? null); // workout 필드만 사용
         setLoading(false);

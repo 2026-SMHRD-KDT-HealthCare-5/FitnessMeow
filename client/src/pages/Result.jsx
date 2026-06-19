@@ -144,7 +144,7 @@ const Result = () => {
       return;
     }
 
-    fetch(`${API_URL}/api/result`, { credentials: 'include' })
+    fetch(`${API}/api/result`, { credentials: 'include' })
       .then((r) => {
         if (!r.ok) throw new Error(`result API ${r.status}`);
         return r.json();
