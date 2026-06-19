@@ -64,11 +64,11 @@ app.use(session({
   resave: false,            // 변경 없으면 저장 안 함
   saveUninitialized: false, // 빈 세션 저장 안 함
   cookie: {
-    httpOnly: true,                                          // JS 에서 쿠키 접근 차단
-    secure: process.env.NODE_ENV === 'production',          // HTTPS 환경에서만 true
-    sameSite: 'lax',                                        // 크로스 사이트 쿠키 차단
-    maxAge: 1000 * 60 * 60 * 24,                           // 24시간
-  },
+    httpOnly: true,
+    secure: false,   // TODO: HTTPS 적용 후 다시 true로 변경
+    sameSite: 'lax',
+    maxAge: 1000 * 60 * 60 * 24,
+},
 }));
 
 // ══════════════════════════════════════
