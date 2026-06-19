@@ -22,6 +22,7 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  overflow-y: auto;
 }
 
 /* ── 2. 설정 카드 ────────────────────────── */
@@ -105,7 +106,7 @@
   height: 118px;
   min-height: 118px;
   border-radius: 16px;
-  overflow-y: auto;
+  overflow-y: hidden;
   background: #f7f5f0;
   border: 1px solid rgba(34, 34, 34, 0.05);
   display: grid;
